@@ -57,10 +57,9 @@ const YT_FAST_ARGS = [
   "--no-warnings",
   "--no-playlist",
   "--skip-download",
-  "--no-check-formats",
   "--socket-timeout", "15",
   "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-  "--extractor-args", "youtube:player_client=web,default;skip=hls,dash,translated_subs",
+  "--extractor-args", "youtube:player_client=web,default",
 ];
 
 export async function getVideoInfo(url: string): Promise<any> {
