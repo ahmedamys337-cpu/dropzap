@@ -1,7 +1,25 @@
 import { execFile } from "child_process";
 import { promisify } from "util";
+import { writeFileSync } from "fs";
+import { join } from "path";
+import { tmpdir } from "os";
 
 const execFileAsync = promisify(execFile);
+
+// Write YouTube cookies from env var to a temp file once at startup
+let cookiesFilePath: string | null = null;
+if (process.env.YOUTUBE_COOKIES) {
+  try {
+    cookiesFilePath = join(tmpdir(), "yt-cookies.txt");
+    writeFileSync(cookiesFilePath, process.env.YOUTUBE_COOKIES, "utf-8");
+  } catch {
+    cookiesFilePath = null;
+  }
+}
+
+function getCookiesArgs(): string[] {
+  return cookiesFilePath ? ["--cookies", cookiesFilePath] : [];
+}
 
 // In-memory cache for video info (5 min TTL)
 type CacheEntry = { data: any; expires: number };
@@ -40,7 +58,6 @@ const YT_FAST_ARGS = [
   "--no-playlist",
   "--skip-download",
   "--no-check-formats",
-  "--no-call-home",
   "--socket-timeout", "15",
   "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
   "--extractor-args", "youtube:player_client=web,default;skip=hls,dash,translated_subs",
@@ -54,7 +71,8 @@ export async function getVideoInfo(url: string): Promise<any> {
     url,
     "--dump-single-json",
     ...YT_FAST_ARGS,
-  ], { timeout: 25000, maxBuffer: 10 * 1024 * 1024 });
+    ...getCookiesArgs(),
+  ], { timeout: 30000, maxBuffer: 10 * 1024 * 1024 });
 
   const data = JSON.parse(stdout);
   cacheSet(url, data);
@@ -73,8 +91,9 @@ export async function getVideoInfoSkipDownload(url: string): Promise<any> {
     "--no-playlist",
     "--skip-download",
     "--no-check-formats",
-    "--socket-timeout", "10",
-  ], { timeout: 25000, maxBuffer: 10 * 1024 * 1024 });
+    "--socket-timeout", "15",
+    ...getCookiesArgs(),
+  ], { timeout: 30000, maxBuffer: 10 * 1024 * 1024 });
 
   const data = JSON.parse(stdout);
   cacheSet(url, data);
