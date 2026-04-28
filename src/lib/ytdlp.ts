@@ -29,11 +29,11 @@ function cacheSet(key: string, data: any) {
 }
 
 // Fast YouTube extraction flags
+// - player_client=web,default — use web client to avoid cloud IP bot detection
 // - skip=hls,dash,translated_subs — skip extra manifests we don't need
 // - --no-check-formats — skip HEAD-request validation of every format URL
-// - --socket-timeout 10 — fail fast on stuck network
+// - --socket-timeout 15 — slightly longer for cloud network latency
 // - --no-call-home — skip yt-dlp's update check call
-// NOTE: We don't set player_client; yt-dlp's default selection is fastest.
 const YT_FAST_ARGS = [
   "--no-check-certificates",
   "--no-warnings",
@@ -41,8 +41,9 @@ const YT_FAST_ARGS = [
   "--skip-download",
   "--no-check-formats",
   "--no-call-home",
-  "--socket-timeout", "10",
-  "--extractor-args", "youtube:skip=hls,dash,translated_subs",
+  "--socket-timeout", "15",
+  "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+  "--extractor-args", "youtube:player_client=web,default;skip=hls,dash,translated_subs",
 ];
 
 export async function getVideoInfo(url: string): Promise<any> {

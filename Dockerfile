@@ -22,15 +22,14 @@ RUN npm run build
 FROM node:20-slim AS runner
 WORKDIR /app
 
-# Install runtime system deps: yt-dlp + ffmpeg
+# Install runtime system deps: ffmpeg + yt-dlp (latest binary, no Python needed)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3 \
-    python3-pip \
     ffmpeg \
     curl \
     ca-certificates \
-    && pip3 install --break-system-packages --no-cache-dir yt-dlp \
-    && apt-get purge -y --auto-remove python3-pip \
+    && curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp \
+       -o /usr/local/bin/yt-dlp \
+    && chmod a+rx /usr/local/bin/yt-dlp \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
