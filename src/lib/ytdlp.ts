@@ -12,9 +12,13 @@ if (process.env.YOUTUBE_COOKIES) {
   try {
     cookiesFilePath = join(tmpdir(), "yt-cookies.txt");
     writeFileSync(cookiesFilePath, process.env.YOUTUBE_COOKIES, "utf-8");
-  } catch {
+    console.log("[yt-dlp] Cookies written:", process.env.YOUTUBE_COOKIES.length, "bytes");
+  } catch (e) {
+    console.error("[yt-dlp] Failed to write cookies file:", e);
     cookiesFilePath = null;
   }
+} else {
+  console.warn("[yt-dlp] No YOUTUBE_COOKIES env var — YouTube may fail on cloud IPs");
 }
 
 function getCookiesArgs(): string[] {
@@ -58,6 +62,7 @@ const YT_FAST_ARGS = [
   "--no-playlist",
   "--skip-download",
   "--socket-timeout", "15",
+  "--format", "bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best",
 ];
 
 export async function getVideoInfo(url: string): Promise<any> {
