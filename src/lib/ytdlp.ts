@@ -58,21 +58,20 @@ const YT_FAST_ARGS = [
   "--no-playlist",
   "--skip-download",
   "--socket-timeout", "15",
-  "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-  "--extractor-args", "youtube:player_client=web,default",
 ];
 
 export async function getVideoInfo(url: string): Promise<any> {
   const cached = cacheGet(url);
   if (cached) return cached;
 
-  const { stdout } = await execFileAsync("yt-dlp", [
+  const { stdout, stderr } = await execFileAsync("yt-dlp", [
     url,
     "--dump-single-json",
     ...YT_FAST_ARGS,
     ...getCookiesArgs(),
   ], { timeout: 30000, maxBuffer: 10 * 1024 * 1024 });
 
+  if (stderr) console.error("[yt-dlp stderr]", stderr.slice(0, 500));
   const data = JSON.parse(stdout);
   cacheSet(url, data);
   return data;
