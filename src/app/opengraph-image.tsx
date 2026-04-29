@@ -62,19 +62,25 @@ export default function OGImage() {
         {/* Tagline */}
         <p
           style={{
-            fontSize: 30,
+            fontSize: 28,
             color: "#e4e4e7",
             textAlign: "center",
-            maxWidth: 900,
+            maxWidth: 1000,
             lineHeight: 1.4,
             margin: 0,
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "center",
+            gap: "8px 14px",
           }}
         >
-          Download videos from{" "}
-          <span style={{ color: "#ef4444" }}>YouTube</span>,{" "}
-          <span style={{ color: "#ec4899" }}>Instagram</span>,{" "}
-          <span style={{ color: "#06b6d4" }}>TikTok</span> &{" "}
-          <span style={{ color: "#ffffff" }}>Twitter/X</span>
+          <span>Download videos from</span>
+          <span style={{ color: "#ef4444", fontWeight: 700 }}>YouTube</span>
+          <span style={{ color: "#ec4899", fontWeight: 700 }}>Instagram</span>
+          <span style={{ color: "#06b6d4", fontWeight: 700 }}>TikTok</span>
+          <span style={{ color: "#ffffff", fontWeight: 700 }}>Twitter/X</span>
+          <span style={{ color: "#3b82f6", fontWeight: 700 }}>Facebook</span>
+          <span style={{ color: "#f97316", fontWeight: 700 }}>Reddit</span>
         </p>
 
         {/* Badges */}

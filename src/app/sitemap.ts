@@ -1,8 +1,26 @@
 import { MetadataRoute } from "next";
+import { blogPosts } from "@/lib/blog-data";
+import { programmaticPages } from "@/lib/programmatic-seo";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://dropzap.app";
   const lastModified = new Date();
+
+  const platformPages = [
+    "youtube-downloader",
+    "tiktok-downloader",
+    "instagram-downloader",
+    "twitter-video-downloader",
+    "facebook-video-downloader",
+    "reddit-video-downloader",
+  ];
+
+  const blogEntries: MetadataRoute.Sitemap = blogPosts.map((post) => ({
+    url: `${baseUrl}/blog/${post.slug}`,
+    lastModified: new Date(post.date),
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
+  }));
 
   return [
     {
@@ -11,48 +29,25 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "daily",
       priority: 1.0,
     },
-    {
-      url: `${baseUrl}/#youtube`,
+    ...platformPages.map((slug) => ({
+      url: `${baseUrl}/${slug}`,
       lastModified,
-      changeFrequency: "weekly",
+      changeFrequency: "weekly" as const,
       priority: 0.9,
-    },
+    })),
     {
-      url: `${baseUrl}/#instagram`,
-      lastModified,
-      changeFrequency: "weekly",
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/#tiktok`,
-      lastModified,
-      changeFrequency: "weekly",
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/#twitter`,
-      lastModified,
-      changeFrequency: "weekly",
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/#mp3`,
-      lastModified,
-      changeFrequency: "weekly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/#thumbnail`,
+      url: `${baseUrl}/blog`,
       lastModified,
       changeFrequency: "weekly",
       priority: 0.7,
     },
-    {
-      url: `${baseUrl}/#bulk`,
+    ...blogEntries,
+    ...programmaticPages.map((p) => ({
+      url: `${baseUrl}/download/${p.slug}`,
       lastModified,
-      changeFrequency: "weekly",
-      priority: 0.7,
-    },
+      changeFrequency: "monthly" as const,
+      priority: 0.5,
+    })),
     {
       url: `${baseUrl}/privacy`,
       lastModified,

@@ -40,3 +40,13 @@ export function isValidTikTokUrl(url: string): boolean {
   const pattern = /^(https?:\/\/)?(www\.)?(tiktok\.com|vm\.tiktok\.com)\//;
   return pattern.test(url);
 }
+
+export function isValidRedditUrl(url: string): boolean {
+  const pattern = /^(https?:\/\/)?(www\.|old\.)?(reddit\.com|redd\.it)\//;
+  return pattern.test(url);
+}
+
+export function isValidFacebookUrl(url: string): boolean {
+  const pattern = /^(https?:\/\/)?(www\.|m\.)?(facebook\.com|fb\.watch)\//;
+  return pattern.test(url);
+}

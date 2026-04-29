@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/toaster";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -10,7 +11,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://dropzap.app";
 const SITE_NAME = "DropZap";
 const SITE_TAGLINE = "Media Downloader";
 const SITE_DESCRIPTION =
-  "DropZap — the fastest free media downloader. Save videos from YouTube, Instagram Reels, TikTok, and Twitter/X in HD without watermarks. No signup, no ads, no limits.";
+  "DropZap — the fastest free media downloader. Save videos from YouTube, Instagram Reels, TikTok, Twitter/X, Facebook, and Reddit in HD without watermarks. No signup, no limits.";
 
 export const viewport: Viewport = {
   themeColor: [
@@ -75,7 +76,7 @@ export const metadata: Metadata = {
     description: SITE_DESCRIPTION,
     images: [
       {
-        url: "/og-image.png",
+        url: "/opengraph-image",
         width: 1200,
         height: 630,
         alt: `${SITE_NAME} — ${SITE_TAGLINE}`,
@@ -86,7 +87,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: `${SITE_NAME} — ${SITE_TAGLINE}`,
     description: SITE_DESCRIPTION,
-    images: ["/og-image.png"],
+    images: ["/opengraph-image"],
     creator: "@dropzap",
   },
   robots: {
@@ -165,6 +166,8 @@ const jsonLd = {
         "Download Instagram Reels and posts",
         "Download TikTok videos without watermark",
         "Download Twitter/X videos",
+        "Download Facebook videos and Reels",
+        "Download Reddit videos with sound",
         "Convert videos to MP3",
         "Bulk download queue",
         "YouTube thumbnail downloader",
@@ -220,7 +223,7 @@ const jsonLd = {
           name: "What platforms does DropZap support?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "DropZap supports YouTube, Instagram (Reels & Posts), TikTok, and Twitter/X. You can also convert videos to MP3 and bulk-download multiple links.",
+            text: "DropZap supports YouTube, Instagram (Reels & Posts), TikTok, Twitter/X, Facebook, and Reddit (with sound). You can also convert videos to MP3 and bulk-download multiple links.",
           },
         },
         {
@@ -262,6 +265,7 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
+        <GoogleAnalytics />
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

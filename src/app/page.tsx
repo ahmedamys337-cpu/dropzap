@@ -1,17 +1,21 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import YoutubeDownloader from "@/components/YoutubeDownloader";
-import ThumbnailDownloader from "@/components/ThumbnailDownloader";
-import InstagramDownloader from "@/components/InstagramDownloader";
-import TwitterDownloader from "@/components/TwitterDownloader";
-import TikTokDownloader from "@/components/TikTokDownloader";
-import BulkDownloader from "@/components/BulkDownloader";
-import Mp3Converter from "@/components/Mp3Converter";
 import RecentDownloads from "@/components/RecentDownloads";
 import AdBanner from "@/components/AdBanner";
 import { useDownloadHistory } from "@/lib/hooks";
+
+const ThumbnailDownloader = dynamic(() => import("@/components/ThumbnailDownloader"), { ssr: false });
+const InstagramDownloader = dynamic(() => import("@/components/InstagramDownloader"), { ssr: false });
+const TwitterDownloader = dynamic(() => import("@/components/TwitterDownloader"), { ssr: false });
+const TikTokDownloader = dynamic(() => import("@/components/TikTokDownloader"), { ssr: false });
+const BulkDownloader = dynamic(() => import("@/components/BulkDownloader"), { ssr: false });
+const Mp3Converter = dynamic(() => import("@/components/Mp3Converter"), { ssr: false });
+const RedditDownloader = dynamic(() => import("@/components/RedditDownloader"), { ssr: false });
+const FacebookDownloader = dynamic(() => import("@/components/FacebookDownloader"), { ssr: false });
 import {
   Zap,
   Youtube,
@@ -21,6 +25,8 @@ import {
   Music2,
   Layers,
   FileAudio,
+  MessageSquare,
+  Facebook,
 } from "lucide-react";
 
 export default function Home() {
@@ -74,8 +80,8 @@ export default function Home() {
       {/* Main Content */}
       <div className="max-w-6xl mx-auto px-4 py-8">
         <Tabs defaultValue="youtube" className="space-y-6">
-          <div className="overflow-x-auto pb-2">
-            <TabsList className="glass-strong h-auto p-1.5 gap-1 flex-wrap w-full justify-start">
+          <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
+            <TabsList className="glass-strong h-auto p-1.5 gap-1 flex sm:flex-wrap w-max sm:w-full justify-start">
               <TabsTrigger
                 value="youtube"
                 className="gap-1.5 text-xs sm:text-sm data-[state=active]:bg-red-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-red-600/30 transition-all"
@@ -115,6 +121,22 @@ export default function Home() {
                 <Music2 className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">TikTok</span>
                 <span className="sm:hidden">TT</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="reddit"
+                className="gap-1.5 text-xs sm:text-sm data-[state=active]:bg-orange-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-orange-600/30 transition-all"
+              >
+                <MessageSquare className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Reddit</span>
+                <span className="sm:hidden">RD</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="facebook"
+                className="gap-1.5 text-xs sm:text-sm data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-blue-600/30 transition-all"
+              >
+                <Facebook className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Facebook</span>
+                <span className="sm:hidden">FB</span>
               </TabsTrigger>
               <TabsTrigger
                 value="bulk"
@@ -220,6 +242,40 @@ export default function Home() {
                       </div>
                     </div>
                     <TikTokDownloader onDownload={handleDownload} />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="reddit" className="mt-0">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 pb-2 border-b border-orange-600/20">
+                      <div className="h-10 w-10 rounded-lg bg-orange-600 flex items-center justify-center shadow-lg shadow-orange-600/30">
+                        <MessageSquare className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-bold">Reddit Video Downloader</h2>
+                        <p className="text-sm text-muted-foreground">
+                          Download Reddit videos with audio merged
+                        </p>
+                      </div>
+                    </div>
+                    <RedditDownloader onDownload={handleDownload} />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="facebook" className="mt-0">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 pb-2 border-b border-blue-600/20">
+                      <div className="h-10 w-10 rounded-lg bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/30">
+                        <Facebook className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-bold">Facebook Video Downloader</h2>
+                        <p className="text-sm text-muted-foreground">
+                          Download Facebook videos and Reels in HD
+                        </p>
+                      </div>
+                    </div>
+                    <FacebookDownloader onDownload={handleDownload} />
                   </div>
                 </TabsContent>
 
@@ -364,7 +420,7 @@ export default function Home() {
             },
             {
               q: "What platforms does DropZap support?",
-              a: "DropZap supports YouTube, Instagram (Reels & Posts), TikTok, and Twitter/X. You can also convert videos to MP3 and bulk-download multiple links.",
+              a: "DropZap supports YouTube, Instagram (Reels & Posts), TikTok, Twitter/X, Facebook, and Reddit (with sound). You can also convert videos to MP3 and bulk-download multiple links.",
             },
             {
               q: "Do I need to install anything?",
@@ -402,11 +458,16 @@ export default function Home() {
               </span>
               <span className="text-xs text-muted-foreground">— Media Downloader</span>
             </div>
-            <nav aria-label="Footer navigation" className="flex gap-5 text-xs text-muted-foreground">
-              <a href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</a>
-              <a href="/terms" className="hover:text-foreground transition-colors">Terms of Service</a>
-              <a href="/#faq-heading" className="hover:text-foreground transition-colors">FAQ</a>
-              <a href="mailto:hello@dropzap.app" className="hover:text-foreground transition-colors">Contact</a>
+            <nav aria-label="Footer navigation" className="flex flex-wrap gap-5 text-xs text-muted-foreground">
+              <a href="/youtube-downloader" className="hover:text-foreground transition-colors">YouTube Downloader</a>
+              <a href="/tiktok-downloader" className="hover:text-foreground transition-colors">TikTok Downloader</a>
+              <a href="/instagram-downloader" className="hover:text-foreground transition-colors">Instagram Downloader</a>
+              <a href="/twitter-video-downloader" className="hover:text-foreground transition-colors">Twitter Downloader</a>
+              <a href="/facebook-video-downloader" className="hover:text-foreground transition-colors">Facebook Downloader</a>
+              <a href="/reddit-video-downloader" className="hover:text-foreground transition-colors">Reddit Downloader</a>
+              <a href="/blog" className="hover:text-foreground transition-colors">Blog</a>
+              <a href="/privacy" className="hover:text-foreground transition-colors">Privacy</a>
+              <a href="/terms" className="hover:text-foreground transition-colors">Terms</a>
             </nav>
           </div>
           <p className="text-center text-xs text-muted-foreground">
