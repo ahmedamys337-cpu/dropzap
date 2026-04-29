@@ -100,9 +100,9 @@ const YT_FAST_ARGS = [
   "--no-warnings",
   "--no-playlist",
   "--skip-download",
-  "--socket-timeout", "20",
-  // ios + mweb clients are less restricted than web on cloud IPs
-  "--extractor-args", "youtube:player_client=ios,mweb,web",
+  "--socket-timeout", "30",
+  // tv_embedded + android_embedded — most reliable for proxy/cloud setups
+  "--extractor-args", "youtube:player_client=tv_embedded,android_embedded,ios",
 ];
 
 export async function getVideoInfo(url: string): Promise<any> {
