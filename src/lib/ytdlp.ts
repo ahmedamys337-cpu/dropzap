@@ -62,7 +62,6 @@ const YT_FAST_ARGS = [
   "--no-playlist",
   "--skip-download",
   "--socket-timeout", "15",
-  "--format", "bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best",
 ];
 
 export async function getVideoInfo(url: string): Promise<any> {
@@ -72,6 +71,7 @@ export async function getVideoInfo(url: string): Promise<any> {
   const { stdout, stderr } = await execFileAsync("yt-dlp", [
     url,
     "--dump-single-json",
+    "--verbose",
     ...YT_FAST_ARGS,
     ...getCookiesArgs(),
   ], { timeout: 30000, maxBuffer: 10 * 1024 * 1024 });
