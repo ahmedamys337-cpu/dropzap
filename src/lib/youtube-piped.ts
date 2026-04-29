@@ -141,27 +141,105 @@ function transformToYtdlpShape(data: PipedResponse, videoId: string): any {
   };
 }
 
+// Invidious instances — different network, used as second fallback
+const INVIDIOUS_INSTANCES = [
+  "https://yewtu.be",
+  "https://inv.nadeko.net",
+  "https://invidious.fdn.fr",
+  "https://inv.zzls.xyz",
+  "https://invidious.privacyredirect.com",
+  "https://invidious.protokolla.fi",
+  "https://iv.melmac.space",
+  "https://invidious.lunar.icu",
+];
+
+async function fetchFromInvidious(instance: string, videoId: string): Promise<any> {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 8000);
+  try {
+    const res = await fetch(`${instance}/api/v1/videos/${videoId}`, {
+      signal: ctrl.signal,
+      headers: { "User-Agent": "Mozilla/5.0" },
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const d = await res.json();
+    if (!d.formatStreams && !d.adaptiveFormats) throw new Error("Invalid response");
+
+    // Invidious response → yt-dlp shape
+    const formats: any[] = [];
+    for (const f of d.adaptiveFormats || []) {
+      formats.push({
+        format_id: `inv-${f.itag}`,
+        ext: f.container,
+        url: f.url,
+        width: f.size ? parseInt(f.size.split("x")[0]) : undefined,
+        height: f.size ? parseInt(f.size.split("x")[1]) : undefined,
+        fps: f.fps,
+        vcodec: f.encoding && !f.audioQuality ? f.encoding : "none",
+        acodec: f.audioQuality ? f.encoding : "none",
+        filesize: f.clen ? parseInt(f.clen) : undefined,
+        protocol: "https",
+      });
+    }
+    for (const f of d.formatStreams || []) {
+      formats.push({
+        format_id: `inv-${f.itag}`,
+        ext: f.container,
+        url: f.url,
+        width: f.size ? parseInt(f.size.split("x")[0]) : undefined,
+        height: f.size ? parseInt(f.size.split("x")[1]) : undefined,
+        fps: f.fps,
+        vcodec: "h264",
+        acodec: "aac",
+        protocol: "https",
+      });
+    }
+    return {
+      id: videoId,
+      title: d.title,
+      description: d.description,
+      uploader: d.author,
+      channel: d.author,
+      duration: d.lengthSeconds,
+      thumbnail: d.videoThumbnails?.[0]?.url,
+      view_count: d.viewCount,
+      webpage_url: `https://youtube.com/watch?v=${videoId}`,
+      formats,
+      extractor: "invidious",
+    };
+  } finally {
+    clearTimeout(t);
+  }
+}
+
 export async function getYoutubeInfoViaPiped(url: string): Promise<any> {
   const videoId = extractYoutubeVideoId(url);
   if (!videoId) throw new Error("Could not extract YouTube video ID");
 
-  const instances = rankInstances();
-  let lastError: any = null;
-
-  for (const instance of instances) {
+  // Tier 1: Piped instances
+  for (const instance of rankInstances()) {
     try {
       const data = await fetchFromInstance(instance, videoId);
-      // Mark success
       instanceHealth.set(instance, { lastSuccess: Date.now(), failures: 0 });
       console.log(`[piped] ${instance} succeeded for ${videoId}`);
       return transformToYtdlpShape(data, videoId);
     } catch (e: any) {
-      lastError = e;
       const h = instanceHealth.get(instance) || { lastSuccess: 0, failures: 0 };
       instanceHealth.set(instance, { ...h, failures: h.failures + 1 });
       console.warn(`[piped] ${instance} failed:`, e.message);
     }
   }
 
-  throw new Error(`All Piped instances failed: ${lastError?.message}`);
+  // Tier 2: Invidious instances
+  for (const instance of INVIDIOUS_INSTANCES) {
+    try {
+      const data = await fetchFromInvidious(instance, videoId);
+      console.log(`[invidious] ${instance} succeeded for ${videoId}`);
+      return data;
+    } catch (e: any) {
+      console.warn(`[invidious] ${instance} failed:`, e.message);
+    }
+  }
+
+  throw new Error("All Piped + Invidious instances failed");
 }
