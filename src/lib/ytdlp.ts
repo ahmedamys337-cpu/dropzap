@@ -25,6 +25,45 @@ function getCookiesArgs(): string[] {
   return cookiesFilePath ? ["--cookies", cookiesFilePath] : [];
 }
 
+// Parse YOUTUBE_PROXIES env var into a list of proxy URLs
+// Accepts these formats (one per line):
+//   host:port:user:pass         (Webshare default download format)
+//   user:pass@host:port
+//   http://user:pass@host:port
+let proxyList: string[] = [];
+if (process.env.YOUTUBE_PROXIES) {
+  proxyList = process.env.YOUTUBE_PROXIES
+    .split(/[\r\n,]+/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      if (line.startsWith("http://") || line.startsWith("https://")) return line;
+      // host:port:user:pass -> http://user:pass@host:port
+      const parts = line.split(":");
+      if (parts.length === 4) {
+        const [host, port, user, pass] = parts;
+        return `http://${user}:${pass}@${host}:${port}`;
+      }
+      // user:pass@host:port -> http://user:pass@host:port
+      if (line.includes("@")) return `http://${line}`;
+      // host:port (no auth) -> http://host:port
+      return `http://${line}`;
+    });
+  console.log("[yt-dlp] Loaded", proxyList.length, "YouTube proxies");
+}
+
+// Pick a random proxy per request to spread load and avoid bans
+function getProxyArgs(): string[] {
+  if (proxyList.length === 0) return [];
+  const proxy = proxyList[Math.floor(Math.random() * proxyList.length)];
+  return ["--proxy", proxy];
+}
+
+// Export combined helper for YouTube routes (cookies + random proxy)
+export function getYoutubeAuthArgs(): string[] {
+  return [...getCookiesArgs(), ...getProxyArgs()];
+}
+
 // In-memory cache for video info (5 min TTL)
 type CacheEntry = { data: any; expires: number };
 const infoCache = new Map<string, CacheEntry>();
@@ -73,10 +112,9 @@ export async function getVideoInfo(url: string): Promise<any> {
   const { stdout, stderr } = await execFileAsync("yt-dlp", [
     url,
     "--dump-single-json",
-    "--verbose",
     ...YT_FAST_ARGS,
-    ...getCookiesArgs(),
-  ], { timeout: 30000, maxBuffer: 10 * 1024 * 1024 });
+    ...getYoutubeAuthArgs(),
+  ], { timeout: 45000, maxBuffer: 10 * 1024 * 1024 });
 
   if (stderr) console.error("[yt-dlp stderr]", stderr.slice(0, 500));
   const data = JSON.parse(stdout);
@@ -96,8 +134,8 @@ export async function getVideoInfoSkipDownload(url: string): Promise<any> {
     "--no-playlist",
     "--skip-download",
     "--no-check-formats",
-    "--socket-timeout", "15",
-    ...getCookiesArgs(),
+    "--socket-timeout", "20",
+    ...getYoutubeAuthArgs(),
   ], { timeout: 30000, maxBuffer: 10 * 1024 * 1024 });
 
   const data = JSON.parse(stdout);

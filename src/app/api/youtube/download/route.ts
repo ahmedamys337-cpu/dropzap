@@ -6,6 +6,7 @@ import { tmpdir } from "os";
 import { join } from "path";
 import { readFile, unlink } from "fs/promises";
 import { randomUUID } from "crypto";
+import { getYoutubeAuthArgs } from "@/lib/ytdlp";
 
 const execFileAsync = promisify(execFile);
 
@@ -44,6 +45,9 @@ export async function POST(request: NextRequest) {
     } else {
       args.push("-f", "best[ext=mp4]/best");
     }
+
+    // Add cookies + random proxy for YouTube (bypasses cloud IP block)
+    args.push(...getYoutubeAuthArgs());
 
     await execFileAsync("yt-dlp", args, { timeout: 300000 });
 
