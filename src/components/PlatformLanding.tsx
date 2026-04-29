@@ -115,18 +115,68 @@ export default function PlatformLanding({ platform, children }: PlatformLandingP
       </div>
 
       {/* Deep Content - Formats & Devices */}
-      <section className="max-w-4xl mx-auto px-4 py-8">
-        <h2 className="text-2xl font-bold mb-4">Supported Formats & Quality Options</h2>
-        <p className="text-muted-foreground leading-relaxed mb-6">{platform.content.formats}</p>
+      <section className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold mb-4">Supported Formats & Quality Options</h2>
+          <p className="text-muted-foreground leading-relaxed">{platform.content.formats}</p>
+        </div>
 
-        <h2 className="text-2xl font-bold mb-4">Works on All Devices</h2>
-        <p className="text-muted-foreground leading-relaxed mb-6">{platform.content.devices}</p>
+        {platform.content.quality && (
+          <div>
+            <h2 className="text-2xl font-bold mb-4">{platform.name} Video Quality Explained</h2>
+            <p className="text-muted-foreground leading-relaxed">{platform.content.quality}</p>
+          </div>
+        )}
 
-        <h2 className="text-2xl font-bold mb-4">Safe & Private</h2>
-        <p className="text-muted-foreground leading-relaxed mb-6">{platform.content.safety}</p>
+        {platform.content.useCases && (
+          <div>
+            <h2 className="text-2xl font-bold mb-4">Popular Use Cases</h2>
+            <div className="text-muted-foreground leading-relaxed prose-list" dangerouslySetInnerHTML={{ __html: platform.content.useCases }} />
+          </div>
+        )}
 
-        <h2 className="text-2xl font-bold mb-4">Tips for Best Results</h2>
-        <p className="text-muted-foreground leading-relaxed">{platform.content.tips}</p>
+        <div>
+          <h2 className="text-2xl font-bold mb-4">Works on All Devices</h2>
+          <p className="text-muted-foreground leading-relaxed">{platform.content.devices}</p>
+        </div>
+
+        {platform.content.mobileGuide && (
+          <div>
+            <h2 className="text-2xl font-bold mb-4">Mobile Guide — iPhone &amp; Android</h2>
+            <div className="text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: platform.content.mobileGuide }} />
+          </div>
+        )}
+
+        {platform.content.comparison && (
+          <div>
+            <h2 className="text-2xl font-bold mb-4">DropZap vs Other {platform.name} Downloaders</h2>
+            <p className="text-muted-foreground leading-relaxed">{platform.content.comparison}</p>
+          </div>
+        )}
+
+        {platform.content.troubleshooting && (
+          <div>
+            <h2 className="text-2xl font-bold mb-4">Troubleshooting Common Issues</h2>
+            <div className="text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: platform.content.troubleshooting }} />
+          </div>
+        )}
+
+        <div>
+          <h2 className="text-2xl font-bold mb-4">Safe &amp; Private</h2>
+          <p className="text-muted-foreground leading-relaxed">{platform.content.safety}</p>
+        </div>
+
+        {platform.content.legal && (
+          <div>
+            <h2 className="text-2xl font-bold mb-4">Is It Legal?</h2>
+            <p className="text-muted-foreground leading-relaxed">{platform.content.legal}</p>
+          </div>
+        )}
+
+        <div>
+          <h2 className="text-2xl font-bold mb-4">Tips for Best Results</h2>
+          <p className="text-muted-foreground leading-relaxed">{platform.content.tips}</p>
+        </div>
       </section>
 
       {/* FAQ */}
