@@ -3,6 +3,7 @@ import { promisify } from "util";
 import { writeFileSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
+import { getYoutubeInfoViaPiped, extractYoutubeVideoId } from "./youtube-piped";
 
 const execFileAsync = promisify(execFile);
 
@@ -109,6 +110,20 @@ export async function getVideoInfo(url: string): Promise<any> {
   const cached = cacheGet(url);
   if (cached) return cached;
 
+  const isYoutube = !!extractYoutubeVideoId(url);
+
+  // For YouTube on cloud, try Piped first (faster + bypasses cloud IP block)
+  if (isYoutube) {
+    try {
+      const data = await getYoutubeInfoViaPiped(url);
+      cacheSet(url, data);
+      return data;
+    } catch (e: any) {
+      console.warn("[yt-dlp] Piped fallback failed, trying yt-dlp:", e.message);
+    }
+  }
+
+  // Default path: yt-dlp (works for all non-YouTube + as YouTube fallback)
   const { stdout, stderr } = await execFileAsync("yt-dlp", [
     url,
     "--dump-single-json",
