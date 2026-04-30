@@ -60,8 +60,16 @@ function getProxyArgs(): string[] {
   return ["--proxy", proxy];
 }
 
-// Export combined helper for YouTube routes (cookies + random proxy)
+// Export combined helper for YouTube routes.
+// When a residential proxy is configured, we DO NOT send cookies because:
+// - Cookies are bound to the IP/region they were created in (e.g., user's home).
+// - Sending them through a foreign proxy IP triggers YouTube's anti-fraud,
+//   which then returns an empty formats list ("Requested format not available").
+// The residential proxy alone is enough to bypass bot detection.
 export function getYoutubeAuthArgs(): string[] {
+  if (proxyList.length > 0) {
+    return getProxyArgs();
+  }
   return [...getCookiesArgs(), ...getProxyArgs()];
 }
 
