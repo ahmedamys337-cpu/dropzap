@@ -466,8 +466,11 @@ export default function Home() {
               <a href="/facebook-video-downloader" className="hover:text-foreground transition-colors">Facebook Downloader</a>
               <a href="/reddit-video-downloader" className="hover:text-foreground transition-colors">Reddit Downloader</a>
               <a href="/blog" className="hover:text-foreground transition-colors">Blog</a>
+              <a href="/about" className="hover:text-foreground transition-colors">About</a>
+              <a href="/contact" className="hover:text-foreground transition-colors">Contact</a>
               <a href="/privacy" className="hover:text-foreground transition-colors">Privacy</a>
               <a href="/terms" className="hover:text-foreground transition-colors">Terms</a>
+              <a href="/dmca" className="hover:text-foreground transition-colors">DMCA</a>
             </nav>
           </div>
           <p className="text-center text-xs text-muted-foreground">
