@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/toaster";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import GoogleAdSense from "@/components/GoogleAdSense";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -270,6 +271,7 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <GoogleAnalytics />
+        <GoogleAdSense />
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
