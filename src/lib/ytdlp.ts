@@ -91,20 +91,23 @@ function cacheSet(key: string, data: any) {
 }
 
 // Fast YouTube extraction flags
-// - player_client=web,default — use web client to avoid cloud IP bot detection
-// - skip=hls,dash,translated_subs — skip extra manifests we don't need
-// - --no-check-formats — skip HEAD-request validation of every format URL
-// - --socket-timeout 15 — slightly longer for cloud network latency
-// - --no-call-home — skip yt-dlp's update check call
+// With a residential proxy, we can use the standard web+android clients
+// which return ALL formats reliably (tv_embedded etc. sometimes return
+// incomplete format lists that cause "Requested format not available" errors).
+// --no-check-formats skips per-URL HEAD validation (much faster).
 const YT_FAST_ARGS = [
   "--no-check-certificates",
   "--no-warnings",
   "--no-playlist",
   "--skip-download",
+  "--no-check-formats",
   "--socket-timeout", "30",
-  // tv_embedded + android_embedded — most reliable for proxy/cloud setups
-  "--extractor-args", "youtube:player_client=tv_embedded,android_embedded,ios",
+  "--extractor-args", "youtube:player_client=default,web,android,ios",
 ];
+
+// If a residential proxy is configured, we can hit YouTube directly via yt-dlp.
+// Public Piped/Invidious instances are mostly dead so skip them in that case.
+const HAS_PROXY = proxyList.length > 0;
 
 export async function getVideoInfo(url: string): Promise<any> {
   const cached = cacheGet(url);
@@ -112,8 +115,9 @@ export async function getVideoInfo(url: string): Promise<any> {
 
   const isYoutube = !!extractYoutubeVideoId(url);
 
-  // For YouTube on cloud, try Piped first (faster + bypasses cloud IP block)
-  if (isYoutube) {
+  // Only fall back to Piped/Invidious if NO proxy is configured.
+  // With a proxy, direct yt-dlp is faster and more reliable.
+  if (isYoutube && !HAS_PROXY) {
     try {
       const data = await getYoutubeInfoViaPiped(url);
       cacheSet(url, data);

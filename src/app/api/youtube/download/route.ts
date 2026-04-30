@@ -32,7 +32,14 @@ export async function POST(request: NextRequest) {
     const ext = audioOnly ? "mp3" : "mp4";
     tempPath = join(tmpdir(), `ytdl-${id}.${ext}`);
 
-    const args: string[] = [url, "-o", tempPath, "--no-check-certificates", "--no-warnings"];
+    const args: string[] = [
+      url,
+      "-o", tempPath,
+      "--no-check-certificates",
+      "--no-warnings",
+      "--no-playlist",
+      "--extractor-args", "youtube:player_client=default,web,android,ios",
+    ];
 
     if (audioOnly) {
       args.push("-x", "--audio-format", "mp3");

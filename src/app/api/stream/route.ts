@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { spawn } from "child_process";
+import { getYoutubeAuthArgs } from "@/lib/ytdlp";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,11 +24,18 @@ export async function GET(request: NextRequest) {
   const safeName = filename.replace(/[^\w\s.-]/g, "").trim() || `download.${ext}`;
 
   try {
+    const isYoutube = /youtu(?:\.be|be\.com)/i.test(url);
+
     const args: string[] = [
       url, "-o", "-",
       "--no-check-certificates", "--no-warnings", "--no-playlist",
       "-f", fmtArg,
     ];
+
+    if (isYoutube) {
+      args.push("--extractor-args", "youtube:player_client=default,web,android,ios");
+      args.push(...getYoutubeAuthArgs());
+    }
 
     const proc = spawn("yt-dlp", args, {
       stdio: ["ignore", "pipe", "pipe"],

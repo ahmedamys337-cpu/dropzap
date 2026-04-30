@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { execFile } from "child_process";
 import { promisify } from "util";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
+import { getYoutubeAuthArgs } from "@/lib/ytdlp";
 
 const execFileAsync = promisify(execFile);
 
@@ -22,6 +23,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "URL is required" }, { status: 400 });
     }
 
+    const isYoutube = /youtu(?:\.be|be\.com)/i.test(url);
+
     // Single yt-dlp call: get info JSON which includes format URLs
     const args: string[] = [
       url,
@@ -30,7 +33,13 @@ export async function POST(request: NextRequest) {
       "--no-warnings",
       "--no-playlist",
       "--skip-download",
+      "--no-check-formats",
     ];
+
+    if (isYoutube) {
+      args.push("--extractor-args", "youtube:player_client=default,web,android,ios");
+      args.push(...getYoutubeAuthArgs());
+    }
 
     const { stdout } = await execFileAsync("yt-dlp", args, {
       timeout: 30000,
