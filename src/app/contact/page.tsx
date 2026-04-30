@@ -15,7 +15,8 @@ const contactOptions = [
     title: "General Support",
     description:
       "Questions about how to use DropZap, browser compatibility, or general feedback.",
-    email: "hello@dropzap.digital",
+    email: "dropzap.contact@gmail.com",
+    subject: "Support",
     color: "text-blue-500",
   },
   {
@@ -23,7 +24,8 @@ const contactOptions = [
     title: "Bug Reports",
     description:
       "Found something broken? Tell us the URL you were trying, what platform, and what went wrong.",
-    email: "bugs@dropzap.digital",
+    email: "dropzap.contact@gmail.com",
+    subject: "Bug Report",
     color: "text-orange-500",
   },
   {
@@ -31,7 +33,8 @@ const contactOptions = [
     title: "Business & Partnerships",
     description:
       "Advertising inquiries, API access, white-label, or partnership opportunities.",
-    email: "business@dropzap.digital",
+    email: "dropzap.contact@gmail.com",
+    subject: "Business Inquiry",
     color: "text-purple-500",
   },
   {
@@ -39,7 +42,8 @@ const contactOptions = [
     title: "DMCA / Copyright",
     description:
       "Submit a DMCA takedown notice or counter-notification. See our DMCA policy first.",
-    email: "dmca@dropzap.digital",
+    email: "dropzap.contact@gmail.com",
+    subject: "DMCA Notice",
     color: "text-red-500",
   },
 ];
@@ -78,7 +82,7 @@ export default function ContactPage() {
                   {opt.description}
                 </p>
                 <a
-                  href={`mailto:${opt.email}`}
+                  href={`mailto:${opt.email}?subject=${encodeURIComponent(`[${opt.subject}] `)}`}
                   className="text-sm font-medium text-foreground underline underline-offset-2 hover:no-underline"
                 >
                   {opt.email}

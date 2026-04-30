@@ -135,10 +135,10 @@ export default function AboutPage() {
             </Link>{" "}
             or email us directly at{" "}
             <a
-              href="mailto:hello@dropzap.digital"
+              href="mailto:dropzap.contact@gmail.com"
               className="text-foreground underline"
             >
-              hello@dropzap.digital
+              dropzap.contact@gmail.com
             </a>
             .
           </p>

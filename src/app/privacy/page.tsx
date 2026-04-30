@@ -109,10 +109,10 @@ export default function PrivacyPage() {
             information, most of these rights are automatically protected. To exercise
             any rights, contact us at{" "}
             <a
-              href="mailto:privacy@dropzap.digital"
+              href="mailto:dropzap.contact@gmail.com"
               className="text-foreground underline"
             >
-              privacy@dropzap.digital
+              dropzap.contact@gmail.com
             </a>
             .
           </p>
@@ -156,10 +156,10 @@ export default function PrivacyPage() {
           <p>
             For privacy questions or to exercise your rights, contact us at{" "}
             <a
-              href="mailto:privacy@dropzap.digital"
+              href="mailto:dropzap.contact@gmail.com"
               className="text-foreground underline"
             >
-              privacy@dropzap.digital
+              dropzap.contact@gmail.com
             </a>
             .
           </p>

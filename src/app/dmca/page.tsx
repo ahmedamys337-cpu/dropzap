@@ -128,10 +128,10 @@ export default function DmcaPage() {
           <p className="mt-2">
             <strong>Email:</strong>{" "}
             <a
-              href="mailto:dmca@dropzap.digital"
+              href="mailto:dropzap.contact@gmail.com"
               className="text-foreground underline"
             >
-              dmca@dropzap.digital
+              dropzap.contact@gmail.com
             </a>
           </p>
           <p className="mt-3">Your notice must include:</p>
@@ -164,10 +164,10 @@ export default function DmcaPage() {
             If you believe a DMCA notice has been wrongly filed against you, you may
             submit a counter-notification to{" "}
             <a
-              href="mailto:dmca@dropzap.digital"
+              href="mailto:dropzap.contact@gmail.com"
               className="text-foreground underline"
             >
-              dmca@dropzap.digital
+              dropzap.contact@gmail.com
             </a>{" "}
             containing the same elements as a notice plus a statement that you consent
             to the jurisdiction of the appropriate court.
