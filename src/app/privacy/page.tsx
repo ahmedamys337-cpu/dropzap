@@ -63,8 +63,8 @@ export default function PrivacyPage() {
           <h2 className="text-lg font-semibold text-foreground mb-2">6. Contact</h2>
           <p>
             For privacy questions, contact us at{" "}
-            <a href="mailto:hello@dropzap.app" className="text-foreground underline">
-              hello@dropzap.app
+            <a href="mailto:hello@dropzap.digital" className="text-foreground underline">
+              hello@dropzap.digital
             </a>
             .
           </p>

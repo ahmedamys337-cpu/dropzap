@@ -1,7 +1,7 @@
 // SEO data for per-platform landing pages
 // Each platform has its own metadata, keywords, FAQ, and long-form content
 
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://dropzap.app";
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital";
 export const SITE_NAME = "DropZap";
 
 export interface PlatformSEO {

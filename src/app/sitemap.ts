@@ -3,7 +3,7 @@ import { blogPosts } from "@/lib/blog-data";
 import { programmaticPages } from "@/lib/programmatic-seo";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://dropzap.app";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital";
   const lastModified = new Date();
 
   const platformPages = [

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { blogPosts, blogCategories } from "@/lib/blog-data";
 import { Zap } from "lucide-react";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://dropzap.app";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital";
 
 export const metadata: Metadata = {
   title: "Blog — Video Downloading Tips, Guides & Tutorials",

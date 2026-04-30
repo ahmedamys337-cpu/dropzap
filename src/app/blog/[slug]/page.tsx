@@ -5,7 +5,7 @@ import { blogPosts } from "@/lib/blog-data";
 import AdBanner from "@/components/AdBanner";
 import { Zap, ArrowLeft } from "lucide-react";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://dropzap.app";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital";
 
 interface Props {
   params: { slug: string };
