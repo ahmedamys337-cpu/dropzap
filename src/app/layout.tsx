@@ -4,7 +4,6 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/toaster";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
-import GoogleAdSense from "@/components/GoogleAdSense";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -264,6 +263,13 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://i.ytimg.com" />
         <link rel="dns-prefetch" href="https://img.youtube.com" />
+        {process.env.NEXT_PUBLIC_ADSENSE_CLIENT && (
+          <script
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT}`}
+            crossOrigin="anonymous"
+          />
+        )}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -271,7 +277,6 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <GoogleAnalytics />
-        <GoogleAdSense />
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
