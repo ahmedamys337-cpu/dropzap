@@ -12,7 +12,6 @@ const ThumbnailDownloader = dynamic(() => import("@/components/ThumbnailDownload
 const InstagramDownloader = dynamic(() => import("@/components/InstagramDownloader"), { ssr: false });
 const TwitterDownloader = dynamic(() => import("@/components/TwitterDownloader"), { ssr: false });
 const TikTokDownloader = dynamic(() => import("@/components/TikTokDownloader"), { ssr: false });
-const BulkDownloader = dynamic(() => import("@/components/BulkDownloader"), { ssr: false });
 const Mp3Converter = dynamic(() => import("@/components/Mp3Converter"), { ssr: false });
 const RedditDownloader = dynamic(() => import("@/components/RedditDownloader"), { ssr: false });
 const FacebookDownloader = dynamic(() => import("@/components/FacebookDownloader"), { ssr: false });
@@ -25,7 +24,6 @@ import {
   Instagram,
   Twitter,
   Music2,
-  Layers,
   FileAudio,
   MessageSquare,
   Facebook,
@@ -84,10 +82,10 @@ export default function Home() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         <Tabs defaultValue="youtube" className="space-y-6">
           <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
-            <TabsList className="glass-strong h-auto p-1.5 gap-1 flex sm:flex-wrap w-max sm:w-full justify-start">
+            <TabsList className="glass-strong h-auto p-1.5 gap-1.5 flex w-max justify-start">
               <TabsTrigger
                 value="youtube"
-                className="gap-1.5 text-xs sm:text-sm cursor-pointer hover:bg-white/10 hover:scale-[1.03] data-[state=active]:bg-red-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-red-600/30 transition-all duration-200"
+                className="gap-1.5 text-xs sm:text-sm cursor-pointer bg-white/[0.06] border border-white/10 hover:bg-white/20 hover:border-white/25 hover:scale-[1.03] data-[state=active]:bg-red-600 data-[state=active]:border-red-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-red-600/30 transition-all duration-200"
               >
                 <Youtube className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">YouTube</span>
@@ -95,7 +93,7 @@ export default function Home() {
               </TabsTrigger>
               <TabsTrigger
                 value="thumbnail"
-                className="gap-1.5 text-xs sm:text-sm cursor-pointer hover:bg-white/10 hover:scale-[1.03] data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-orange-500/30 transition-all duration-200"
+                className="gap-1.5 text-xs sm:text-sm cursor-pointer bg-white/[0.06] border border-white/10 hover:bg-white/20 hover:border-white/25 hover:scale-[1.03] data-[state=active]:bg-orange-500 data-[state=active]:border-orange-500 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-orange-500/30 transition-all duration-200"
               >
                 <ImageIcon className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Thumbnails</span>
@@ -103,7 +101,7 @@ export default function Home() {
               </TabsTrigger>
               <TabsTrigger
                 value="instagram"
-                className="gap-1.5 text-xs sm:text-sm cursor-pointer hover:bg-white/10 hover:scale-[1.03] data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:via-pink-600 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-pink-600/30 transition-all duration-200"
+                className="gap-1.5 text-xs sm:text-sm cursor-pointer bg-white/[0.06] border border-white/10 hover:bg-white/20 hover:border-white/25 hover:scale-[1.03] data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:via-pink-600 data-[state=active]:to-orange-500 data-[state=active]:border-transparent data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-pink-600/30 transition-all duration-200"
               >
                 <Instagram className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Instagram</span>
@@ -111,7 +109,7 @@ export default function Home() {
               </TabsTrigger>
               <TabsTrigger
                 value="twitter"
-                className="gap-1.5 text-xs sm:text-sm cursor-pointer hover:bg-white/10 hover:scale-[1.03] data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-black/40 transition-all duration-200"
+                className="gap-1.5 text-xs sm:text-sm cursor-pointer bg-white/[0.06] border border-white/10 hover:bg-white/20 hover:border-white/25 hover:scale-[1.03] data-[state=active]:bg-black data-[state=active]:border-black data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-black/40 transition-all duration-200"
               >
                 <Twitter className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Twitter/X</span>
@@ -119,7 +117,7 @@ export default function Home() {
               </TabsTrigger>
               <TabsTrigger
                 value="tiktok"
-                className="gap-1.5 text-xs sm:text-sm cursor-pointer hover:bg-white/10 hover:scale-[1.03] data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-pink-500/30 transition-all duration-200"
+                className="gap-1.5 text-xs sm:text-sm cursor-pointer bg-white/[0.06] border border-white/10 hover:bg-white/20 hover:border-white/25 hover:scale-[1.03] data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-pink-500 data-[state=active]:border-transparent data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-pink-500/30 transition-all duration-200"
               >
                 <Music2 className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">TikTok</span>
@@ -127,7 +125,7 @@ export default function Home() {
               </TabsTrigger>
               <TabsTrigger
                 value="reddit"
-                className="gap-1.5 text-xs sm:text-sm cursor-pointer hover:bg-white/10 hover:scale-[1.03] data-[state=active]:bg-orange-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-orange-600/30 transition-all duration-200"
+                className="gap-1.5 text-xs sm:text-sm cursor-pointer bg-white/[0.06] border border-white/10 hover:bg-white/20 hover:border-white/25 hover:scale-[1.03] data-[state=active]:bg-orange-600 data-[state=active]:border-orange-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-orange-600/30 transition-all duration-200"
               >
                 <MessageSquare className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Reddit</span>
@@ -135,7 +133,7 @@ export default function Home() {
               </TabsTrigger>
               <TabsTrigger
                 value="facebook"
-                className="gap-1.5 text-xs sm:text-sm cursor-pointer hover:bg-white/10 hover:scale-[1.03] data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-blue-600/30 transition-all duration-200"
+                className="gap-1.5 text-xs sm:text-sm cursor-pointer bg-white/[0.06] border border-white/10 hover:bg-white/20 hover:border-white/25 hover:scale-[1.03] data-[state=active]:bg-blue-600 data-[state=active]:border-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-blue-600/30 transition-all duration-200"
               >
                 <Facebook className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Facebook</span>
@@ -143,7 +141,7 @@ export default function Home() {
               </TabsTrigger>
               <TabsTrigger
                 value="pinterest"
-                className="gap-1.5 text-xs sm:text-sm cursor-pointer hover:bg-white/10 hover:scale-[1.03] data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-rose-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-red-600/30 transition-all duration-200"
+                className="gap-1.5 text-xs sm:text-sm cursor-pointer bg-white/[0.06] border border-white/10 hover:bg-white/20 hover:border-white/25 hover:scale-[1.03] data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-rose-600 data-[state=active]:border-transparent data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-red-600/30 transition-all duration-200"
               >
                 <ImageIcon className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Pinterest</span>
@@ -151,23 +149,15 @@ export default function Home() {
               </TabsTrigger>
               <TabsTrigger
                 value="threads"
-                className="gap-1.5 text-xs sm:text-sm cursor-pointer hover:bg-white/10 hover:scale-[1.03] data-[state=active]:bg-gradient-to-r data-[state=active]:from-zinc-800 data-[state=active]:to-zinc-900 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-black/40 transition-all duration-200"
+                className="gap-1.5 text-xs sm:text-sm cursor-pointer bg-white/[0.06] border border-white/10 hover:bg-white/20 hover:border-white/25 hover:scale-[1.03] data-[state=active]:bg-gradient-to-r data-[state=active]:from-zinc-800 data-[state=active]:to-zinc-900 data-[state=active]:border-transparent data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-black/40 transition-all duration-200"
               >
                 <AtSign className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Threads</span>
                 <span className="sm:hidden">TH</span>
               </TabsTrigger>
               <TabsTrigger
-                value="bulk"
-                className="gap-1.5 text-xs sm:text-sm cursor-pointer hover:bg-white/10 hover:scale-[1.03] data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-indigo-600/30 transition-all duration-200"
-              >
-                <Layers className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Bulk</span>
-                <span className="sm:hidden">Bulk</span>
-              </TabsTrigger>
-              <TabsTrigger
                 value="mp3"
-                className="gap-1.5 text-xs sm:text-sm cursor-pointer hover:bg-white/10 hover:scale-[1.03] data-[state=active]:bg-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-emerald-600/30 transition-all duration-200"
+                className="gap-1.5 text-xs sm:text-sm cursor-pointer bg-white/[0.06] border border-white/10 hover:bg-white/20 hover:border-white/25 hover:scale-[1.03] data-[state=active]:bg-emerald-600 data-[state=active]:border-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-emerald-600/30 transition-all duration-200"
               >
                 <FileAudio className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">MP3 Convert</span>
@@ -332,22 +322,6 @@ export default function Home() {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="bulk" className="mt-0">
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3 pb-2 border-b border-indigo-600/20">
-                      <div className="h-10 w-10 rounded-lg bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-600/30">
-                        <Layers className="h-5 w-5 text-white" />
-                      </div>
-                      <div>
-                        <h2 className="text-xl font-bold">Bulk Download Queue</h2>
-                        <p className="text-sm text-muted-foreground">
-                          Add multiple URLs and download them all at once
-                        </p>
-                      </div>
-                    </div>
-                    <BulkDownloader />
-                  </div>
-                </TabsContent>
 
                 <TabsContent value="mp3" className="mt-0">
                   <div className="space-y-4">
@@ -417,12 +391,6 @@ export default function Home() {
               Convert any video file or online video into high-quality MP3 audio for music, podcasts, or learning.
             </p>
           </div>
-          <div className="glass rounded-xl p-5">
-            <h3 className="font-bold mb-2">Bulk Download Queue</h3>
-            <p className="text-sm text-muted-foreground">
-              Paste multiple URLs at once and let DropZap process them all in a queue — perfect for batch downloads.
-            </p>
-          </div>
         </div>
       </section>
 
@@ -473,7 +441,7 @@ export default function Home() {
             },
             {
               q: "What platforms does DropZap support?",
-              a: "DropZap supports YouTube, Instagram (Reels & Posts), TikTok, Twitter/X, Facebook, and Reddit (with sound). You can also convert videos to MP3 and bulk-download multiple links.",
+              a: "DropZap supports YouTube (videos and Shorts), Instagram (Reels, photos, and carousels), TikTok, Twitter/X, Facebook, Reddit (with sound), Pinterest, and Threads. You can also convert videos to MP3.",
             },
             {
               q: "Do I need to install anything?",
