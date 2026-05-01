@@ -81,87 +81,86 @@ export default function Home() {
       {/* Main Content */}
       <div className="max-w-6xl mx-auto px-4 py-8">
         <Tabs defaultValue="youtube" className="space-y-6">
-          <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
-            <TabsList className="glass-strong h-auto p-1.5 gap-1.5 flex w-max justify-start">
+          <div className="overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
+            {/*
+              Each tab uses a shared base that gives:
+                - a low-opacity background + border that is visible in BOTH light
+                  and dark themes (black-tinted in light, white-tinted in dark)
+                - a lift-on-hover micro-interaction (translate + scale + shadow)
+              Each tab then layers on its own platform color for the hover and
+              active states so hovering YouTube turns it red, hovering Facebook
+              turns it blue, etc. — matching the active appearance.
+            */}
+            <TabsList className="glass-strong h-auto p-1.5 gap-1 flex w-max justify-start">
               <TabsTrigger
                 value="youtube"
-                className="gap-1.5 text-xs sm:text-sm cursor-pointer bg-white/[0.06] border border-white/10 hover:bg-white/20 hover:border-white/25 hover:scale-[1.03] data-[state=active]:bg-red-600 data-[state=active]:border-red-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-red-600/30 transition-all duration-200"
+                className="gap-1.5 px-2.5 py-1.5 text-xs font-medium cursor-pointer rounded-md bg-black/[0.05] dark:bg-white/[0.08] border border-black/10 dark:border-white/15 hover:bg-red-600 hover:text-white hover:border-red-600 hover:-translate-y-0.5 hover:scale-105 hover:shadow-lg hover:shadow-red-600/40 data-[state=active]:bg-red-600 data-[state=active]:border-red-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-red-600/30 transition-all duration-300 ease-out"
               >
                 <Youtube className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">YouTube</span>
-                <span className="sm:hidden">YT</span>
+                <span>YouTube</span>
               </TabsTrigger>
               <TabsTrigger
                 value="thumbnail"
-                className="gap-1.5 text-xs sm:text-sm cursor-pointer bg-white/[0.06] border border-white/10 hover:bg-white/20 hover:border-white/25 hover:scale-[1.03] data-[state=active]:bg-orange-500 data-[state=active]:border-orange-500 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-orange-500/30 transition-all duration-200"
+                className="gap-1.5 px-2.5 py-1.5 text-xs font-medium cursor-pointer rounded-md bg-black/[0.05] dark:bg-white/[0.08] border border-black/10 dark:border-white/15 hover:bg-orange-500 hover:text-white hover:border-orange-500 hover:-translate-y-0.5 hover:scale-105 hover:shadow-lg hover:shadow-orange-500/40 data-[state=active]:bg-orange-500 data-[state=active]:border-orange-500 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-orange-500/30 transition-all duration-300 ease-out"
               >
                 <ImageIcon className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Thumbnails</span>
-                <span className="sm:hidden">Thumb</span>
+                <span>Thumbnails</span>
               </TabsTrigger>
               <TabsTrigger
                 value="instagram"
-                className="gap-1.5 text-xs sm:text-sm cursor-pointer bg-white/[0.06] border border-white/10 hover:bg-white/20 hover:border-white/25 hover:scale-[1.03] data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:via-pink-600 data-[state=active]:to-orange-500 data-[state=active]:border-transparent data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-pink-600/30 transition-all duration-200"
+                className="group gap-1.5 px-2.5 py-1.5 text-xs font-medium cursor-pointer rounded-md bg-black/[0.05] dark:bg-white/[0.08] border border-black/10 dark:border-white/15 hover:bg-gradient-to-r hover:from-purple-600 hover:via-pink-600 hover:to-orange-500 hover:text-white hover:border-transparent hover:-translate-y-0.5 hover:scale-105 hover:shadow-lg hover:shadow-pink-600/40 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:via-pink-600 data-[state=active]:to-orange-500 data-[state=active]:border-transparent data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-pink-600/30 transition-all duration-300 ease-out"
               >
                 <Instagram className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Instagram</span>
-                <span className="sm:hidden">IG</span>
+                <span>Instagram</span>
               </TabsTrigger>
               <TabsTrigger
                 value="twitter"
-                className="gap-1.5 text-xs sm:text-sm cursor-pointer bg-white/[0.06] border border-white/10 hover:bg-white/20 hover:border-white/25 hover:scale-[1.03] data-[state=active]:bg-black data-[state=active]:border-black data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-black/40 transition-all duration-200"
+                className="gap-1.5 px-2.5 py-1.5 text-xs font-medium cursor-pointer rounded-md bg-black/[0.05] dark:bg-white/[0.08] border border-black/10 dark:border-white/15 hover:bg-black hover:text-white hover:border-black hover:-translate-y-0.5 hover:scale-105 hover:shadow-lg hover:shadow-black/40 data-[state=active]:bg-black data-[state=active]:border-black data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-black/40 transition-all duration-300 ease-out"
               >
                 <Twitter className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Twitter/X</span>
-                <span className="sm:hidden">X</span>
+                <span>Twitter/X</span>
               </TabsTrigger>
               <TabsTrigger
                 value="tiktok"
-                className="gap-1.5 text-xs sm:text-sm cursor-pointer bg-white/[0.06] border border-white/10 hover:bg-white/20 hover:border-white/25 hover:scale-[1.03] data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-pink-500 data-[state=active]:border-transparent data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-pink-500/30 transition-all duration-200"
+                className="gap-1.5 px-2.5 py-1.5 text-xs font-medium cursor-pointer rounded-md bg-black/[0.05] dark:bg-white/[0.08] border border-black/10 dark:border-white/15 hover:bg-gradient-to-r hover:from-cyan-500 hover:to-pink-500 hover:text-white hover:border-transparent hover:-translate-y-0.5 hover:scale-105 hover:shadow-lg hover:shadow-pink-500/40 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-pink-500 data-[state=active]:border-transparent data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-pink-500/30 transition-all duration-300 ease-out"
               >
                 <Music2 className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">TikTok</span>
-                <span className="sm:hidden">TT</span>
+                <span>TikTok</span>
               </TabsTrigger>
               <TabsTrigger
                 value="reddit"
-                className="gap-1.5 text-xs sm:text-sm cursor-pointer bg-white/[0.06] border border-white/10 hover:bg-white/20 hover:border-white/25 hover:scale-[1.03] data-[state=active]:bg-orange-600 data-[state=active]:border-orange-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-orange-600/30 transition-all duration-200"
+                className="gap-1.5 px-2.5 py-1.5 text-xs font-medium cursor-pointer rounded-md bg-black/[0.05] dark:bg-white/[0.08] border border-black/10 dark:border-white/15 hover:bg-orange-600 hover:text-white hover:border-orange-600 hover:-translate-y-0.5 hover:scale-105 hover:shadow-lg hover:shadow-orange-600/40 data-[state=active]:bg-orange-600 data-[state=active]:border-orange-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-orange-600/30 transition-all duration-300 ease-out"
               >
                 <MessageSquare className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Reddit</span>
-                <span className="sm:hidden">RD</span>
+                <span>Reddit</span>
               </TabsTrigger>
               <TabsTrigger
                 value="facebook"
-                className="gap-1.5 text-xs sm:text-sm cursor-pointer bg-white/[0.06] border border-white/10 hover:bg-white/20 hover:border-white/25 hover:scale-[1.03] data-[state=active]:bg-blue-600 data-[state=active]:border-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-blue-600/30 transition-all duration-200"
+                className="gap-1.5 px-2.5 py-1.5 text-xs font-medium cursor-pointer rounded-md bg-black/[0.05] dark:bg-white/[0.08] border border-black/10 dark:border-white/15 hover:bg-blue-600 hover:text-white hover:border-blue-600 hover:-translate-y-0.5 hover:scale-105 hover:shadow-lg hover:shadow-blue-600/40 data-[state=active]:bg-blue-600 data-[state=active]:border-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-blue-600/30 transition-all duration-300 ease-out"
               >
                 <Facebook className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Facebook</span>
-                <span className="sm:hidden">FB</span>
+                <span>Facebook</span>
               </TabsTrigger>
               <TabsTrigger
                 value="pinterest"
-                className="gap-1.5 text-xs sm:text-sm cursor-pointer bg-white/[0.06] border border-white/10 hover:bg-white/20 hover:border-white/25 hover:scale-[1.03] data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-rose-600 data-[state=active]:border-transparent data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-red-600/30 transition-all duration-200"
+                className="gap-1.5 px-2.5 py-1.5 text-xs font-medium cursor-pointer rounded-md bg-black/[0.05] dark:bg-white/[0.08] border border-black/10 dark:border-white/15 hover:bg-gradient-to-r hover:from-red-600 hover:to-rose-600 hover:text-white hover:border-transparent hover:-translate-y-0.5 hover:scale-105 hover:shadow-lg hover:shadow-red-600/40 data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-rose-600 data-[state=active]:border-transparent data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-red-600/30 transition-all duration-300 ease-out"
               >
                 <ImageIcon className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Pinterest</span>
-                <span className="sm:hidden">PIN</span>
+                <span>Pinterest</span>
               </TabsTrigger>
               <TabsTrigger
                 value="threads"
-                className="gap-1.5 text-xs sm:text-sm cursor-pointer bg-white/[0.06] border border-white/10 hover:bg-white/20 hover:border-white/25 hover:scale-[1.03] data-[state=active]:bg-gradient-to-r data-[state=active]:from-zinc-800 data-[state=active]:to-zinc-900 data-[state=active]:border-transparent data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-black/40 transition-all duration-200"
+                className="gap-1.5 px-2.5 py-1.5 text-xs font-medium cursor-pointer rounded-md bg-black/[0.05] dark:bg-white/[0.08] border border-black/10 dark:border-white/15 hover:bg-gradient-to-r hover:from-zinc-800 hover:to-zinc-900 hover:text-white hover:border-transparent hover:-translate-y-0.5 hover:scale-105 hover:shadow-lg hover:shadow-black/50 data-[state=active]:bg-gradient-to-r data-[state=active]:from-zinc-800 data-[state=active]:to-zinc-900 data-[state=active]:border-transparent data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-black/40 transition-all duration-300 ease-out"
               >
                 <AtSign className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Threads</span>
-                <span className="sm:hidden">TH</span>
+                <span>Threads</span>
               </TabsTrigger>
               <TabsTrigger
                 value="mp3"
-                className="gap-1.5 text-xs sm:text-sm cursor-pointer bg-white/[0.06] border border-white/10 hover:bg-white/20 hover:border-white/25 hover:scale-[1.03] data-[state=active]:bg-emerald-600 data-[state=active]:border-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-emerald-600/30 transition-all duration-200"
+                className="gap-1.5 px-2.5 py-1.5 text-xs font-medium cursor-pointer rounded-md bg-black/[0.05] dark:bg-white/[0.08] border border-black/10 dark:border-white/15 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 hover:-translate-y-0.5 hover:scale-105 hover:shadow-lg hover:shadow-emerald-600/40 data-[state=active]:bg-emerald-600 data-[state=active]:border-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-emerald-600/30 transition-all duration-300 ease-out"
               >
                 <FileAudio className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">MP3 Convert</span>
-                <span className="sm:hidden">MP3</span>
+                <span>MP3</span>
               </TabsTrigger>
             </TabsList>
           </div>
