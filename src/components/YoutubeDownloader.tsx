@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
 import { isValidYouTubeUrl, formatDuration } from "@/lib/utils";
-import DownloadCountdown from "@/components/DownloadCountdown";
+import { triggerNativeDownload, safeFilename } from "@/lib/download";
+import AdCountdown from "@/components/AdCountdown";
 import AdBanner from "@/components/AdBanner";
 import {
   Download,
@@ -14,7 +14,6 @@ import {
   Music,
   Clipboard,
   X,
-  Play,
 } from "lucide-react";
 
 interface VideoFormat {
@@ -42,11 +41,20 @@ const QUALITY_LABELS: Record<number, string> = {
   240: "240p",
   360: "360p",
   480: "480p",
-  720: "720p",
-  1080: "1080p",
-  1440: "1440p (2K)",
-  2160: "2160p (4K)",
+  720: "720p HD",
+  1080: "1080p Full HD",
+  1440: "1440p 2K",
+  2160: "2160p 4K",
 };
+
+type Phase = "idle" | "processing" | "ad" | "ready";
+
+function formatSize(bytes: number | null): string {
+  if (!bytes) return "";
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
+}
 
 export default function YoutubeDownloader({
   onDownload,
@@ -54,17 +62,20 @@ export default function YoutubeDownloader({
   onDownload: (title: string, url: string, type: string) => void;
 }) {
   const [url, setUrl] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [phase, setPhase] = useState<Phase>("idle");
   const [videoInfo, setVideoInfo] = useState<VideoInfo | null>(null);
-  const [countdown, setCountdown] = useState<{ streamUrl: string; name: string } | null>(null);
   const { toast } = useToast();
 
-  const fetchInfo = async () => {
+  const startDownload = async () => {
     if (!isValidYouTubeUrl(url)) {
-      toast({ title: "Invalid URL", description: "Please enter a valid YouTube URL", variant: "destructive" });
+      toast({
+        title: "Invalid URL",
+        description: "Paste a YouTube video, Shorts, or youtu.be link.",
+        variant: "destructive",
+      });
       return;
     }
-    setLoading(true);
+    setPhase("processing");
     setVideoInfo(null);
     try {
       const res = await fetch("/api/youtube/info", {
@@ -74,123 +85,180 @@ export default function YoutubeDownloader({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to fetch video info");
+      if (!data.formats?.length) throw new Error("No downloadable formats found");
       setVideoInfo(data);
+      setPhase("ad");
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
-    } finally {
-      setLoading(false);
+      setPhase("idle");
     }
   };
 
-  const handleDownload = (formatId: string, label: string) => {
-    const title = videoInfo?.title || "video";
-    const safeName = title.replace(/[^a-zA-Z0-9 _-]/g, "").slice(0, 80) + ".mp4";
-    const fmt = videoInfo?.formats.find((f) => f.format_id === formatId);
-    const sizeParam = fmt?.filesize ? `&size=${fmt.filesize}` : "";
-    const streamUrl = `/api/stream?url=${encodeURIComponent(url)}&f=${encodeURIComponent(formatId)}&name=${encodeURIComponent(safeName)}${sizeParam}`;
-    setCountdown({ streamUrl, name: safeName });
-    onDownload(title, url, `Video ${label}`);
+  const downloadVideo = (formatId: string, label: string, height: number, filesize: number | null) => {
+    if (!videoInfo) return;
+    const base = safeFilename(videoInfo.title, "youtube-video");
+    const name = `${base}-${height}p.mp4`;
+    const sizeParam = filesize ? `&size=${filesize}` : "";
+    const streamUrl =
+      `/api/stream?url=${encodeURIComponent(url)}` +
+      `&f=${encodeURIComponent(formatId)}` +
+      `&name=${encodeURIComponent(name)}${sizeParam}`;
+    triggerNativeDownload(streamUrl, name);
+    onDownload(videoInfo.title, url, `Video ${label}`);
   };
 
-  const handleAudioDownload = () => {
-    const title = videoInfo?.title || "audio";
-    const safeName = title.replace(/[^a-zA-Z0-9 _-]/g, "").slice(0, 80) + ".m4a";
-    const streamUrl = `/api/stream?url=${encodeURIComponent(url)}&audio=1&name=${encodeURIComponent(safeName)}`;
-    setCountdown({ streamUrl, name: safeName });
-    onDownload(title, url, "Audio");
+  const downloadAudio = () => {
+    if (!videoInfo) return;
+    const base = safeFilename(videoInfo.title, "youtube-audio");
+    const name = `${base}.m4a`;
+    const streamUrl = `/api/stream?url=${encodeURIComponent(url)}&audio=1&name=${encodeURIComponent(name)}`;
+    triggerNativeDownload(streamUrl, name);
+    onDownload(videoInfo.title, url, "Audio M4A");
   };
 
   const paste = async () => {
-    try { setUrl(await navigator.clipboard.readText()); } catch {}
+    try {
+      setUrl(await navigator.clipboard.readText());
+    } catch {}
   };
 
-  const isExtracting = false;
+  const reset = () => {
+    setUrl("");
+    setVideoInfo(null);
+    setPhase("idle");
+  };
 
-  const availableQualities = videoInfo
-    ? Object.keys(QUALITY_LABELS)
-        .map(Number)
-        .filter((h) => videoInfo.formats.some((f) => f.height === h))
+  // Deduplicate formats by height, keep the one with the largest filesize for info display.
+  const availableFormats = videoInfo
+    ? Object.values(
+        videoInfo.formats.reduce<Record<number, VideoFormat>>((acc, f) => {
+          if (!QUALITY_LABELS[f.height]) return acc;
+          const existing = acc[f.height];
+          if (!existing || (f.filesize || 0) > (existing.filesize || 0)) {
+            acc[f.height] = f;
+          }
+          return acc;
+        }, {}),
+      ).sort((a, b) => b.height - a.height)
     : [];
 
+  const isProcessing = phase === "processing";
+
   return (
-    <div className="space-y-6">
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <Input
-            placeholder="Paste YouTube URL here..."
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && fetchInfo()}
-            className="pr-20 bg-white/5 border-white/10 backdrop-blur-sm"
-          />
-          <div className="absolute right-1 top-1/2 -translate-y-1/2 flex gap-1">
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={paste}>
-              <Clipboard className="h-3.5 w-3.5" />
+    <div className="space-y-5">
+      {/* URL input */}
+      <div className="relative">
+        <Input
+          placeholder="Paste YouTube URL (video, Shorts, or youtu.be)..."
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && !isProcessing && startDownload()}
+          disabled={isProcessing}
+          className="h-14 text-base pr-20 bg-white/5 border-white/10 backdrop-blur-sm"
+          aria-label="YouTube URL"
+        />
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9"
+            onClick={paste}
+            disabled={isProcessing}
+            aria-label="Paste from clipboard"
+          >
+            <Clipboard className="h-4 w-4" />
+          </Button>
+          {url && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9"
+              onClick={reset}
+              disabled={isProcessing}
+              aria-label="Clear URL"
+            >
+              <X className="h-4 w-4" />
             </Button>
-            {url && (
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setUrl(""); setVideoInfo(null); }}>
-                <X className="h-3.5 w-3.5" />
-              </Button>
-            )}
-          </div>
+          )}
         </div>
-        <Button onClick={fetchInfo} disabled={loading || !url} className="bg-red-600 hover:bg-red-700">
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
-          <span className="ml-2">Fetch</span>
-        </Button>
       </div>
 
-      {loading && (
-        <div className="space-y-4 p-6 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
-          <div className="flex gap-4">
-            <Skeleton className="w-48 h-28 rounded-lg" />
-            <div className="flex-1 space-y-2">
-              <Skeleton className="h-5 w-3/4" />
-              <Skeleton className="h-4 w-1/2" />
-              <Skeleton className="h-4 w-1/4" />
-            </div>
-          </div>
-          <p className="text-xs text-muted-foreground flex items-center gap-2">
-            <Loader2 className="h-3 w-3 animate-spin" />
-            Fetching video info from YouTube… first request can take ~10s. Retries are instant (cached).
-          </p>
+      {/* Single large Download button */}
+      <Button
+        onClick={startDownload}
+        disabled={!url || isProcessing}
+        className="w-full h-14 text-lg font-bold bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white shadow-lg shadow-red-600/30 disabled:opacity-60 transition-all hover:scale-[1.01] active:scale-[0.99]"
+      >
+        {isProcessing ? (
+          <>
+            <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+            Processing...
+          </>
+        ) : (
+          <>
+            <Download className="h-5 w-5 mr-2" />
+            Download
+          </>
+        )}
+      </Button>
+
+      {/* Processing state */}
+      {isProcessing && (
+        <div className="rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 p-6 text-center space-y-2 animate-in fade-in duration-200">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
+          <p className="font-medium">Processing the link to download.</p>
+          <p className="text-sm text-muted-foreground">Stay on the page.</p>
         </div>
       )}
 
-      {videoInfo && (
-        <div className="space-y-4 p-6 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
+      {/* 5-second ad overlay */}
+      {phase === "ad" && (
+        <AdCountdown
+          seconds={5}
+          message="Processing the link to download. Stay on the page."
+          onComplete={() => setPhase("ready")}
+          onClose={() => setPhase("ready")}
+        />
+      )}
+
+      {/* Resolution selection, shown after the ad */}
+      {phase === "ready" && videoInfo && (
+        <div className="space-y-5 p-5 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 animate-in fade-in slide-in-from-bottom-2 duration-300">
           <div className="flex flex-col sm:flex-row gap-4">
             <img
               src={videoInfo.thumbnail}
               alt={videoInfo.title}
-              className="w-full sm:w-48 h-auto rounded-lg object-cover"
+              className="w-full sm:w-56 aspect-video rounded-lg object-cover border border-white/10"
             />
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-lg truncate">{videoInfo.title}</h3>
-              <p className="text-sm text-muted-foreground">{videoInfo.uploader}</p>
-              <p className="text-sm text-muted-foreground">
-                Duration: {formatDuration(videoInfo.duration)} • {videoInfo.view_count?.toLocaleString()} views
+              <h3 className="font-bold text-lg line-clamp-2">{videoInfo.title}</h3>
+              <p className="text-sm text-muted-foreground mt-1">{videoInfo.uploader}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {formatDuration(videoInfo.duration)}
+                {videoInfo.view_count ? ` · ${videoInfo.view_count.toLocaleString()} views` : ""}
               </p>
             </div>
           </div>
 
-          <AdBanner slot="middle" className="my-3" />
+          <AdBanner slot="middle" className="my-2" />
 
           <div>
-            <h4 className="text-sm font-medium mb-2 text-muted-foreground">Video Qualities</h4>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {availableQualities.map((h) => {
-                const fmt = videoInfo.formats.find((f) => f.height === h);
-                const key = fmt?.format_id || String(h);
+            <h4 className="text-sm font-semibold mb-3">Choose Video Quality</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {availableFormats.map((fmt) => {
+                const label = QUALITY_LABELS[fmt.height];
+                const size = formatSize(fmt.filesize);
                 return (
                   <Button
-                    key={h}
-                    variant="outline"
-                    className="justify-between bg-white/5 border-white/10 hover:bg-white/10"
-                    onClick={() => handleDownload(key, QUALITY_LABELS[h])}
+                    key={fmt.format_id}
+                    onClick={() => downloadVideo(fmt.format_id, label, fmt.height, fmt.filesize)}
+                    className="h-auto py-3 px-4 justify-between bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white font-semibold shadow-md shadow-red-600/20 hover:shadow-red-600/40 transition-all hover:scale-[1.02]"
                   >
-                    <span>{QUALITY_LABELS[h]}</span>
-                    <Download className="h-3.5 w-3.5" />
+                    <span className="flex items-center gap-2">
+                      <Download className="h-4 w-4" />
+                      <span>Download {label} MP4</span>
+                    </span>
+                    {size && <span className="text-[11px] font-normal opacity-90">{size}</span>}
                   </Button>
                 );
               })}
@@ -198,29 +266,16 @@ export default function YoutubeDownloader({
           </div>
 
           <div>
-            <h4 className="text-sm font-medium mb-2 text-muted-foreground">Audio Only</h4>
+            <h4 className="text-sm font-semibold mb-3">Audio Only</h4>
             <Button
-              variant="outline"
-              className="justify-between bg-white/5 border-white/10 hover:bg-white/10 w-full sm:w-auto"
-              onClick={handleAudioDownload}
+              onClick={downloadAudio}
+              className="w-full h-12 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold shadow-md shadow-emerald-600/20 hover:shadow-emerald-600/40 transition-all hover:scale-[1.01]"
             >
-              <span className="flex items-center gap-2">
-                <Music className="h-3.5 w-3.5" />
-                Download Audio (M4A)
-              </span>
-              <Download className="h-3.5 w-3.5 ml-2" />
+              <Music className="h-4 w-4 mr-2" />
+              Download Audio (M4A High Quality)
             </Button>
           </div>
-
         </div>
-      )}
-
-      {countdown && (
-        <DownloadCountdown
-          streamUrl={countdown.streamUrl}
-          filename={countdown.name}
-          onClose={() => setCountdown(null)}
-        />
       )}
     </div>
   );

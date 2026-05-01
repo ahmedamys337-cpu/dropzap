@@ -5,8 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { isValidTikTokUrl } from "@/lib/utils";
-import DownloadCountdown from "@/components/DownloadCountdown";
-import { Download, Clipboard, X, Music2 } from "lucide-react";
+import { triggerNativeDownload, safeFilename } from "@/lib/download";
+import AdCountdown from "@/components/AdCountdown";
+import { Download, Clipboard, X, Loader2 } from "lucide-react";
+
+type Phase = "idle" | "ad";
 
 export default function TikTokDownloader({
   onDownload,
@@ -14,66 +17,81 @@ export default function TikTokDownloader({
   onDownload: (title: string, url: string, type: string) => void;
 }) {
   const [url, setUrl] = useState("");
-  const [countdown, setCountdown] = useState<{ streamUrl: string; name: string } | null>(null);
+  const [phase, setPhase] = useState<Phase>("idle");
   const { toast } = useToast();
 
-  const handleDownload = () => {
+  const start = () => {
     if (!isValidTikTokUrl(url)) {
-      toast({ title: "Invalid URL", description: "Please enter a valid TikTok URL", variant: "destructive" });
+      toast({
+        title: "Invalid URL",
+        description: "Please enter a valid TikTok URL.",
+        variant: "destructive",
+      });
       return;
     }
-    const safeName = "tiktok-video.mp4";
-    const streamUrl = `/api/stream?url=${encodeURIComponent(url)}&name=${encodeURIComponent(safeName)}`;
-    setCountdown({ streamUrl, name: safeName });
+    setPhase("ad");
+  };
+
+  const fireDownload = () => {
+    const name = `${safeFilename("tiktok-video", "tiktok")}.mp4`;
+    const streamUrl = `/api/stream?url=${encodeURIComponent(url)}&name=${encodeURIComponent(name)}`;
+    triggerNativeDownload(streamUrl, name);
     onDownload("TikTok Video", url, "No Watermark MP4");
+    setPhase("idle");
   };
 
   const paste = async () => {
-    try { setUrl(await navigator.clipboard.readText()); } catch {}
+    try {
+      setUrl(await navigator.clipboard.readText());
+    } catch {}
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <Input
-            placeholder="Paste TikTok URL here..."
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleDownload()}
-            className="pr-20 bg-white/5 border-white/10 backdrop-blur-sm"
-          />
-          <div className="absolute right-1 top-1/2 -translate-y-1/2 flex gap-1">
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={paste}>
-              <Clipboard className="h-3.5 w-3.5" />
+    <div className="space-y-5">
+      <div className="relative">
+        <Input
+          placeholder="Paste TikTok URL here..."
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && start()}
+          className="h-14 text-base pr-20 bg-white/5 border-white/10 backdrop-blur-sm"
+        />
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
+          <Button variant="ghost" size="icon" className="h-9 w-9" onClick={paste}>
+            <Clipboard className="h-4 w-4" />
+          </Button>
+          {url && (
+            <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setUrl("")}>
+              <X className="h-4 w-4" />
             </Button>
-            {url && (
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setUrl("")}>
-                <X className="h-3.5 w-3.5" />
-              </Button>
-            )}
-          </div>
+          )}
         </div>
-        <Button
-          onClick={handleDownload}
-          disabled={!url}
-          className="bg-black hover:bg-gray-900 text-white border border-white/20"
-        >
-          <Music2 className="h-4 w-4" />
-          <span className="ml-2">Download</span>
-        </Button>
       </div>
 
+      <Button
+        onClick={start}
+        disabled={!url || phase !== "idle"}
+        className="w-full h-14 text-lg font-bold bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white shadow-lg shadow-pink-500/30 transition-all hover:scale-[1.01] active:scale-[0.99]"
+      >
+        {phase === "ad" ? (
+          <>
+            <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+            Processing...
+          </>
+        ) : (
+          <>
+            <Download className="h-5 w-5 mr-2" />
+            Download (No Watermark)
+          </>
+        )}
+      </Button>
+
       <p className="text-xs text-muted-foreground text-center">
-        Downloads TikTok videos without watermark
+        Downloads TikTok videos without watermark.
       </p>
 
-      {countdown && (
-        <DownloadCountdown
-          streamUrl={countdown.streamUrl}
-          filename={countdown.name}
-          onClose={() => setCountdown(null)}
-        />
+      {phase === "ad" && (
+        <AdCountdown seconds={5} onComplete={fireDownload} onClose={() => setPhase("idle")} />
       )}
     </div>
   );

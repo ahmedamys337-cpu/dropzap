@@ -16,6 +16,8 @@ const BulkDownloader = dynamic(() => import("@/components/BulkDownloader"), { ss
 const Mp3Converter = dynamic(() => import("@/components/Mp3Converter"), { ssr: false });
 const RedditDownloader = dynamic(() => import("@/components/RedditDownloader"), { ssr: false });
 const FacebookDownloader = dynamic(() => import("@/components/FacebookDownloader"), { ssr: false });
+const PinterestDownloader = dynamic(() => import("@/components/PinterestDownloader"), { ssr: false });
+const ThreadsDownloader = dynamic(() => import("@/components/ThreadsDownloader"), { ssr: false });
 import {
   Zap,
   Youtube,
@@ -27,6 +29,7 @@ import {
   FileAudio,
   MessageSquare,
   Facebook,
+  AtSign,
 } from "lucide-react";
 
 export default function Home() {
@@ -84,7 +87,7 @@ export default function Home() {
             <TabsList className="glass-strong h-auto p-1.5 gap-1 flex sm:flex-wrap w-max sm:w-full justify-start">
               <TabsTrigger
                 value="youtube"
-                className="gap-1.5 text-xs sm:text-sm data-[state=active]:bg-red-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-red-600/30 transition-all"
+                className="gap-1.5 text-xs sm:text-sm cursor-pointer hover:bg-white/10 hover:scale-[1.03] data-[state=active]:bg-red-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-red-600/30 transition-all duration-200"
               >
                 <Youtube className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">YouTube</span>
@@ -92,7 +95,7 @@ export default function Home() {
               </TabsTrigger>
               <TabsTrigger
                 value="thumbnail"
-                className="gap-1.5 text-xs sm:text-sm data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-orange-500/30 transition-all"
+                className="gap-1.5 text-xs sm:text-sm cursor-pointer hover:bg-white/10 hover:scale-[1.03] data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-orange-500/30 transition-all duration-200"
               >
                 <ImageIcon className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Thumbnails</span>
@@ -100,7 +103,7 @@ export default function Home() {
               </TabsTrigger>
               <TabsTrigger
                 value="instagram"
-                className="gap-1.5 text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:via-pink-600 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-pink-600/30 transition-all"
+                className="gap-1.5 text-xs sm:text-sm cursor-pointer hover:bg-white/10 hover:scale-[1.03] data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:via-pink-600 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-pink-600/30 transition-all duration-200"
               >
                 <Instagram className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Instagram</span>
@@ -108,7 +111,7 @@ export default function Home() {
               </TabsTrigger>
               <TabsTrigger
                 value="twitter"
-                className="gap-1.5 text-xs sm:text-sm data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-black/40 transition-all"
+                className="gap-1.5 text-xs sm:text-sm cursor-pointer hover:bg-white/10 hover:scale-[1.03] data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-black/40 transition-all duration-200"
               >
                 <Twitter className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Twitter/X</span>
@@ -116,7 +119,7 @@ export default function Home() {
               </TabsTrigger>
               <TabsTrigger
                 value="tiktok"
-                className="gap-1.5 text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-pink-500/30 transition-all"
+                className="gap-1.5 text-xs sm:text-sm cursor-pointer hover:bg-white/10 hover:scale-[1.03] data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-pink-500/30 transition-all duration-200"
               >
                 <Music2 className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">TikTok</span>
@@ -124,7 +127,7 @@ export default function Home() {
               </TabsTrigger>
               <TabsTrigger
                 value="reddit"
-                className="gap-1.5 text-xs sm:text-sm data-[state=active]:bg-orange-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-orange-600/30 transition-all"
+                className="gap-1.5 text-xs sm:text-sm cursor-pointer hover:bg-white/10 hover:scale-[1.03] data-[state=active]:bg-orange-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-orange-600/30 transition-all duration-200"
               >
                 <MessageSquare className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Reddit</span>
@@ -132,15 +135,31 @@ export default function Home() {
               </TabsTrigger>
               <TabsTrigger
                 value="facebook"
-                className="gap-1.5 text-xs sm:text-sm data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-blue-600/30 transition-all"
+                className="gap-1.5 text-xs sm:text-sm cursor-pointer hover:bg-white/10 hover:scale-[1.03] data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-blue-600/30 transition-all duration-200"
               >
                 <Facebook className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Facebook</span>
                 <span className="sm:hidden">FB</span>
               </TabsTrigger>
               <TabsTrigger
+                value="pinterest"
+                className="gap-1.5 text-xs sm:text-sm cursor-pointer hover:bg-white/10 hover:scale-[1.03] data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-rose-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-red-600/30 transition-all duration-200"
+              >
+                <ImageIcon className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Pinterest</span>
+                <span className="sm:hidden">PIN</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="threads"
+                className="gap-1.5 text-xs sm:text-sm cursor-pointer hover:bg-white/10 hover:scale-[1.03] data-[state=active]:bg-gradient-to-r data-[state=active]:from-zinc-800 data-[state=active]:to-zinc-900 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-black/40 transition-all duration-200"
+              >
+                <AtSign className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Threads</span>
+                <span className="sm:hidden">TH</span>
+              </TabsTrigger>
+              <TabsTrigger
                 value="bulk"
-                className="gap-1.5 text-xs sm:text-sm data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-indigo-600/30 transition-all"
+                className="gap-1.5 text-xs sm:text-sm cursor-pointer hover:bg-white/10 hover:scale-[1.03] data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-indigo-600/30 transition-all duration-200"
               >
                 <Layers className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Bulk</span>
@@ -148,7 +167,7 @@ export default function Home() {
               </TabsTrigger>
               <TabsTrigger
                 value="mp3"
-                className="gap-1.5 text-xs sm:text-sm data-[state=active]:bg-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-emerald-600/30 transition-all"
+                className="gap-1.5 text-xs sm:text-sm cursor-pointer hover:bg-white/10 hover:scale-[1.03] data-[state=active]:bg-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-emerald-600/30 transition-all duration-200"
               >
                 <FileAudio className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">MP3 Convert</span>
@@ -203,7 +222,7 @@ export default function Home() {
                       <div>
                         <h2 className="text-xl font-bold">Instagram Downloader</h2>
                         <p className="text-sm text-muted-foreground">
-                          Download Instagram Reels and their thumbnails
+                          Download Reels, photos, and carousel posts in original quality
                         </p>
                       </div>
                     </div>
@@ -269,13 +288,47 @@ export default function Home() {
                         <Facebook className="h-5 w-5 text-white" />
                       </div>
                       <div>
-                        <h2 className="text-xl font-bold">Facebook Video Downloader</h2>
+                        <h2 className="text-xl font-bold">Facebook Video &amp; Photo Downloader</h2>
                         <p className="text-sm text-muted-foreground">
-                          Download Facebook videos and Reels in HD
+                          Download Facebook videos, Reels, and photo posts in HD
                         </p>
                       </div>
                     </div>
                     <FacebookDownloader onDownload={handleDownload} />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="pinterest" className="mt-0">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 pb-2 border-b border-red-600/20">
+                      <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-red-600 to-rose-600 flex items-center justify-center shadow-lg shadow-red-600/30">
+                        <ImageIcon className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-bold">Pinterest Downloader</h2>
+                        <p className="text-sm text-muted-foreground">
+                          Download Pinterest pin images and videos in original quality
+                        </p>
+                      </div>
+                    </div>
+                    <PinterestDownloader onDownload={handleDownload} />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="threads" className="mt-0">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 pb-2 border-b border-white/20">
+                      <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-zinc-800 to-zinc-900 flex items-center justify-center shadow-lg shadow-black/40 border border-white/10">
+                        <AtSign className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-bold">Threads Downloader</h2>
+                        <p className="text-sm text-muted-foreground">
+                          Download Threads videos and images from public posts
+                        </p>
+                      </div>
+                    </div>
+                    <ThreadsDownloader onDownload={handleDownload} />
                   </div>
                 </TabsContent>
 

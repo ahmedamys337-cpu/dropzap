@@ -50,3 +50,15 @@ export function isValidFacebookUrl(url: string): boolean {
   const pattern = /^(https?:\/\/)?(www\.|m\.)?(facebook\.com|fb\.watch)\//;
   return pattern.test(url);
 }
+
+export function isValidPinterestUrl(url: string): boolean {
+  // Covers pinterest.com, country TLDs (pinterest.co.uk, .de, etc.) and pin.it short links.
+  const pattern = /^(https?:\/\/)?(www\.)?(pinterest\.[a-z.]+|pin\.it)\//;
+  return pattern.test(url);
+}
+
+export function isValidThreadsUrl(url: string): boolean {
+  // threads.net (legacy) and threads.com (current). Post path: /@user/post/CODE
+  const pattern = /^(https?:\/\/)?(www\.)?threads\.(net|com)\//;
+  return pattern.test(url);
+}

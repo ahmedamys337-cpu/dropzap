@@ -6,20 +6,20 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
 import { isValidYouTubeUrl } from "@/lib/utils";
-import { Download, Loader2, Clipboard, X, Image as ImageIcon } from "lucide-react";
+import { triggerNativeDownload, proxyDownloadUrl, safeFilename } from "@/lib/download";
+import { Download, Loader2, Clipboard, X, Image as ImageIcon, Sparkles } from "lucide-react";
+
+interface Thumb {
+  label: string;
+  url: string;
+  width: number;
+  height: number;
+}
 
 interface ThumbnailData {
   title: string;
-  thumbnails: { label: string; url: string; width: number; height: number }[];
+  thumbnails: Thumb[];
 }
-
-const THUMBNAIL_SIZES = [
-  { key: "default", label: "Default", width: 120, height: 90 },
-  { key: "mqdefault", label: "Medium", width: 320, height: 180 },
-  { key: "hqdefault", label: "High", width: 480, height: 360 },
-  { key: "sddefault", label: "Standard", width: 640, height: 480 },
-  { key: "maxresdefault", label: "Max Resolution", width: 1280, height: 720 },
-];
 
 export default function ThumbnailDownloader() {
   const [url, setUrl] = useState("");
@@ -29,7 +29,11 @@ export default function ThumbnailDownloader() {
 
   const fetchThumbnails = async () => {
     if (!isValidYouTubeUrl(url)) {
-      toast({ title: "Invalid URL", description: "Please enter a valid YouTube URL", variant: "destructive" });
+      toast({
+        title: "Invalid URL",
+        description: "Please paste a valid YouTube URL.",
+        variant: "destructive",
+      });
       return;
     }
     setLoading(true);
@@ -50,27 +54,34 @@ export default function ThumbnailDownloader() {
     }
   };
 
-  const downloadThumb = async (thumbUrl: string, label: string) => {
-    try {
-      const res = await fetch(thumbUrl);
-      const blob = await res.blob();
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = `thumbnail-${label}.jpg`;
-      a.click();
-      URL.revokeObjectURL(a.href);
-      toast({ title: "Downloaded", description: `${label} thumbnail saved` });
-    } catch {
-      toast({ title: "Error", description: "Failed to download thumbnail", variant: "destructive" });
-    }
+  const downloadThumb = (thumb: Thumb) => {
+    const base = safeFilename(data?.title || "youtube-thumbnail", "thumbnail");
+    const name = `${base}-${thumb.width}x${thumb.height}.jpg`;
+    // Route through /api/proxy-download so the response carries
+    // Content-Disposition: attachment — this makes the browser save the file
+    // via its native download manager instead of opening the image inline.
+    triggerNativeDownload(proxyDownloadUrl(thumb.url, name), name);
   };
 
   const paste = async () => {
-    try { setUrl(await navigator.clipboard.readText()); } catch {}
+    try {
+      setUrl(await navigator.clipboard.readText());
+    } catch {}
   };
 
+  const reset = () => {
+    setUrl("");
+    setData(null);
+  };
+
+  // Sort by pixel count so the maxres comes first.
+  const sorted = data
+    ? [...data.thumbnails].sort((a, b) => b.width * b.height - a.width * a.height)
+    : [];
+  const [hero, ...rest] = sorted;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="flex gap-2">
         <div className="relative flex-1">
           <Input
@@ -78,59 +89,113 @@ export default function ThumbnailDownloader() {
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && fetchThumbnails()}
-            className="pr-20 bg-white/5 border-white/10 backdrop-blur-sm"
+            className="h-12 pr-20 bg-white/5 border-white/10 backdrop-blur-sm"
+            aria-label="YouTube URL"
           />
           <div className="absolute right-1 top-1/2 -translate-y-1/2 flex gap-1">
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={paste}>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={paste} aria-label="Paste">
               <Clipboard className="h-3.5 w-3.5" />
             </Button>
             {url && (
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setUrl(""); setData(null); }}>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={reset} aria-label="Clear">
                 <X className="h-3.5 w-3.5" />
               </Button>
             )}
           </div>
         </div>
-        <Button onClick={fetchThumbnails} disabled={loading || !url} className="bg-purple-600 hover:bg-purple-700">
+        <Button
+          onClick={fetchThumbnails}
+          disabled={loading || !url}
+          className="h-12 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold shadow-md shadow-orange-500/20 transition-all hover:scale-[1.02]"
+        >
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
           <span className="ml-2">Get Thumbnails</span>
         </Button>
       </div>
 
       {loading && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[...Array(5)].map((_, i) => (
-            <Skeleton key={i} className="h-40 rounded-lg" />
-          ))}
+        <div className="space-y-4">
+          <Skeleton className="aspect-video w-full rounded-xl" />
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} className="aspect-video rounded-lg" />
+            ))}
+          </div>
         </div>
       )}
 
-      {data && (
-        <div className="space-y-4">
-          <h3 className="font-semibold text-lg">{data.title}</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {data.thumbnails.map((thumb) => (
-              <div
-                key={thumb.label}
-                className="group relative rounded-xl overflow-hidden border border-white/10 bg-white/5 backdrop-blur-sm"
-              >
-                <img src={thumb.url} alt={thumb.label} className="w-full h-auto" />
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <Button
-                    size="sm"
-                    onClick={() => downloadThumb(thumb.url, thumb.label)}
-                    className="bg-white text-black hover:bg-gray-200"
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    {thumb.label} ({thumb.width}x{thumb.height})
-                  </Button>
-                </div>
-                <div className="p-2 text-center text-xs text-muted-foreground">
-                  {thumb.label} — {thumb.width}x{thumb.height}
-                </div>
+      {data && hero && (
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <h3 className="font-semibold text-lg line-clamp-2">{data.title}</h3>
+
+          {/* Hero: highest-resolution thumbnail */}
+          <div className="rounded-2xl overflow-hidden border border-white/10 bg-white/5 backdrop-blur-sm shadow-lg">
+            <div className="relative bg-black">
+              <img
+                src={hero.url}
+                alt={`${hero.label} thumbnail`}
+                className="w-full h-auto"
+              />
+              <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-orange-500 to-red-500 px-3 py-1 text-xs font-semibold text-white shadow-lg">
+                <Sparkles className="h-3 w-3" />
+                Max Resolution
+              </span>
+            </div>
+            <div className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <p className="font-semibold">{hero.label}</p>
+                <p className="text-sm text-muted-foreground">
+                  {hero.width} × {hero.height} pixels
+                </p>
               </div>
-            ))}
+              <Button
+                onClick={() => downloadThumb(hero)}
+                className="h-12 px-6 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold shadow-md shadow-orange-500/20 transition-all hover:scale-[1.02]"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Download {hero.width}×{hero.height}
+              </Button>
+            </div>
           </div>
+
+          {/* Smaller sizes grid */}
+          {rest.length > 0 && (
+            <div>
+              <h4 className="text-sm font-semibold mb-3 text-muted-foreground">
+                Other Sizes ({rest.length})
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {rest.map((thumb) => (
+                  <div
+                    key={thumb.label}
+                    className="rounded-xl overflow-hidden border border-white/10 bg-white/5 backdrop-blur-sm flex flex-col transition-all hover:border-orange-500/40 hover:shadow-md hover:shadow-orange-500/10"
+                  >
+                    <img
+                      src={thumb.url}
+                      alt={`${thumb.label} thumbnail`}
+                      className="w-full aspect-video object-cover"
+                    />
+                    <div className="p-3 flex flex-col gap-2 flex-1">
+                      <div>
+                        <p className="text-sm font-medium">{thumb.label}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {thumb.width} × {thumb.height}
+                        </p>
+                      </div>
+                      <Button
+                        onClick={() => downloadThumb(thumb)}
+                        size="sm"
+                        className="w-full bg-white/10 hover:bg-gradient-to-r hover:from-orange-500 hover:to-red-500 border border-white/10 hover:border-transparent text-foreground hover:text-white font-medium transition-all"
+                      >
+                        <Download className="h-3.5 w-3.5 mr-1.5" />
+                        Download {thumb.width}×{thumb.height}
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
