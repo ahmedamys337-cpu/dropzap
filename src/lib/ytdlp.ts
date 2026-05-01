@@ -110,11 +110,13 @@ const YT_FAST_ARGS = [
   "--skip-download",
   "--no-check-formats",
   "--socket-timeout", "30",
-  // Querying multiple player clients maximises format coverage. Different
-  // clients expose different ladders (e.g. some videos surface 1080p only
-  // on the tv_embedded or mweb client even though the web client returns
-  // just 360p progressive). yt-dlp merges all returned formats into one set.
-  "--extractor-args", "youtube:player_client=default,web,android,ios,mweb,tv_embedded",
+  // Querying multiple player clients maximises format coverage. Order
+  // matters: `tv_embedded` + `android` + `ios` reliably return the full
+  // DASH ladder (144p → 1080p+) without requiring a po_token, while the
+  // `web`/`default` clients increasingly gate HD formats behind po_token
+  // attestation on cloud IPs, which is why some videos were only surfacing
+  // the 360p progressive. yt-dlp merges formats from every client listed.
+  "--extractor-args", "youtube:player_client=tv_embedded,android,ios,mweb,web,default",
 ];
 
 // If a residential proxy is configured, we can hit YouTube directly via yt-dlp.

@@ -25,8 +25,19 @@ export async function POST(request: NextRequest) {
     // webm/vertical) and any video where the highest tier was DASH-only.
     // The /api/stream endpoint already remuxes DASH to mp4 with audio at
     // download time, so we don't need to gate-keep on container here.
-    const rawFormats = (info.formats || []).filter(
-      (f: any) => f.height && f.vcodec && f.vcodec !== "none"
+    // Also allow entries with missing `vcodec` metadata (some tv_embedded
+    // DASH entries omit it) as long as acodec is "none" — those are
+    // video-only tracks too.
+    const rawFormats = (info.formats || []).filter((f: any) => {
+      if (!f.height) return false;
+      if (f.vcodec && f.vcodec !== "none") return true;
+      if (!f.vcodec && f.acodec === "none") return true;
+      return false;
+    });
+
+    // Helpful diagnostic in Render logs when a video looks format-starved.
+    console.log(
+      `[youtube/info] ${info.id || ""} formats total=${info.formats?.length || 0} video=${rawFormats.length}`
     );
 
     // Dedupe by height, keeping the variant with the largest filesize so the
