@@ -20,17 +20,14 @@ export async function POST(request: NextRequest) {
 
     const info = await getVideoInfo(url);
 
-    // Only accept standard YouTube heights. Phantom non-ladder entries
-    // (e.g. 1072p, 2880p) would clutter the UI; real YouTube videos always
-    // fall on the standard rungs. Using a whitelist also naturally keeps
-    // out stale 8K/4K placeholders that sometimes appear in player
-    // responses for videos that don't actually offer those resolutions.
-    const STANDARD_HEIGHTS = new Set([144, 240, 360, 480, 720, 1080, 1440, 2160, 4320]);
-
+    // Accept any reasonable video height. We previously hard-whitelisted the
+    // landscape ladder {144,240,...,4320} which silently dropped every
+    // format from portrait Shorts (where height is e.g. 1920) and any
+    // video with a non-standard aspect ratio. Range check + video-stream
+    // check is safer: it still excludes storyboards (vcodec='none') and
+    // implausibly small/huge heights, but lets real videos through.
     const rawFormats = (info.formats || []).filter((f: any) => {
-      if (!f.height || !STANDARD_HEIGHTS.has(f.height)) return false;
-      // Must look like a video stream (has a video codec OR is explicitly
-      // marked as a video-only DASH track via acodec==="none").
+      if (!f.height || f.height < 100 || f.height > 4320) return false;
       const isVideo =
         (f.vcodec && f.vcodec !== "none") ||
         (!f.vcodec && f.acodec === "none");
