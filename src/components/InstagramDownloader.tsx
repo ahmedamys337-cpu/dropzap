@@ -1,22 +1,23 @@
 "use client";
 
-import MediaPostDownloader from "@/components/MediaPostDownloader";
+import SimpleDownloader from "@/components/SimpleDownloader";
 import { isValidInstagramUrl } from "@/lib/utils";
 
 export default function InstagramDownloader({
   onDownload,
 }: {
-  onDownload: (title: string, url: string, type: string) => void;
+  onDownload?: (title: string, url: string, type: string) => void;
 }) {
   return (
-    <MediaPostDownloader
+    <SimpleDownloader
       platform="Instagram"
       filePrefix="instagram"
-      placeholder="Paste Instagram Reel, Post, or Photo URL..."
+      mediaTypeLabel="Reel / Post MP4"
+      placeholder="Paste Instagram Reel, post, or photo URL..."
       validate={isValidInstagramUrl}
-      buttonClassName="bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 hover:from-purple-700 hover:via-pink-700 hover:to-orange-600 shadow-pink-600/30"
+      buttonClassName="bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 hover:opacity-90 shadow-pink-600/30"
+      help="Downloads Instagram Reels, video posts, and photos in their best quality."
       onDownload={onDownload}
-      help="Supports Reels, single photos, and carousel posts (Public posts only)."
     />
   );
 }

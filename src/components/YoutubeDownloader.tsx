@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
@@ -14,6 +14,7 @@ import {
   Music,
   Clipboard,
   X,
+  CheckCircle2,
 } from "lucide-react";
 
 interface VideoFormat {
@@ -36,18 +37,18 @@ interface VideoInfo {
   formats: VideoFormat[];
 }
 
-const QUALITY_LABELS: Record<number, string> = {
-  144: "144p",
-  240: "240p",
-  360: "360p",
-  480: "480p",
-  720: "720p HD",
-  1080: "1080p Full HD",
-  1440: "1440p 2K",
-  2160: "2160p 4K",
-};
+// Map any height value to a friendly tier label. Falls back to "<h>p" so
+// vertical Shorts (e.g. height=1920) and other non-standard sizes still show.
+function qualityLabel(height: number): string {
+  if (height >= 4320) return "8K";
+  if (height >= 2160) return `${height}p 4K`;
+  if (height >= 1440) return `${height}p 2K`;
+  if (height >= 1080) return `${height}p Full HD`;
+  if (height >= 720) return `${height}p HD`;
+  return `${height}p`;
+}
 
-type Phase = "idle" | "processing" | "ad" | "ready";
+type Phase = "idle" | "loading" | "ready";
 
 function formatSize(bytes: number | null): string {
   if (!bytes) return "";
@@ -64,9 +65,23 @@ export default function YoutubeDownloader({
   const [url, setUrl] = useState("");
   const [phase, setPhase] = useState<Phase>("idle");
   const [videoInfo, setVideoInfo] = useState<VideoInfo | null>(null);
+  // Both must be true before resolution buttons appear. Lets the 5s ad and
+  // the format-info fetch run in PARALLEL so the user never waits twice.
+  const [adDone, setAdDone] = useState(false);
+  const [fetchDone, setFetchDone] = useState(false);
+  const [downloadedKey, setDownloadedKey] = useState<string | null>(null);
+  const downloadedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { toast } = useToast();
 
-  const startDownload = async () => {
+  // When both the ad timer and the API fetch are complete (and we got formats),
+  // transition into the "ready" state where resolution buttons render.
+  useEffect(() => {
+    if (phase === "loading" && adDone && fetchDone && videoInfo) {
+      setPhase("ready");
+    }
+  }, [phase, adDone, fetchDone, videoInfo]);
+
+  const startDownload = () => {
     if (!isValidYouTubeUrl(url)) {
       toast({
         title: "Invalid URL",
@@ -75,26 +90,45 @@ export default function YoutubeDownloader({
       });
       return;
     }
-    setPhase("processing");
+    // Reset state and begin BOTH the ad timer and the fetch simultaneously.
     setVideoInfo(null);
-    try {
-      const res = await fetch("/api/youtube/info", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url }),
+    setAdDone(false);
+    setFetchDone(false);
+    setPhase("loading");
+
+    fetch("/api/youtube/info", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url }),
+    })
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to fetch video info");
+        if (!data.formats?.length) throw new Error("No downloadable formats found");
+        setVideoInfo(data);
+        setFetchDone(true);
+      })
+      .catch((err) => {
+        toast({ title: "Error", description: err.message, variant: "destructive" });
+        // Cancel the in-flight ad/loader so the form returns to idle.
+        setPhase("idle");
+        setAdDone(false);
+        setFetchDone(false);
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to fetch video info");
-      if (!data.formats?.length) throw new Error("No downloadable formats found");
-      setVideoInfo(data);
-      setPhase("ad");
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
-      setPhase("idle");
-    }
   };
 
-  const downloadVideo = (formatId: string, label: string, height: number, filesize: number | null) => {
+  const flashDownloaded = (key: string) => {
+    setDownloadedKey(key);
+    if (downloadedTimer.current) clearTimeout(downloadedTimer.current);
+    downloadedTimer.current = setTimeout(() => setDownloadedKey(null), 6000);
+  };
+
+  const downloadVideo = (
+    formatId: string,
+    label: string,
+    height: number,
+    filesize: number | null,
+  ) => {
     if (!videoInfo) return;
     const base = safeFilename(videoInfo.title, "youtube-video");
     const name = `${base}-${height}p.mp4`;
@@ -105,6 +139,7 @@ export default function YoutubeDownloader({
       `&name=${encodeURIComponent(name)}${sizeParam}`;
     triggerNativeDownload(streamUrl, name);
     onDownload(videoInfo.title, url, `Video ${label}`);
+    flashDownloaded(formatId);
   };
 
   const downloadAudio = () => {
@@ -114,6 +149,7 @@ export default function YoutubeDownloader({
     const streamUrl = `/api/stream?url=${encodeURIComponent(url)}&audio=1&name=${encodeURIComponent(name)}`;
     triggerNativeDownload(streamUrl, name);
     onDownload(videoInfo.title, url, "Audio M4A");
+    flashDownloaded("audio");
   };
 
   const paste = async () => {
@@ -126,23 +162,17 @@ export default function YoutubeDownloader({
     setUrl("");
     setVideoInfo(null);
     setPhase("idle");
+    setAdDone(false);
+    setFetchDone(false);
+    setDownloadedKey(null);
   };
 
-  // Deduplicate formats by height, keep the one with the largest filesize for info display.
+  // Server already dedupes by height, but defend client-side too and sort high → low.
   const availableFormats = videoInfo
-    ? Object.values(
-        videoInfo.formats.reduce<Record<number, VideoFormat>>((acc, f) => {
-          if (!QUALITY_LABELS[f.height]) return acc;
-          const existing = acc[f.height];
-          if (!existing || (f.filesize || 0) > (existing.filesize || 0)) {
-            acc[f.height] = f;
-          }
-          return acc;
-        }, {}),
-      ).sort((a, b) => b.height - a.height)
+    ? [...videoInfo.formats].sort((a, b) => b.height - a.height)
     : [];
 
-  const isProcessing = phase === "processing";
+  const isLoading = phase === "loading";
 
   return (
     <div className="space-y-5">
@@ -152,8 +182,8 @@ export default function YoutubeDownloader({
           placeholder="Paste YouTube URL (video, Shorts, or youtu.be)..."
           value={url}
           onChange={(e) => setUrl(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && !isProcessing && startDownload()}
-          disabled={isProcessing}
+          onKeyDown={(e) => e.key === "Enter" && !isLoading && startDownload()}
+          disabled={isLoading}
           className="h-14 text-base pr-20 bg-white/5 border-white/10 backdrop-blur-sm"
           aria-label="YouTube URL"
         />
@@ -163,7 +193,7 @@ export default function YoutubeDownloader({
             size="icon"
             className="h-9 w-9"
             onClick={paste}
-            disabled={isProcessing}
+            disabled={isLoading}
             aria-label="Paste from clipboard"
           >
             <Clipboard className="h-4 w-4" />
@@ -174,7 +204,7 @@ export default function YoutubeDownloader({
               size="icon"
               className="h-9 w-9"
               onClick={reset}
-              disabled={isProcessing}
+              disabled={isLoading}
               aria-label="Clear URL"
             >
               <X className="h-4 w-4" />
@@ -186,10 +216,10 @@ export default function YoutubeDownloader({
       {/* Single large Download button */}
       <Button
         onClick={startDownload}
-        disabled={!url || isProcessing}
+        disabled={!url || isLoading}
         className="w-full h-14 text-lg font-bold bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white shadow-lg shadow-red-600/30 disabled:opacity-60 transition-all hover:scale-[1.01] active:scale-[0.99]"
       >
-        {isProcessing ? (
+        {isLoading ? (
           <>
             <Loader2 className="h-5 w-5 mr-2 animate-spin" />
             Processing...
@@ -202,26 +232,30 @@ export default function YoutubeDownloader({
         )}
       </Button>
 
-      {/* Processing state */}
-      {isProcessing && (
-        <div className="rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 p-6 text-center space-y-2 animate-in fade-in duration-200">
-          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-          <p className="font-medium">Processing the link to download.</p>
-          <p className="text-sm text-muted-foreground">Stay on the page.</p>
-        </div>
-      )}
-
-      {/* 5-second ad overlay */}
-      {phase === "ad" && (
+      {/* Ad runs in parallel with the format-info fetch */}
+      {isLoading && (
         <AdCountdown
           seconds={5}
-          message="Processing the link to download. Stay on the page."
-          onComplete={() => setPhase("ready")}
-          onClose={() => setPhase("ready")}
+          message={
+            !fetchDone
+              ? "Processing the link to download. Stay on the page."
+              : "Almost ready..."
+          }
+          onComplete={() => setAdDone(true)}
         />
       )}
 
-      {/* Resolution selection, shown after the ad */}
+      {/* If the ad finished but the API call is still pending, keep the user
+          informed without re-opening another modal. */}
+      {isLoading && adDone && !fetchDone && (
+        <div className="rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 p-6 text-center space-y-2 animate-in fade-in duration-200">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
+          <p className="font-medium">Still extracting video info…</p>
+          <p className="text-sm text-muted-foreground">Almost done. Hang tight.</p>
+        </div>
+      )}
+
+      {/* Resolution selection, shown once both ad + fetch complete */}
       {phase === "ready" && videoInfo && (
         <div className="space-y-5 p-5 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 animate-in fade-in slide-in-from-bottom-2 duration-300">
           <div className="flex flex-col sm:flex-row gap-4">
@@ -240,25 +274,49 @@ export default function YoutubeDownloader({
             </div>
           </div>
 
+          {/* Confirmation banner once a download has been triggered. */}
+          {downloadedKey && (
+            <div className="flex items-center gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 animate-in fade-in slide-in-from-top-2 duration-300">
+              <CheckCircle2 className="h-5 w-5 text-emerald-400 flex-shrink-0" />
+              <div className="text-sm">
+                <p className="font-semibold text-emerald-300">Your video is downloaded!</p>
+                <p className="text-xs text-emerald-200/80">
+                  Check your browser&apos;s download bar. The file may take a moment to start.
+                </p>
+              </div>
+            </div>
+          )}
+
           <AdBanner slot="middle" className="my-2" />
 
           <div>
             <h4 className="text-sm font-semibold mb-3">Choose Video Quality</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {availableFormats.map((fmt) => {
-                const label = QUALITY_LABELS[fmt.height];
+                const label = qualityLabel(fmt.height);
                 const size = formatSize(fmt.filesize);
+                const done = downloadedKey === fmt.format_id;
                 return (
                   <Button
                     key={fmt.format_id}
                     onClick={() => downloadVideo(fmt.format_id, label, fmt.height, fmt.filesize)}
-                    className="h-auto py-3 px-4 justify-between bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white font-semibold shadow-md shadow-red-600/20 hover:shadow-red-600/40 transition-all hover:scale-[1.02]"
+                    className={`h-auto py-3 px-4 justify-between text-white font-semibold shadow-md transition-all hover:scale-[1.02] ${
+                      done
+                        ? "bg-gradient-to-r from-emerald-600 to-teal-600 shadow-emerald-600/30"
+                        : "bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 shadow-red-600/20 hover:shadow-red-600/40"
+                    }`}
                   >
                     <span className="flex items-center gap-2">
-                      <Download className="h-4 w-4" />
-                      <span>Download {label} MP4</span>
+                      {done ? (
+                        <CheckCircle2 className="h-4 w-4" />
+                      ) : (
+                        <Download className="h-4 w-4" />
+                      )}
+                      <span>{done ? `Downloaded ${label} MP4` : `Download ${label} MP4`}</span>
                     </span>
-                    {size && <span className="text-[11px] font-normal opacity-90">{size}</span>}
+                    {size && !done && (
+                      <span className="text-[11px] font-normal opacity-90">{size}</span>
+                    )}
                   </Button>
                 );
               })}
@@ -269,10 +327,23 @@ export default function YoutubeDownloader({
             <h4 className="text-sm font-semibold mb-3">Audio Only</h4>
             <Button
               onClick={downloadAudio}
-              className="w-full h-12 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold shadow-md shadow-emerald-600/20 hover:shadow-emerald-600/40 transition-all hover:scale-[1.01]"
+              className={`w-full h-12 text-white font-semibold shadow-md transition-all hover:scale-[1.01] ${
+                downloadedKey === "audio"
+                  ? "bg-gradient-to-r from-emerald-600 to-teal-600 shadow-emerald-600/30"
+                  : "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-emerald-600/20 hover:shadow-emerald-600/40"
+              }`}
             >
-              <Music className="h-4 w-4 mr-2" />
-              Download Audio (M4A High Quality)
+              {downloadedKey === "audio" ? (
+                <>
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  Downloaded Audio (M4A)
+                </>
+              ) : (
+                <>
+                  <Music className="h-4 w-4 mr-2" />
+                  Download Audio (M4A High Quality)
+                </>
+              )}
             </Button>
           </div>
         </div>

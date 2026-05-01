@@ -1,22 +1,21 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import YoutubeDownloader from "@/components/YoutubeDownloader";
 import RecentDownloads from "@/components/RecentDownloads";
 import AdBanner from "@/components/AdBanner";
 import { useDownloadHistory } from "@/lib/hooks";
-
-const ThumbnailDownloader = dynamic(() => import("@/components/ThumbnailDownloader"), { ssr: false });
-const InstagramDownloader = dynamic(() => import("@/components/InstagramDownloader"), { ssr: false });
-const TwitterDownloader = dynamic(() => import("@/components/TwitterDownloader"), { ssr: false });
-const TikTokDownloader = dynamic(() => import("@/components/TikTokDownloader"), { ssr: false });
-const Mp3Converter = dynamic(() => import("@/components/Mp3Converter"), { ssr: false });
-const RedditDownloader = dynamic(() => import("@/components/RedditDownloader"), { ssr: false });
-const FacebookDownloader = dynamic(() => import("@/components/FacebookDownloader"), { ssr: false });
-const PinterestDownloader = dynamic(() => import("@/components/PinterestDownloader"), { ssr: false });
-const ThreadsDownloader = dynamic(() => import("@/components/ThreadsDownloader"), { ssr: false });
+// Static imports so switching tabs is instant — no per-tab chunk fetch.
+import ThumbnailDownloader from "@/components/ThumbnailDownloader";
+import InstagramDownloader from "@/components/InstagramDownloader";
+import TwitterDownloader from "@/components/TwitterDownloader";
+import TikTokDownloader from "@/components/TikTokDownloader";
+import Mp3Converter from "@/components/Mp3Converter";
+import RedditDownloader from "@/components/RedditDownloader";
+import FacebookDownloader from "@/components/FacebookDownloader";
+import PinterestDownloader from "@/components/PinterestDownloader";
+import ThreadsDownloader from "@/components/ThreadsDownloader";
 import {
   Zap,
   Youtube,
