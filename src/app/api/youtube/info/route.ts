@@ -20,19 +20,28 @@ export async function POST(request: NextRequest) {
 
     const info = await getVideoInfo(url);
 
-    // Keep ANY video stream that yt-dlp reports a height for. We used to
-    // restrict to ext=="mp4" which broke YouTube Shorts (often surfaced as
-    // webm/vertical) and any video where the highest tier was DASH-only.
-    // The /api/stream endpoint already remuxes DASH to mp4 with audio at
-    // download time, so we don't need to gate-keep on container here.
-    // Also allow entries with missing `vcodec` metadata (some tv_embedded
-    // DASH entries omit it) as long as acodec is "none" — those are
-    // video-only tracks too.
+    // Only accept standard YouTube heights. Phantom 8K/4K entries sometimes
+    // appear from mis-reported player responses even though the video only
+    // actually goes up to 1080p/1440p — keeping them would let users pick a
+    // resolution that just stalls forever at download time.
+    const STANDARD_HEIGHTS = new Set([144, 240, 360, 480, 720, 1080, 1440, 2160, 4320]);
+
     const rawFormats = (info.formats || []).filter((f: any) => {
-      if (!f.height) return false;
-      if (f.vcodec && f.vcodec !== "none") return true;
-      if (!f.vcodec && f.acodec === "none") return true;
-      return false;
+      if (!f.height || !STANDARD_HEIGHTS.has(f.height)) return false;
+      // Must look like a video stream (has vcodec OR is tagged as video-only).
+      const isVideo =
+        (f.vcodec && f.vcodec !== "none") ||
+        (!f.vcodec && f.acodec === "none");
+      if (!isVideo) return false;
+      // Drop entries that have no size/bitrate hint at all — these are
+      // almost always premium-gated or otherwise undownloadable placeholder
+      // entries. Real formats always advertise at least one of these.
+      const hasSizeHint = !!(f.filesize || f.filesize_approx || f.tbr || f.vbr);
+      if (!hasSizeHint) return false;
+      // Skip explicit premium-only tracks surfaced by some clients.
+      const note = (f.format_note || "").toLowerCase();
+      if (note.includes("premium")) return false;
+      return true;
     });
 
     // Helpful diagnostic in Render logs when a video looks format-starved.
