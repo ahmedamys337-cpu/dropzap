@@ -161,45 +161,87 @@ export async function getVideoInfo(url: string): Promise<any> {
   if (stderr) console.error("[yt-dlp stderr]", stderr.slice(0, 500));
   let data = JSON.parse(stdout);
 
-  // Retry-with-cookies fallback. Some YouTube videos gate their HD DASH
-  // formats behind a PO-token / cookie check for cloud IPs — the fast
-  // proxy-only call above then returns just the 360p progressive (itag 18).
-  // If we detect that (< 2 unique video heights), re-run with cookies and
-  // a broader client list. Yes, cookies + proxy *can* sometimes trigger
-  // YouTube's anti-fraud, but a thin ladder is worse than an occasional
-  // miss, and the proxy IPs we use are residential so the risk is low.
-  if (
-    isYoutube &&
-    cookiesFilePath &&
-    countUniqueHeights(data.formats) < 2
-  ) {
-    console.log(
-      `[yt-dlp] Retrying ${url} with cookies (primary returned ${countUniqueHeights(data.formats)} heights)`
-    );
-    try {
-      const retry = await execFileAsync("yt-dlp", [
-        url,
-        "--dump-single-json",
-        "--no-check-certificates",
-        "--no-warnings",
-        "--no-playlist",
-        "--skip-download",
-        "--no-check-formats",
-        "--socket-timeout", "30",
-        "--extractor-args",
-        "youtube:player_client=tv_embedded,android,ios,mweb,web_safari",
-        ...getCookiesArgs(),
-        ...getProxyArgs(),
-      ], { timeout: 45000, maxBuffer: 10 * 1024 * 1024 });
-      const retryData = JSON.parse(retry.stdout);
-      if (countUniqueHeights(retryData.formats) > countUniqueHeights(data.formats)) {
+  // Recovery chain for thin format lists. YouTube has been steadily
+  // hardening format extraction against cloud-IP / non-attested clients;
+  // the fast primary call above frequently returns just itag 18 (360p
+  // progressive) even for videos that publicly offer full HD. If that
+  // happens we walk a sequence of increasingly expensive fallbacks until
+  // one returns a full ladder — or we give up and use whatever we have.
+  if (isYoutube && countUniqueHeights(data.formats) < 2) {
+    const attempts: { label: string; args: string[] }[] = [];
+
+    // Attempt A: cookies + broad client list (unlocks PO-token-gated videos
+    // whenever the operator has provisioned YOUTUBE_COOKIES).
+    if (cookiesFilePath) {
+      attempts.push({
+        label: "cookies+broad-clients",
+        args: [
+          "--extractor-args",
+          "youtube:player_client=tv_embedded,android,ios,mweb,web_safari",
+          ...getCookiesArgs(),
+          ...getProxyArgs(),
+        ],
+      });
+    }
+
+    // Attempt B: let yt-dlp pick its own default clients (no explicit
+    // --extractor-args). The defaults shift across yt-dlp versions and
+    // sometimes include clients we don't know to specify. Cheap to try.
+    attempts.push({
+      label: "yt-dlp-defaults",
+      args: [...getCookiesArgs(), ...getProxyArgs()],
+    });
+
+    for (const attempt of attempts) {
+      try {
         console.log(
-          `[yt-dlp] Cookies retry succeeded: ${countUniqueHeights(retryData.formats)} heights`
+          `[yt-dlp] Primary returned ${countUniqueHeights(data.formats)} heights for ${url}; retrying via ${attempt.label}`
         );
-        data = retryData;
+        const retry = await execFileAsync("yt-dlp", [
+          url,
+          "--dump-single-json",
+          "--no-check-certificates",
+          "--no-warnings",
+          "--no-playlist",
+          "--skip-download",
+          "--no-check-formats",
+          "--socket-timeout", "30",
+          ...attempt.args,
+        ], { timeout: 45000, maxBuffer: 10 * 1024 * 1024 });
+        const retryData = JSON.parse(retry.stdout);
+        if (
+          countUniqueHeights(retryData.formats) > countUniqueHeights(data.formats)
+        ) {
+          console.log(
+            `[yt-dlp] ${attempt.label} succeeded: ${countUniqueHeights(retryData.formats)} heights`
+          );
+          data = retryData;
+          if (countUniqueHeights(data.formats) >= 2) break;
+        }
+      } catch (e: any) {
+        console.warn(`[yt-dlp] ${attempt.label} retry failed:`, e.message);
       }
-    } catch (e: any) {
-      console.warn("[yt-dlp] Cookies retry failed:", e.message);
+    }
+
+    // Attempt C: Piped / Invidious public instances. Entirely independent
+    // code path — doesn't hit YouTube directly so cloud-IP gating doesn't
+    // apply. Many instances are flaky, but the helper rotates through a
+    // pool until one works.
+    if (countUniqueHeights(data.formats) < 2) {
+      try {
+        console.log(`[yt-dlp] Falling back to Piped/Invidious for ${url}`);
+        const pipedData = await getYoutubeInfoViaPiped(url);
+        if (
+          countUniqueHeights(pipedData.formats) > countUniqueHeights(data.formats)
+        ) {
+          console.log(
+            `[piped] Succeeded: ${countUniqueHeights(pipedData.formats)} heights`
+          );
+          data = pipedData;
+        }
+      } catch (e: any) {
+        console.warn(`[piped] fallback failed:`, e.message);
+      }
     }
   }
 

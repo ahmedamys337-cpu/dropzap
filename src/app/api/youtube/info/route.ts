@@ -20,28 +20,21 @@ export async function POST(request: NextRequest) {
 
     const info = await getVideoInfo(url);
 
-    // Only accept standard YouTube heights. Phantom 8K/4K entries sometimes
-    // appear from mis-reported player responses even though the video only
-    // actually goes up to 1080p/1440p — keeping them would let users pick a
-    // resolution that just stalls forever at download time.
+    // Only accept standard YouTube heights. Phantom non-ladder entries
+    // (e.g. 1072p, 2880p) would clutter the UI; real YouTube videos always
+    // fall on the standard rungs. Using a whitelist also naturally keeps
+    // out stale 8K/4K placeholders that sometimes appear in player
+    // responses for videos that don't actually offer those resolutions.
     const STANDARD_HEIGHTS = new Set([144, 240, 360, 480, 720, 1080, 1440, 2160, 4320]);
 
     const rawFormats = (info.formats || []).filter((f: any) => {
       if (!f.height || !STANDARD_HEIGHTS.has(f.height)) return false;
-      // Must look like a video stream (has vcodec OR is tagged as video-only).
+      // Must look like a video stream (has a video codec OR is explicitly
+      // marked as a video-only DASH track via acodec==="none").
       const isVideo =
         (f.vcodec && f.vcodec !== "none") ||
         (!f.vcodec && f.acodec === "none");
-      if (!isVideo) return false;
-      // Drop entries that have no size/bitrate hint at all — these are
-      // almost always premium-gated or otherwise undownloadable placeholder
-      // entries. Real formats always advertise at least one of these.
-      const hasSizeHint = !!(f.filesize || f.filesize_approx || f.tbr || f.vbr);
-      if (!hasSizeHint) return false;
-      // Skip explicit premium-only tracks surfaced by some clients.
-      const note = (f.format_note || "").toLowerCase();
-      if (note.includes("premium")) return false;
-      return true;
+      return isVideo;
     });
 
     // Helpful diagnostic in Render logs when a video looks format-starved.
