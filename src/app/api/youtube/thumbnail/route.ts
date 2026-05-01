@@ -47,17 +47,30 @@ export async function POST(request: NextRequest) {
       }
     } catch {}
 
-    const sizes = [
-      { key: "default", label: "Default", width: 120, height: 90 },
-      { key: "mqdefault", label: "Medium", width: 320, height: 180 },
-      { key: "hqdefault", label: "High", width: 480, height: 360 },
-      { key: "sddefault", label: "Standard", width: 640, height: 480 },
-      { key: "maxresdefault", label: "Max Resolution", width: 1280, height: 720 },
-    ];
+    // Shorts use portrait (9:16) thumbnails. YouTube serves them at the
+    // oar*.jpg ("original aspect ratio") endpoints. The regular maxres/hq
+    // endpoints would return a landscape letterbox, which is what users were
+    // seeing as a "wrong dimensions" download for Shorts.
+    const isShorts = /\/shorts\//i.test(url);
+
+    const sizes = isShorts
+      ? [
+          { key: "oar2", label: "Max Resolution (Portrait)", width: 1080, height: 1920 },
+          { key: "oarhqdefault", label: "High (Portrait)", width: 360, height: 640 },
+          { key: "oarmqdefault", label: "Medium (Portrait)", width: 320, height: 568 },
+          { key: "oardefault", label: "Default (Portrait)", width: 168, height: 298 },
+        ]
+      : [
+          { key: "default", label: "Default", width: 120, height: 90 },
+          { key: "mqdefault", label: "Medium", width: 320, height: 180 },
+          { key: "hqdefault", label: "High", width: 480, height: 360 },
+          { key: "sddefault", label: "Standard", width: 640, height: 480 },
+          { key: "maxresdefault", label: "Max Resolution", width: 1280, height: 720 },
+        ];
 
     const thumbnails = sizes.map((s) => ({
       label: s.label,
-      url: `https://img.youtube.com/vi/${videoId}/${s.key}.jpg`,
+      url: `https://i.ytimg.com/vi/${videoId}/${s.key}.jpg`,
       width: s.width,
       height: s.height,
     }));

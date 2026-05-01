@@ -110,7 +110,11 @@ const YT_FAST_ARGS = [
   "--skip-download",
   "--no-check-formats",
   "--socket-timeout", "30",
-  "--extractor-args", "youtube:player_client=default,web,android,ios",
+  // Querying multiple player clients maximises format coverage. Different
+  // clients expose different ladders (e.g. some videos surface 1080p only
+  // on the tv_embedded or mweb client even though the web client returns
+  // just 360p progressive). yt-dlp merges all returned formats into one set.
+  "--extractor-args", "youtube:player_client=default,web,android,ios,mweb,tv_embedded",
 ];
 
 // If a residential proxy is configured, we can hit YouTube directly via yt-dlp.

@@ -60,8 +60,8 @@ export default function SimpleDownloader({
   //   idle        → user can paste a URL and click Download.
   //   ad          → 5s ad overlay is up; native download has already fired so
   //                 the server is warming yt-dlp in parallel.
-  //   downloading → ad finished, but we keep showing a spinner for 3 more
-  //                 seconds to mask the 2–4s gap between ad-close and the
+  //   downloading → ad finished, but we keep showing a spinner for 4 more
+  //                 seconds to mask the 3–5s gap between ad-close and the
   //                 file actually appearing in the browser's download bar.
   //   downloaded  → success state. PERSISTENT: stays until the URL is cleared
   //                 or the page is refreshed.
@@ -96,13 +96,13 @@ export default function SimpleDownloader({
   };
 
   const finishAd = () => {
-    // Ad ended → enter the explicit "Downloading…" stage for 3s before
+    // Ad ended → enter the explicit "Downloading…" stage for 4s before
     // claiming "Downloaded". This covers the typical server-side latency so
     // by the time the success state appears, the file genuinely is in the
     // browser's download bar.
     setPhase("downloading");
     if (downloadingTimer.current) clearTimeout(downloadingTimer.current);
-    downloadingTimer.current = setTimeout(() => setPhase("downloaded"), 3000);
+    downloadingTimer.current = setTimeout(() => setPhase("downloaded"), 4000);
   };
 
   const paste = async () => {
@@ -191,7 +191,7 @@ export default function SimpleDownloader({
         )}
       </Button>
 
-      {/* Inline downloading hint while the 3s buffer runs after the ad. */}
+      {/* Inline downloading hint while the 4s buffer runs after the ad. */}
       {isDownloading && (
         <div className="flex items-center justify-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/15 dark:bg-amber-500/10 px-4 py-3 animate-in fade-in duration-200">
           <Loader2 className="h-4 w-4 animate-spin text-amber-700 dark:text-amber-300" />

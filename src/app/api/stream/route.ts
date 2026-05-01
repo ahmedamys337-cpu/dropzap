@@ -8,6 +8,10 @@ export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
   const url = request.nextUrl.searchParams.get("url");
   const format = request.nextUrl.searchParams.get("f") || "best";
+  // Preferred new contract: client passes h=<height> so we can always merge
+  // the best video at that resolution with the best audio. The legacy f=<id>
+  // path is kept for callers (non-YouTube) that don't pass a height.
+  const heightParam = request.nextUrl.searchParams.get("h");
   const filename = request.nextUrl.searchParams.get("name") || "download.mp4";
   const audio = request.nextUrl.searchParams.get("audio") === "1";
   const expectedSize = request.nextUrl.searchParams.get("size");
@@ -16,9 +20,28 @@ export async function GET(request: NextRequest) {
     return new Response("URL required", { status: 400 });
   }
 
-  const fmtArg = audio
-    ? "bestaudio[ext=m4a]/bestaudio"
-    : format !== "best" ? format : "best[ext=mp4]/best";
+  // Build a yt-dlp format selector. For video downloads we ALWAYS try to
+  // merge a video-only stream with a separate audio-only stream because on
+  // modern YouTube the only progressive (audio+video) mp4 is 360p (itag 18).
+  // Falling back through several alternatives means the request never hard-
+  // fails just because a particular variant is unavailable.
+  let fmtArg: string;
+  if (audio) {
+    fmtArg = "bestaudio[ext=m4a]/bestaudio";
+  } else if (heightParam && /^\d+$/.test(heightParam)) {
+    const h = heightParam;
+    fmtArg =
+      `bv*[height<=${h}][ext=mp4]+ba[ext=m4a]/` +
+      `bv*[height<=${h}]+ba/` +
+      `b[height<=${h}][ext=mp4]/` +
+      `b[height<=${h}]/best`;
+  } else if (format !== "best") {
+    // Legacy: a specific format_id was provided. Try to merge audio onto it
+    // so HD requests don't come back silent.
+    fmtArg = `${format}+ba[ext=m4a]/${format}+ba/${format}/best[ext=mp4]/best`;
+  } else {
+    fmtArg = "bv*+ba/best[ext=mp4]/best";
+  }
 
   const ext = audio ? "m4a" : "mp4";
   const safeName = filename.replace(/[^\w\s.-]/g, "").trim() || `download.${ext}`;
@@ -32,8 +55,22 @@ export async function GET(request: NextRequest) {
       "-f", fmtArg,
     ];
 
+    if (!audio) {
+      // Force mp4 container for the merged output and use fragmented-mp4
+      // ffmpeg flags so the muxer can write to stdout (regular mp4 needs to
+      // seek back to write the moov atom, which a pipe cannot do).
+      args.push("--merge-output-format", "mp4");
+      args.push(
+        "--postprocessor-args",
+        "Merger:-movflags +frag_keyframe+empty_moov+default_base_moof"
+      );
+    }
+
     if (isYoutube) {
-      args.push("--extractor-args", "youtube:player_client=default,web,android,ios");
+      args.push(
+        "--extractor-args",
+        "youtube:player_client=default,web,android,ios,mweb,tv_embedded"
+      );
       args.push(...getYoutubeAuthArgs());
     }
 

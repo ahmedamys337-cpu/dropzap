@@ -139,7 +139,7 @@ export default function YoutubeDownloader({
       });
   };
 
-  // Mark a button as downloading for 3s, then promote it to downloaded.
+  // Mark a button as downloading for 4s, then promote it to downloaded.
   // Both states stick around until the form is fully reset.
   const beginDownloadingFlow = (key: string) => {
     setDownloadingSet((s) => {
@@ -161,7 +161,7 @@ export default function YoutubeDownloader({
         return next;
       });
       downloadingTimers.current.delete(key);
-    }, 3000);
+    }, 4000);
     downloadingTimers.current.set(key, t);
   };
 
@@ -174,11 +174,13 @@ export default function YoutubeDownloader({
     if (!videoInfo) return;
     const base = safeFilename(videoInfo.title, "youtube-video");
     const name = `${base}-${height}p.mp4`;
-    const sizeParam = filesize ? `&size=${filesize}` : "";
+    // Server picks bv*[height<=h]+ba so audio is always merged. We do NOT
+    // send filesize because once we ask yt-dlp to merge two streams the
+    // resulting bytes no longer match either source's reported size.
     const streamUrl =
       `/api/stream?url=${encodeURIComponent(url)}` +
-      `&f=${encodeURIComponent(formatId)}` +
-      `&name=${encodeURIComponent(name)}${sizeParam}`;
+      `&h=${height}` +
+      `&name=${encodeURIComponent(name)}`;
     triggerNativeDownload(streamUrl, name);
     onDownload(videoInfo.title, url, `Video ${label}`);
     beginDownloadingFlow(formatId);
