@@ -401,7 +401,7 @@ export default function YoutubeDownloader({
                   ? "bg-gradient-to-r from-emerald-600 to-teal-600 shadow-emerald-600/30 disabled:opacity-100"
                   : downloadingSet.has("audio")
                     ? "bg-gradient-to-r from-amber-500 to-orange-500 shadow-amber-500/30 disabled:opacity-100"
-                    : "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-emerald-600/20 hover:shadow-emerald-600/40 hover:scale-[1.01]"
+                    : "bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 shadow-red-600/20 hover:shadow-red-600/40 hover:scale-[1.01]"
               }`}
             >
               {downloadedSet.has("audio") ? (

@@ -60,16 +60,12 @@ function getProxyArgs(): string[] {
   return ["--proxy", proxy];
 }
 
-// Export combined helper for YouTube routes.
-// When a residential proxy is configured, we DO NOT send cookies because:
-// - Cookies are bound to the IP/region they were created in (e.g., user's home).
-// - Sending them through a foreign proxy IP triggers YouTube's anti-fraud,
-//   which then returns an empty formats list ("Requested format not available").
-// The residential proxy alone is enough to bypass bot detection.
+// Export combined helper for YouTube routes. Always include cookies AND
+// proxy when both are available — modern YouTube increasingly gates HD
+// formats behind a po_token / cookie check on cloud IPs, so omitting
+// cookies just guarantees we drop to 360p. The earlier theory that
+// cookies+proxy would trip anti-fraud didn't hold up in production.
 export function getYoutubeAuthArgs(): string[] {
-  if (proxyList.length > 0) {
-    return getProxyArgs();
-  }
   return [...getCookiesArgs(), ...getProxyArgs()];
 }
 
@@ -119,13 +115,16 @@ const YT_FAST_ARGS = [
   "--skip-download",
   "--no-check-formats",
   "--socket-timeout", "30",
-  // Keep the client list TIGHT here — this runs on every /info call and
-  // each additional client adds a network round-trip inside yt-dlp. The
-  // pair `tv_embedded` + `android` reliably returns the full DASH ladder
-  // (144p → 2160p) without requiring po_token attestation, on 99% of
-  // videos. The /api/stream route uses a broader fallback list for the
-  // rare video where we need another client to resolve the stream URL.
-  "--extractor-args", "youtube:player_client=tv_embedded,android",
+  // Use the current best non-po-token client trio:
+  //   tv_simply  — added to yt-dlp specifically as a replacement for
+  //                tv_embedded after YouTube tightened po_token checks; as
+  //                of nightly builds it returns the full DASH ladder.
+  //   android    — second-best non-attested client; covers cases where
+  //                tv_simply returns an incomplete list.
+  //   ios        — last-resort fallback that still works for some videos.
+  // The recovery chain in getVideoInfo handles edge cases where even
+  // these come back thin.
+  "--extractor-args", "youtube:player_client=tv_simply,android,ios",
 ];
 
 // If a residential proxy is configured, we can hit YouTube directly via yt-dlp.
@@ -177,7 +176,7 @@ export async function getVideoInfo(url: string): Promise<any> {
         label: "cookies+broad-clients",
         args: [
           "--extractor-args",
-          "youtube:player_client=tv_embedded,android,ios,mweb,web_safari",
+          "youtube:player_client=tv_simply,tv_embedded,android,ios,mweb,web_safari",
           ...getCookiesArgs(),
           ...getProxyArgs(),
         ],
