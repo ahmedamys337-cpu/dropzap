@@ -60,21 +60,28 @@ function getProxyArgs(): string[] {
   return ["--proxy", proxy];
 }
 
-// Export combined helper for YouTube routes. Always include cookies AND
-// proxy when both are available — modern YouTube increasingly gates HD
-// formats behind a po_token / cookie check on cloud IPs, so omitting
-// cookies just guarantees we drop to 360p. The earlier theory that
-// cookies+proxy would trip anti-fraud didn't hold up in production.
+// Export combined helper for YouTube routes. When a proxy is configured we
+// deliberately DO NOT send cookies on the primary call: cookies created
+// from your home IP arriving through a rotating residential proxy looks
+// like account hijack to YouTube's anti-fraud, which then either returns
+// an empty formats list or a hard "Requested format is not available"
+// error. Proxy-only is what reliably gets at least the 360p progressive
+// for every video; the recovery chain in getVideoInfo will retry WITH
+// cookies as needed for videos where 360p isn't enough.
 export function getYoutubeAuthArgs(): string[] {
+  if (proxyList.length > 0) {
+    return getProxyArgs();
+  }
   return [...getCookiesArgs(), ...getProxyArgs()];
 }
 
-// Streaming auth: ALWAYS include both cookies and proxy when available.
-// /api/stream can't retry mid-response, so we can't do the "try without
-// cookies first, then retry with cookies" dance that /api/youtube/info
-// uses. Using both up-front maximises the chance that videos gated behind
-// PO-token / cookie checks still resolve to full-quality streams.
+// Streaming auth follows the same rule as /info auth — proxy-only when
+// the proxy is present. Sending cookies on the streaming step also tripped
+// the same anti-fraud response and caused downloads to fail outright.
 export function getYoutubeStreamAuthArgs(): string[] {
+  if (proxyList.length > 0) {
+    return getProxyArgs();
+  }
   return [...getCookiesArgs(), ...getProxyArgs()];
 }
 
@@ -115,16 +122,12 @@ const YT_FAST_ARGS = [
   "--skip-download",
   "--no-check-formats",
   "--socket-timeout", "30",
-  // Use the current best non-po-token client trio:
-  //   tv_simply  — added to yt-dlp specifically as a replacement for
-  //                tv_embedded after YouTube tightened po_token checks; as
-  //                of nightly builds it returns the full DASH ladder.
-  //   android    — second-best non-attested client; covers cases where
-  //                tv_simply returns an incomplete list.
-  //   ios        — last-resort fallback that still works for some videos.
-  // The recovery chain in getVideoInfo handles edge cases where even
-  // these come back thin.
-  "--extractor-args", "youtube:player_client=tv_simply,android,ios",
+  // tv_embedded + android is the safe non-po-token pair: in production it
+  // ALWAYS returns at least the 360p progressive (itag 18), even for
+  // videos where the newer tv_simply / ios clients hard-error with
+  // "Requested format is not available". The recovery chain handles the
+  // upgrade to HD when the primary returns thin.
+  "--extractor-args", "youtube:player_client=tv_embedded,android",
 ];
 
 // If a residential proxy is configured, we can hit YouTube directly via yt-dlp.
@@ -149,16 +152,28 @@ export async function getVideoInfo(url: string): Promise<any> {
     }
   }
 
-  // Default path: yt-dlp (works for all non-YouTube + as YouTube fallback)
-  const { stdout, stderr } = await execFileAsync("yt-dlp", [
-    url,
-    "--dump-single-json",
-    ...YT_FAST_ARGS,
-    ...getYoutubeAuthArgs(),
-  ], { timeout: 45000, maxBuffer: 10 * 1024 * 1024 });
-
-  if (stderr) console.error("[yt-dlp stderr]", stderr.slice(0, 500));
-  let data = JSON.parse(stdout);
+  // Default path: yt-dlp (works for all non-YouTube + as YouTube fallback).
+  // We swallow exec errors HERE so a hard failure on the primary call
+  // (e.g. "Requested format is not available" when YouTube blocks the
+  // response entirely) still falls through to the recovery chain below.
+  // If everything down to Piped also fails, we re-throw the saved error.
+  let data: any = { formats: [] };
+  let primaryError: any = null;
+  try {
+    const { stdout, stderr } = await execFileAsync("yt-dlp", [
+      url,
+      "--dump-single-json",
+      ...YT_FAST_ARGS,
+      ...getYoutubeAuthArgs(),
+    ], { timeout: 45000, maxBuffer: 10 * 1024 * 1024 });
+    if (stderr) console.error("[yt-dlp stderr]", stderr.slice(0, 500));
+    data = JSON.parse(stdout);
+  } catch (e: any) {
+    primaryError = e;
+    console.warn(
+      `[yt-dlp] Primary call failed for ${url}: ${e.message?.slice(0, 200)}`
+    );
+  }
 
   // Recovery chain for thin format lists. YouTube has been steadily
   // hardening format extraction against cloud-IP / non-attested clients;
@@ -242,6 +257,13 @@ export async function getVideoInfo(url: string): Promise<any> {
         console.warn(`[piped] fallback failed:`, e.message);
       }
     }
+  }
+
+  // If everything failed AND the primary call originally threw, propagate
+  // that error so the API surface returns a meaningful message instead
+  // of pretending success with zero formats.
+  if (primaryError && countUniqueHeights(data.formats) === 0) {
+    throw primaryError;
   }
 
   cacheSet(url, data);

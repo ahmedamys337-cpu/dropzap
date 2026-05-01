@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
     if (isYoutube) {
       args.push(
         "--extractor-args",
-        "youtube:player_client=tv_simply,android,ios,mweb,tv_embedded,web"
+        "youtube:player_client=tv_embedded,android,ios,mweb,web,default"
       );
       args.push(...getYoutubeStreamAuthArgs());
     }
