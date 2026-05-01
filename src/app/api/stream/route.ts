@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { spawn } from "child_process";
-import { getYoutubeAuthArgs } from "@/lib/ytdlp";
+import { getYoutubeStreamAuthArgs } from "@/lib/ytdlp";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
         "--extractor-args",
         "youtube:player_client=tv_embedded,android,ios,mweb,web,default"
       );
-      args.push(...getYoutubeAuthArgs());
+      args.push(...getYoutubeStreamAuthArgs());
     }
 
     const proc = spawn("yt-dlp", args, {

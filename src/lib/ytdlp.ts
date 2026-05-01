@@ -73,6 +73,15 @@ export function getYoutubeAuthArgs(): string[] {
   return [...getCookiesArgs(), ...getProxyArgs()];
 }
 
+// Streaming auth: ALWAYS include both cookies and proxy when available.
+// /api/stream can't retry mid-response, so we can't do the "try without
+// cookies first, then retry with cookies" dance that /api/youtube/info
+// uses. Using both up-front maximises the chance that videos gated behind
+// PO-token / cookie checks still resolve to full-quality streams.
+export function getYoutubeStreamAuthArgs(): string[] {
+  return [...getCookiesArgs(), ...getProxyArgs()];
+}
+
 // In-memory cache for video info (5 min TTL)
 type CacheEntry = { data: any; expires: number };
 const infoCache = new Map<string, CacheEntry>();
@@ -150,9 +159,63 @@ export async function getVideoInfo(url: string): Promise<any> {
   ], { timeout: 45000, maxBuffer: 10 * 1024 * 1024 });
 
   if (stderr) console.error("[yt-dlp stderr]", stderr.slice(0, 500));
-  const data = JSON.parse(stdout);
+  let data = JSON.parse(stdout);
+
+  // Retry-with-cookies fallback. Some YouTube videos gate their HD DASH
+  // formats behind a PO-token / cookie check for cloud IPs — the fast
+  // proxy-only call above then returns just the 360p progressive (itag 18).
+  // If we detect that (< 2 unique video heights), re-run with cookies and
+  // a broader client list. Yes, cookies + proxy *can* sometimes trigger
+  // YouTube's anti-fraud, but a thin ladder is worse than an occasional
+  // miss, and the proxy IPs we use are residential so the risk is low.
+  if (
+    isYoutube &&
+    cookiesFilePath &&
+    countUniqueHeights(data.formats) < 2
+  ) {
+    console.log(
+      `[yt-dlp] Retrying ${url} with cookies (primary returned ${countUniqueHeights(data.formats)} heights)`
+    );
+    try {
+      const retry = await execFileAsync("yt-dlp", [
+        url,
+        "--dump-single-json",
+        "--no-check-certificates",
+        "--no-warnings",
+        "--no-playlist",
+        "--skip-download",
+        "--no-check-formats",
+        "--socket-timeout", "30",
+        "--extractor-args",
+        "youtube:player_client=tv_embedded,android,ios,mweb,web_safari",
+        ...getCookiesArgs(),
+        ...getProxyArgs(),
+      ], { timeout: 45000, maxBuffer: 10 * 1024 * 1024 });
+      const retryData = JSON.parse(retry.stdout);
+      if (countUniqueHeights(retryData.formats) > countUniqueHeights(data.formats)) {
+        console.log(
+          `[yt-dlp] Cookies retry succeeded: ${countUniqueHeights(retryData.formats)} heights`
+        );
+        data = retryData;
+      }
+    } catch (e: any) {
+      console.warn("[yt-dlp] Cookies retry failed:", e.message);
+    }
+  }
+
   cacheSet(url, data);
   return data;
+}
+
+function countUniqueHeights(formats: any[] | undefined): number {
+  if (!Array.isArray(formats)) return 0;
+  const heights = new Set<number>();
+  for (const f of formats) {
+    if (f?.height && (f.vcodec ? f.vcodec !== "none" : f.acodec === "none")) {
+      heights.add(f.height);
+    }
+  }
+  return heights.size;
 }
 
 export async function getVideoInfoSkipDownload(url: string): Promise<any> {
