@@ -169,6 +169,22 @@ body {
   }
 }
 
+/* Make every Tailwind transition utility feel snappy by default.
+ * Default Tailwind transitions are 150ms with `ease-in-out`, whose slow
+ * start ramp makes hover effects feel like they "lag" behind the cursor.
+ * Override duration and easing for elements that haven't picked their
+ * own (the :not() guards keep tuned components — like the ad-countdown
+ * progress bar that needs `duration-1000 ease-linear` — untouched). */
+.transition:not([class*="duration-"]):not([class*="ease-"]),
+.transition-all:not([class*="duration-"]):not([class*="ease-"]),
+.transition-colors:not([class*="duration-"]):not([class*="ease-"]),
+.transition-transform:not([class*="duration-"]):not([class*="ease-"]),
+.transition-opacity:not([class*="duration-"]):not([class*="ease-"]),
+.transition-shadow:not([class*="duration-"]):not([class*="ease-"]) {
+  transition-duration: 120ms;
+  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
 /* Honor user's OS-level "Reduce Motion" preference */
 @media (prefers-reduced-motion: reduce) {
   .animate-gradient,
