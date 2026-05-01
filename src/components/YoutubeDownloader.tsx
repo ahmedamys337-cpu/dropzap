@@ -69,8 +69,16 @@ export default function YoutubeDownloader({
   // the format-info fetch run in PARALLEL so the user never waits twice.
   const [adDone, setAdDone] = useState(false);
   const [fetchDone, setFetchDone] = useState(false);
-  const [downloadedKey, setDownloadedKey] = useState<string | null>(null);
-  const downloadedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Per-button state. Each format_id (or "audio") can be in one of:
+  //   not present     → idle (default Download button)
+  //   downloadingSet  → 3s spinner state right after the click
+  //   downloadedSet   → permanent green Downloaded state (until reset)
+  const [downloadingSet, setDownloadingSet] = useState<Set<string>>(new Set());
+  const [downloadedSet, setDownloadedSet] = useState<Set<string>>(new Set());
+  const downloadingTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  // Used by the auto-scroll effect so the quality grid is brought into view
+  // as soon as it renders.
+  const qualityRef = useRef<HTMLDivElement | null>(null);
   const { toast } = useToast();
 
   // When both the ad timer and the API fetch are complete (and we got formats),
@@ -80,6 +88,20 @@ export default function YoutubeDownloader({
       setPhase("ready");
     }
   }, [phase, adDone, fetchDone, videoInfo]);
+
+  // Once the quality buttons render, smooth-scroll them into view so the user
+  // doesn't miss them below the ad / fold.
+  useEffect(() => {
+    if (phase === "ready" && qualityRef.current) {
+      qualityRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [phase]);
+
+  // Cleanup any pending per-button "downloading" timers on unmount.
+  useEffect(() => () => {
+    downloadingTimers.current.forEach((t) => clearTimeout(t));
+    downloadingTimers.current.clear();
+  }, []);
 
   const startDownload = () => {
     if (!isValidYouTubeUrl(url)) {
@@ -117,10 +139,30 @@ export default function YoutubeDownloader({
       });
   };
 
-  const flashDownloaded = (key: string) => {
-    setDownloadedKey(key);
-    if (downloadedTimer.current) clearTimeout(downloadedTimer.current);
-    downloadedTimer.current = setTimeout(() => setDownloadedKey(null), 6000);
+  // Mark a button as downloading for 3s, then promote it to downloaded.
+  // Both states stick around until the form is fully reset.
+  const beginDownloadingFlow = (key: string) => {
+    setDownloadingSet((s) => {
+      const next = new Set(s);
+      next.add(key);
+      return next;
+    });
+    const existing = downloadingTimers.current.get(key);
+    if (existing) clearTimeout(existing);
+    const t = setTimeout(() => {
+      setDownloadingSet((s) => {
+        const next = new Set(s);
+        next.delete(key);
+        return next;
+      });
+      setDownloadedSet((s) => {
+        const next = new Set(s);
+        next.add(key);
+        return next;
+      });
+      downloadingTimers.current.delete(key);
+    }, 3000);
+    downloadingTimers.current.set(key, t);
   };
 
   const downloadVideo = (
@@ -139,7 +181,7 @@ export default function YoutubeDownloader({
       `&name=${encodeURIComponent(name)}${sizeParam}`;
     triggerNativeDownload(streamUrl, name);
     onDownload(videoInfo.title, url, `Video ${label}`);
-    flashDownloaded(formatId);
+    beginDownloadingFlow(formatId);
   };
 
   const downloadAudio = () => {
@@ -149,7 +191,7 @@ export default function YoutubeDownloader({
     const streamUrl = `/api/stream?url=${encodeURIComponent(url)}&audio=1&name=${encodeURIComponent(name)}`;
     triggerNativeDownload(streamUrl, name);
     onDownload(videoInfo.title, url, "Audio M4A");
-    flashDownloaded("audio");
+    beginDownloadingFlow("audio");
   };
 
   const paste = async () => {
@@ -159,12 +201,15 @@ export default function YoutubeDownloader({
   };
 
   const reset = () => {
+    downloadingTimers.current.forEach((t) => clearTimeout(t));
+    downloadingTimers.current.clear();
     setUrl("");
     setVideoInfo(null);
     setPhase("idle");
     setAdDone(false);
     setFetchDone(false);
-    setDownloadedKey(null);
+    setDownloadingSet(new Set());
+    setDownloadedSet(new Set());
   };
 
   // Server already dedupes by height, but defend client-side too and sort high → low.
@@ -274,47 +319,63 @@ export default function YoutubeDownloader({
             </div>
           </div>
 
-          {/* Confirmation banner once a download has been triggered. */}
-          {downloadedKey && (
-            <div className="flex items-center gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 animate-in fade-in slide-in-from-top-2 duration-300">
-              <CheckCircle2 className="h-5 w-5 text-emerald-400 flex-shrink-0" />
+          {/* Persistent confirmation banner — appears once any quality has
+              promoted from "downloading" to "downloaded". */}
+          {downloadedSet.size > 0 && (
+            <div className="flex items-center gap-3 rounded-lg border-2 border-emerald-500/50 bg-emerald-500/15 dark:bg-emerald-500/10 px-4 py-3 animate-in fade-in slide-in-from-top-2 duration-300">
+              <CheckCircle2 className="h-5 w-5 text-emerald-700 dark:text-emerald-300 flex-shrink-0" />
               <div className="text-sm">
-                <p className="font-semibold text-emerald-300">Your video is downloaded!</p>
-                <p className="text-xs text-emerald-200/80">
-                  Check your browser&apos;s download bar. The file may take a moment to start.
+                <p className="font-semibold text-emerald-800 dark:text-emerald-200">
+                  Your video is downloaded!
+                </p>
+                <p className="text-xs text-emerald-700/90 dark:text-emerald-300/90">
+                  Check your browser&apos;s download bar. Click ✕ on the URL field to download another.
                 </p>
               </div>
             </div>
           )}
 
-          <AdBanner slot="middle" className="my-2" />
-
-          <div>
+          {/* Quality grid moved ABOVE the in-card ad so users see the
+              actionable buttons first instead of having to scroll past an
+              advertisement. */}
+          <div ref={qualityRef} className="scroll-mt-24">
             <h4 className="text-sm font-semibold mb-3">Choose Video Quality</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {availableFormats.map((fmt) => {
                 const label = qualityLabel(fmt.height);
                 const size = formatSize(fmt.filesize);
-                const done = downloadedKey === fmt.format_id;
+                const downloading = downloadingSet.has(fmt.format_id);
+                const done = downloadedSet.has(fmt.format_id);
                 return (
                   <Button
                     key={fmt.format_id}
                     onClick={() => downloadVideo(fmt.format_id, label, fmt.height, fmt.filesize)}
-                    className={`h-auto py-3 px-4 justify-between text-white font-semibold shadow-md transition-all hover:scale-[1.02] ${
+                    disabled={downloading || done}
+                    className={`h-auto py-3 px-4 justify-between text-white font-semibold shadow-md transition-all ${
                       done
-                        ? "bg-gradient-to-r from-emerald-600 to-teal-600 shadow-emerald-600/30"
-                        : "bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 shadow-red-600/20 hover:shadow-red-600/40"
+                        ? "bg-gradient-to-r from-emerald-600 to-teal-600 shadow-emerald-600/30 disabled:opacity-100"
+                        : downloading
+                          ? "bg-gradient-to-r from-amber-500 to-orange-500 shadow-amber-500/30 disabled:opacity-100"
+                          : "bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 shadow-red-600/20 hover:shadow-red-600/40 hover:scale-[1.02]"
                     }`}
                   >
                     <span className="flex items-center gap-2">
                       {done ? (
                         <CheckCircle2 className="h-4 w-4" />
+                      ) : downloading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
                         <Download className="h-4 w-4" />
                       )}
-                      <span>{done ? `Downloaded ${label} MP4` : `Download ${label} MP4`}</span>
+                      <span>
+                        {done
+                          ? `Downloaded ${label} MP4`
+                          : downloading
+                            ? `Downloading ${label}...`
+                            : `Download ${label} MP4`}
+                      </span>
                     </span>
-                    {size && !done && (
+                    {size && !done && !downloading && (
                       <span className="text-[11px] font-normal opacity-90">{size}</span>
                     )}
                   </Button>
@@ -327,16 +388,24 @@ export default function YoutubeDownloader({
             <h4 className="text-sm font-semibold mb-3">Audio Only</h4>
             <Button
               onClick={downloadAudio}
-              className={`w-full h-12 text-white font-semibold shadow-md transition-all hover:scale-[1.01] ${
-                downloadedKey === "audio"
-                  ? "bg-gradient-to-r from-emerald-600 to-teal-600 shadow-emerald-600/30"
-                  : "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-emerald-600/20 hover:shadow-emerald-600/40"
+              disabled={downloadingSet.has("audio") || downloadedSet.has("audio")}
+              className={`w-full h-12 text-white font-semibold shadow-md transition-all ${
+                downloadedSet.has("audio")
+                  ? "bg-gradient-to-r from-emerald-600 to-teal-600 shadow-emerald-600/30 disabled:opacity-100"
+                  : downloadingSet.has("audio")
+                    ? "bg-gradient-to-r from-amber-500 to-orange-500 shadow-amber-500/30 disabled:opacity-100"
+                    : "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-emerald-600/20 hover:shadow-emerald-600/40 hover:scale-[1.01]"
               }`}
             >
-              {downloadedKey === "audio" ? (
+              {downloadedSet.has("audio") ? (
                 <>
                   <CheckCircle2 className="h-4 w-4 mr-2" />
                   Downloaded Audio (M4A)
+                </>
+              ) : downloadingSet.has("audio") ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Downloading Audio...
                 </>
               ) : (
                 <>
@@ -346,6 +415,10 @@ export default function YoutubeDownloader({
               )}
             </Button>
           </div>
+
+          {/* Ad now sits AFTER the quality buttons so users see the actionable
+              options first. */}
+          <AdBanner slot="middle" className="my-2" />
         </div>
       )}
     </div>
