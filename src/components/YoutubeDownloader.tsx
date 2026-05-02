@@ -196,10 +196,10 @@ export default function YoutubeDownloader({
   const downloadAudio = () => {
     if (!videoInfo) return;
     const base = safeFilename(videoInfo.title, "youtube-audio");
-    const name = `${base}.m4a`;
+    const name = `${base}.mp3`;
     const streamUrl = `/api/stream?url=${encodeURIComponent(url)}&audio=1&name=${encodeURIComponent(name)}`;
     triggerNativeDownload(streamUrl, name);
-    onDownload(videoInfo.title, url, "Audio M4A");
+    onDownload(videoInfo.title, url, "Audio MP3");
     beginDownloadingFlow("audio");
   };
 
@@ -409,7 +409,7 @@ export default function YoutubeDownloader({
               {downloadedSet.has("audio") ? (
                 <>
                   <CheckCircle2 className="h-4 w-4 mr-2" />
-                  Downloaded Audio (M4A)
+                  Downloaded Audio (MP3)
                 </>
               ) : downloadingSet.has("audio") ? (
                 <>
@@ -419,7 +419,7 @@ export default function YoutubeDownloader({
               ) : (
                 <>
                   <Music className="h-4 w-4 mr-2" />
-                  Download Audio (M4A High Quality)
+                  Download Audio (MP3 High Quality)
                 </>
               )}
             </Button>
