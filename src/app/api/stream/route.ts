@@ -5,7 +5,12 @@ import { stat, unlink } from "fs/promises";
 import { tmpdir } from "os";
 import { join } from "path";
 import { randomUUID } from "crypto";
-import { getYoutubeStreamAuthArgs } from "@/lib/ytdlp";
+import {
+  getYoutubeStreamAuthArgs,
+  getVideoInfo,
+  pickYoutubeFormats,
+  type PickedFormat,
+} from "@/lib/ytdlp";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,6 +31,108 @@ function runYtDlp(args: string[]): Promise<{ code: number; stderr: string }> {
     proc.stdout?.on("data", () => {});
     proc.on("close", (code) => resolve({ code: code ?? 1, stderr }));
     proc.on("error", () => resolve({ code: 1, stderr }));
+  });
+}
+
+// Format the http_headers from yt-dlp into the single-blob string ffmpeg's
+// -headers option expects. ffmpeg auto-supplies User-Agent if missing, so a
+// missing http_headers field is fine.
+function ffmpegHeaderBlob(h?: Record<string, string>): string {
+  if (!h) return "";
+  return Object.entries(h)
+    .map(([k, v]) => `${k}: ${v}`)
+    .join("\r\n") + "\r\n";
+}
+
+// Run ffmpeg with direct googlevideo.com URLs. Produces a regular seekable
+// mp4 (or mp3 for audio) and streams the finished file to the client with a
+// real Content-Length. Crucially, ffmpeg has no knowledge of our proxy, so
+// every byte of media flows direct from googlevideo to the server — zero
+// proxy bandwidth.
+async function runFfmpegMux(
+  picked: { video: PickedFormat | null; audio: PickedFormat | null },
+  audioOnly: boolean,
+  safeName: string,
+): Promise<Response> {
+  const id = randomUUID().slice(0, 8);
+  const outPath = join(tmpdir(), `dl-${id}.${audioOnly ? "mp3" : "mp4"}`);
+
+  const args: string[] = ["-y", "-loglevel", "error"];
+
+  if (audioOnly) {
+    if (!picked.audio) throw new Error("no audio format");
+    const headers = ffmpegHeaderBlob(picked.audio.http_headers);
+    if (headers) args.push("-headers", headers);
+    args.push("-i", picked.audio.url);
+    // Transcode to MP3 VBR ~192kbps (-q:a 2). Always re-encode because the
+    // source is m4a/AAC or webm/opus.
+    args.push("-vn", "-c:a", "libmp3lame", "-q:a", "2", outPath);
+  } else {
+    if (!picked.video || !picked.audio) throw new Error("missing v/a format");
+    const vHeaders = ffmpegHeaderBlob(picked.video.http_headers);
+    const aHeaders = ffmpegHeaderBlob(picked.audio.http_headers);
+    // Per-input headers must precede their -i. ffmpeg applies the most
+    // recent -headers to the next -i.
+    if (vHeaders) args.push("-headers", vHeaders);
+    args.push("-i", picked.video.url);
+    if (aHeaders) args.push("-headers", aHeaders);
+    args.push("-i", picked.audio.url);
+    args.push(
+      "-map", "0:v:0",
+      "-map", "1:a:0",
+      "-c", "copy",
+      "-movflags", "+faststart",
+      "-f", "mp4",
+      outPath,
+    );
+  }
+
+  const code = await new Promise<number>((resolve) => {
+    const proc = spawn("ffmpeg", args, { stdio: ["ignore", "ignore", "pipe"] });
+    let stderr = "";
+    proc.stderr?.on("data", (c) => { stderr += c.toString(); });
+    proc.on("close", (c) => {
+      if (c !== 0) console.warn("[ffmpeg]", stderr.slice(0, 500));
+      resolve(c ?? 1);
+    });
+    proc.on("error", () => resolve(1));
+  });
+
+  if (code !== 0) {
+    unlink(outPath).catch(() => {});
+    throw new Error("ffmpeg failed");
+  }
+
+  const stats = await stat(outPath);
+  const nodeStream = createReadStream(outPath);
+  const webStream = new ReadableStream({
+    start(controller) {
+      nodeStream.on("data", (c) => {
+        try { controller.enqueue(new Uint8Array(c as Buffer)); } catch {}
+      });
+      nodeStream.on("end", () => {
+        try { controller.close(); } catch {}
+        unlink(outPath).catch(() => {});
+      });
+      nodeStream.on("error", () => {
+        try { controller.close(); } catch {}
+        unlink(outPath).catch(() => {});
+      });
+    },
+    cancel() {
+      nodeStream.destroy();
+      unlink(outPath).catch(() => {});
+    },
+  });
+
+  return new Response(webStream, {
+    status: 200,
+    headers: {
+      "Content-Type": audioOnly ? "audio/mpeg" : "video/mp4",
+      "Content-Disposition": `attachment; filename="${safeName}"`,
+      "Content-Length": stats.size.toString(),
+      "Cache-Control": "no-store",
+    },
   });
 }
 
@@ -73,6 +180,36 @@ export async function GET(request: NextRequest) {
   const ext = audio ? "mp3" : "mp4";
   const safeName =
     filename.replace(/[^\w\s.-]/g, "").trim() || `download.${ext}`;
+
+  // =========================================================================
+  // YOUTUBE FAST PATH — direct ffmpeg, NO proxy bytes for media
+  //
+  // The cached info from /api/youtube/info already contains signed
+  // googlevideo.com URLs for every format. Those URLs are valid for several
+  // hours and are NOT IP-gated — Google's CDN serves them to any IP. So
+  // instead of running yt-dlp again here (which would re-extract through the
+  // proxy AND download all bytes through the proxy), we hand the URLs
+  // straight to ffmpeg. ffmpeg pulls them direct from googlevideo.com,
+  // bypassing the proxy entirely. Result: a 50 MB download costs ~0 KB of
+  // proxy bandwidth.
+  // =========================================================================
+  if (isYoutube) {
+    try {
+      const info = await getVideoInfo(url);
+      const heightCap = heightParam && /^\d+$/.test(heightParam)
+        ? Math.min(1080, parseInt(heightParam, 10))
+        : 1080;
+      const picked = pickYoutubeFormats(info, heightCap, audio);
+
+      if (picked.audio && (audio || picked.video)) {
+        return await runFfmpegMux(picked, audio, safeName);
+      }
+      // If we couldn't find suitable formats in the cache, fall through to
+      // the yt-dlp temp-file path below (works but uses proxy bandwidth).
+    } catch (e: any) {
+      console.warn("[stream] direct ffmpeg path failed, falling back to yt-dlp:", e.message);
+    }
+  }
 
   // =========================================================================
   // UNIFIED TEMP-FILE PATH

@@ -311,6 +311,76 @@ function hasHdFormat(formats: any[] | undefined): boolean {
   return false;
 }
 
+// Pick the best matching video and/or audio format from a cached info
+// blob. Returned formats include the signed googlevideo.com `url` and
+// the `http_headers` yt-dlp would normally send. We use these to drive
+// ffmpeg directly, bypassing yt-dlp (and the proxy) for the actual byte
+// transfer.
+//
+// Selection rules mirror what we'd ask yt-dlp for via -f:
+//   video: best avc1 with height <= cap → best mp4 → best video-only
+//   audio: best m4a (AAC) → best webm/opus → any audio-only
+export type PickedFormat = {
+  url: string;
+  http_headers?: Record<string, string>;
+  ext?: string;
+  vcodec?: string;
+  acodec?: string;
+  height?: number;
+  filesize?: number;
+};
+
+export function pickYoutubeFormats(
+  info: any,
+  heightCap: number | null,
+  audioOnly: boolean,
+): { video: PickedFormat | null; audio: PickedFormat | null } {
+  const all = (info?.formats || []) as any[];
+  if (!Array.isArray(all) || all.length === 0) {
+    return { video: null, audio: null };
+  }
+
+  // ---- audio pick ---------------------------------------------------------
+  const audioCandidates = all.filter(
+    (f) => f?.url && f.acodec && f.acodec !== "none" && (!f.vcodec || f.vcodec === "none"),
+  );
+  const scoreAudio = (f: any) => {
+    let s = 0;
+    if (f.ext === "m4a") s += 1000;
+    if (f.acodec?.startsWith("mp4a")) s += 500;
+    s += f.abr || 0;
+    s += (f.tbr || 0) / 1000;
+    return s;
+  };
+  audioCandidates.sort((a, b) => scoreAudio(b) - scoreAudio(a));
+  const audio = audioCandidates[0] || null;
+
+  if (audioOnly) return { video: null, audio };
+
+  // ---- video pick ---------------------------------------------------------
+  const cap = heightCap ?? 1080;
+  const videoCandidates = all.filter(
+    (f) =>
+      f?.url &&
+      f.vcodec &&
+      f.vcodec !== "none" &&
+      (!f.acodec || f.acodec === "none") &&
+      f.height &&
+      f.height <= cap,
+  );
+  const scoreVideo = (f: any) => {
+    let s = (f.height || 0) * 100;
+    if (f.vcodec?.startsWith("avc1")) s += 50_000; // strong avc1 preference
+    if (f.ext === "mp4") s += 10_000;
+    s += (f.tbr || 0);
+    return s;
+  };
+  videoCandidates.sort((a, b) => scoreVideo(b) - scoreVideo(a));
+  const video = videoCandidates[0] || null;
+
+  return { video, audio };
+}
+
 export async function getVideoInfoSkipDownload(url: string): Promise<any> {
   const cached = cacheGet(url);
   if (cached) return cached;
