@@ -178,10 +178,14 @@ export async function getVideoInfo(url: string): Promise<any> {
   // Recovery chain for thin format lists. YouTube has been steadily
   // hardening format extraction against cloud-IP / non-attested clients;
   // the fast primary call above frequently returns just itag 18 (360p
-  // progressive) even for videos that publicly offer full HD. If that
-  // happens we walk a sequence of increasingly expensive fallbacks until
-  // one returns a full ladder — or we give up and use whatever we have.
-  if (isYoutube && countUniqueHeights(data.formats) < 2) {
+  // progressive) — or sometimes 144/240/360 with NO HD — even for videos
+  // that publicly offer full HD. We trigger the recovery chain whenever
+  // the primary response is thin (<2 heights) OR is missing any HD format
+  // (no height >= 720), so users don't end up stuck at 360p when cookies
+  // or alternate clients could unlock 720p+.
+  const needsRecovery =
+    countUniqueHeights(data.formats) < 2 || !hasHdFormat(data.formats);
+  if (isYoutube && needsRecovery) {
     const attempts: { label: string; args: string[] }[] = [];
 
     // Attempt A: cookies + broad client list (unlocks PO-token-gated videos
@@ -223,14 +227,23 @@ export async function getVideoInfo(url: string): Promise<any> {
           ...attempt.args,
         ], { timeout: 45000, maxBuffer: 10 * 1024 * 1024 });
         const retryData = JSON.parse(retry.stdout);
+        const retryHeights = countUniqueHeights(retryData.formats);
+        const currentHeights = countUniqueHeights(data.formats);
+        // Adopt the retry if it gives us MORE heights, OR if it gives us
+        // an HD format (>=720p) that we didn't have before. Just counting
+        // heights can favor a 144/240/360 list over a 360/720/1080 list
+        // of equal size.
+        const retryHasHd = hasHdFormat(retryData.formats);
+        const currentHasHd = hasHdFormat(data.formats);
         if (
-          countUniqueHeights(retryData.formats) > countUniqueHeights(data.formats)
+          retryHeights > currentHeights ||
+          (retryHasHd && !currentHasHd)
         ) {
           console.log(
-            `[yt-dlp] ${attempt.label} succeeded: ${countUniqueHeights(retryData.formats)} heights`
+            `[yt-dlp] ${attempt.label} succeeded: ${retryHeights} heights, HD=${retryHasHd}`
           );
           data = retryData;
-          if (countUniqueHeights(data.formats) >= 2) break;
+          if (retryHeights >= 2 && retryHasHd) break;
         }
       } catch (e: any) {
         console.warn(`[yt-dlp] ${attempt.label} retry failed:`, e.message);
@@ -241,15 +254,18 @@ export async function getVideoInfo(url: string): Promise<any> {
     // code path — doesn't hit YouTube directly so cloud-IP gating doesn't
     // apply. Many instances are flaky, but the helper rotates through a
     // pool until one works.
-    if (countUniqueHeights(data.formats) < 2) {
+    if (countUniqueHeights(data.formats) < 2 || !hasHdFormat(data.formats)) {
       try {
         console.log(`[yt-dlp] Falling back to Piped/Invidious for ${url}`);
         const pipedData = await getYoutubeInfoViaPiped(url);
+        const pipedHeights = countUniqueHeights(pipedData.formats);
+        const pipedHasHd = hasHdFormat(pipedData.formats);
         if (
-          countUniqueHeights(pipedData.formats) > countUniqueHeights(data.formats)
+          pipedHeights > countUniqueHeights(data.formats) ||
+          (pipedHasHd && !hasHdFormat(data.formats))
         ) {
           console.log(
-            `[piped] Succeeded: ${countUniqueHeights(pipedData.formats)} heights`
+            `[piped] Succeeded: ${pipedHeights} heights, HD=${pipedHasHd}`
           );
           data = pipedData;
         }
@@ -279,6 +295,20 @@ function countUniqueHeights(formats: any[] | undefined): number {
     }
   }
   return heights.size;
+}
+
+// Does the format list contain at least one HD video stream (>=720p)?
+// Used by the recovery chain to decide whether to keep trying fallbacks
+// when the primary call came back with only low-res formats.
+function hasHdFormat(formats: any[] | undefined): boolean {
+  if (!Array.isArray(formats)) return false;
+  for (const f of formats) {
+    if (!f?.height || f.height < 720) continue;
+    // Must be a video format, not a storyboard / audio-only entry.
+    if (f.vcodec && f.vcodec !== "none") return true;
+    if (!f.vcodec && f.acodec === "none") return true;
+  }
+  return false;
 }
 
 export async function getVideoInfoSkipDownload(url: string): Promise<any> {

@@ -292,7 +292,12 @@ export default function YoutubeDownloader({
       {/* Ad runs in parallel with the format-info fetch */}
       {isLoading && (
         <AdCountdown
-          seconds={5}
+          // 10s (vs the default 5s used by other platforms) because YouTube
+          // info extraction runs a recovery chain (cookies + alternate
+          // clients) for videos where the primary call returns a thin
+          // ladder. That chain can take 6-9s total; a 10s ad means the
+          // resolution picker is ready the moment the ad closes.
+          seconds={10}
           message={
             !fetchDone
               ? "Processing the link to download. Stay on the page."
