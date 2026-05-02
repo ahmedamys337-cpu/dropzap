@@ -140,15 +140,15 @@ export default function YoutubeDownloader({
   };
 
   // Mark a button as downloading, then promote it to downloaded after a
-  // buffer sized to match the real server-side processing time. With
-  // --concurrent-fragments 8 yt-dlp downloads the DASH fragments in
-  // parallel, which brings HD video downloads to ~15-25s on a warm worker.
-  // 20s is the middle of that band. Audio downloads run through MP3
-  // transcoding and typically finish in 8-12s; downloadAudio() overrides.
-  // Both states stick until the form is reset. The browser's own download
-  // progress bar (which now gets a real Content-Length) is the source of
-  // truth for when the file actually lands.
-  const beginDownloadingFlow = (key: string, holdMs = 20000) => {
+  // buffer sized to match the real server-side processing time for
+  // YouTube. The yt-dlp temp-file path through the residential proxy
+  // typically lands HD videos in 20-30s. 30s gives enough headroom that
+  // the green "Downloaded" state arrives AFTER the file is actually in
+  // the browser's download bar — which is what the user expects. Audio
+  // is faster (just bestaudio + MP3 transcode) so downloadAudio()
+  // overrides with a shorter buffer. Both states stick until the form
+  // is reset.
+  const beginDownloadingFlow = (key: string, holdMs = 30000) => {
     setDownloadingSet((s) => {
       const next = new Set(s);
       next.add(key);
