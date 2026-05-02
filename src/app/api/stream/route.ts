@@ -75,101 +75,54 @@ export async function GET(request: NextRequest) {
     filename.replace(/[^\w\s.-]/g, "").trim() || `download.${ext}`;
 
   // =========================================================================
-  // AUDIO PATH — temp-file
-  // MP3 extraction requires ffmpeg post-processing, which needs a real file
-  // (can't pipe extract-audio to stdout reliably). Acceptable: audio files
-  // are small (~5-10 MB) so the wait before the browser sees bytes is short.
+  // UNIFIED TEMP-FILE PATH
+  // Why not stream directly to the client? Because yt-dlp has to download
+  // BOTH the video-only and audio-only DASH streams fully before it can
+  // merge them — so "piping to stdout" still buffers both files completely
+  // before any byte reaches the browser. The user ends up staring at a
+  // yellow spinner for 2-5 minutes with no feedback.
+  //
+  // Instead we download to a temp file in parallel (concurrent-fragments),
+  // which is 3-5× faster than the serial DASH download yt-dlp does by
+  // default. Then we stream the finished file with a real Content-Length so
+  // the browser shows accurate MB/percentage. The file is a regular
+  // seekable mp4 (not fragmented) that plays in every player.
   // =========================================================================
-  if (audio) {
-    const id = randomUUID().slice(0, 8);
-    const tempBase = join(tmpdir(), `dl-${id}`);
-    const tempTemplate = `${tempBase}.%(ext)s`;
-    const expectedFinal = `${tempBase}.mp3`;
+  const id = randomUUID().slice(0, 8);
+  const tempBase = join(tmpdir(), `dl-${id}`);
+  const tempTemplate = `${tempBase}.%(ext)s`;
+  const expectedFinal = `${tempBase}.${ext}`;
 
-    try {
-      const args: string[] = [
-        url,
-        "-o", tempTemplate,
-        "--no-check-certificates",
-        "--no-warnings",
-        "--no-playlist",
-        "--no-part",
-        "--socket-timeout", "30",
-        "-f", fmtArg,
-        "--extract-audio",
-        "--audio-format", "mp3",
-        "--audio-quality", "2",
-      ];
-      if (isYoutube) {
-        args.push(
-          "--extractor-args",
-          "youtube:player_client=tv_embedded,android,ios,mweb,web,default",
-        );
-        args.push(...getYoutubeStreamAuthArgs());
-      }
-
-      const { code, stderr } = await runYtDlp(args);
-      if (code !== 0) {
-        unlink(expectedFinal).catch(() => {});
-        const msg = stderr.split("\n").find((l) => l.includes("ERROR")) || "yt-dlp failed";
-        return new Response("Download failed: " + msg, { status: 500 });
-      }
-
-      const stats = await stat(expectedFinal);
-      const nodeStream = createReadStream(expectedFinal);
-      const webStream = new ReadableStream({
-        start(controller) {
-          nodeStream.on("data", (c) => {
-            try { controller.enqueue(new Uint8Array(c as Buffer)); } catch {}
-          });
-          nodeStream.on("end", () => {
-            try { controller.close(); } catch {}
-            unlink(expectedFinal).catch(() => {});
-          });
-          nodeStream.on("error", () => {
-            try { controller.close(); } catch {}
-            unlink(expectedFinal).catch(() => {});
-          });
-        },
-        cancel() {
-          nodeStream.destroy();
-          unlink(expectedFinal).catch(() => {});
-        },
-      });
-
-      return new Response(webStream, {
-        status: 200,
-        headers: {
-          "Content-Type": "audio/mpeg",
-          "Content-Disposition": `attachment; filename="${safeName}"`,
-          "Content-Length": stats.size.toString(),
-          "Cache-Control": "no-store",
-        },
-      });
-    } catch (err: any) {
-      unlink(expectedFinal).catch(() => {});
-      return new Response("Download failed: " + err.message, { status: 500 });
-    }
-  }
-
-  // =========================================================================
-  // VIDEO PATH — live stream via stdout
-  // Since we cap at 1080p (guaranteed H.264/avc1 on YouTube), fragmented-mp4
-  // piped to stdout plays in every player, and the browser gets the first
-  // byte within 1-2 seconds. This removes the ~5 minute wait users saw with
-  // the temp-file approach for HD videos.
-  // =========================================================================
   try {
     const args: string[] = [
-      url, "-o", "-",
+      url,
+      "-o", tempTemplate,
       "--no-check-certificates",
       "--no-warnings",
       "--no-playlist",
+      "--no-part",
+      "--socket-timeout", "30",
+      // Download 8 DASH fragments in parallel. This is the single biggest
+      // speed win for YouTube HD downloads: the video and audio streams are
+      // delivered in hundreds of small fragments, and serializing them over
+      // a residential proxy was the root cause of the 2-5 minute wait.
+      "--concurrent-fragments", "8",
       "-f", fmtArg,
-      "--merge-output-format", "mp4",
-      "--postprocessor-args",
-      "Merger:-movflags +frag_keyframe+empty_moov+default_base_moof",
     ];
+
+    if (audio) {
+      args.push(
+        "--extract-audio",
+        "--audio-format", "mp3",
+        "--audio-quality", "2",
+      );
+    } else {
+      // Regular seekable mp4 (NOT fragmented) — ffmpeg can seek back to
+      // write a proper moov atom, so the file plays in every player
+      // including Windows default ones.
+      args.push("--merge-output-format", "mp4");
+    }
+
     if (isYoutube) {
       args.push(
         "--extractor-args",
@@ -178,37 +131,63 @@ export async function GET(request: NextRequest) {
       args.push(...getYoutubeStreamAuthArgs());
     }
 
-    const proc = spawn("yt-dlp", args, { stdio: ["ignore", "pipe", "pipe"] });
-    let stderr = "";
-    proc.stderr?.on("data", (c: Buffer) => { stderr += c.toString(); });
+    const { code, stderr } = await runYtDlp(args);
+    if (code !== 0) {
+      unlink(expectedFinal).catch(() => {});
+      const msg = stderr.split("\n").find((l) => l.includes("ERROR")) || "yt-dlp failed";
+      return new Response("Download failed: " + msg, { status: 500 });
+    }
 
+    // Resolve the file yt-dlp actually produced
+    let finalPath = expectedFinal;
+    let stats;
+    try {
+      stats = await stat(finalPath);
+    } catch {
+      const alternates = audio
+        ? [`${tempBase}.m4a`, `${tempBase}.opus`, `${tempBase}.webm`]
+        : [`${tempBase}.webm`, `${tempBase}.mkv`];
+      for (const p of alternates) {
+        try { stats = await stat(p); finalPath = p; break; } catch {}
+      }
+    }
+    if (!stats) {
+      return new Response("Download failed: output file missing", { status: 500 });
+    }
+
+    const fileSize = stats.size;
+    const nodeStream = createReadStream(finalPath);
     const webStream = new ReadableStream({
       start(controller) {
-        proc.stdout?.on("data", (c: Buffer) => {
-          try { controller.enqueue(new Uint8Array(c)); } catch {}
+        nodeStream.on("data", (chunk) => {
+          try { controller.enqueue(new Uint8Array(chunk as Buffer)); } catch {}
         });
-        proc.stdout?.on("end", () => {
+        nodeStream.on("end", () => {
           try { controller.close(); } catch {}
+          unlink(finalPath).catch(() => {});
         });
-        proc.stdout?.on("error", () => {
+        nodeStream.on("error", () => {
           try { controller.close(); } catch {}
-        });
-        proc.on("error", () => {
-          try { controller.close(); } catch {}
+          unlink(finalPath).catch(() => {});
         });
       },
-      cancel() { proc.kill("SIGTERM"); },
+      cancel() {
+        nodeStream.destroy();
+        unlink(finalPath).catch(() => {});
+      },
     });
 
     return new Response(webStream, {
       status: 200,
       headers: {
-        "Content-Type": "video/mp4",
+        "Content-Type": audio ? "audio/mpeg" : "video/mp4",
         "Content-Disposition": `attachment; filename="${safeName}"`,
+        "Content-Length": fileSize.toString(),
         "Cache-Control": "no-store",
       },
     });
   } catch (err: any) {
+    unlink(expectedFinal).catch(() => {});
     return new Response("Download failed: " + err.message, { status: 500 });
   }
 }

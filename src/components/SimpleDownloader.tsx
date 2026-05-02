@@ -102,7 +102,13 @@ export default function SimpleDownloader({
     // browser's download bar.
     setPhase("downloading");
     if (downloadingTimer.current) clearTimeout(downloadingTimer.current);
-    downloadingTimer.current = setTimeout(() => setPhase("downloaded"), 4000);
+    // Server now downloads the file to a temp path, then streams it with a
+    // real Content-Length so the browser shows accurate progress. For short
+    // Instagram / TikTok clips that usually completes in 5-10s. 10s is a
+    // safe cap: if the file arrives earlier the browser progress bar is
+    // already showing it; if it arrives later the user still sees bytes
+    // landing in their downloads list.
+    downloadingTimer.current = setTimeout(() => setPhase("downloaded"), 10000);
   };
 
   const paste = async () => {
