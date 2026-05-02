@@ -148,7 +148,7 @@ export default function YoutubeDownloader({
   // is faster (just bestaudio + MP3 transcode) so downloadAudio()
   // overrides with a shorter buffer. Both states stick until the form
   // is reset.
-  const beginDownloadingFlow = (key: string, holdMs = 30000) => {
+  const beginDownloadingFlow = (key: string, holdMs = 40000) => {
     setDownloadingSet((s) => {
       const next = new Set(s);
       next.add(key);
