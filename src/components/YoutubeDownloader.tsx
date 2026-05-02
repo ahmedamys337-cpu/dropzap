@@ -139,16 +139,13 @@ export default function YoutubeDownloader({
       });
   };
 
-  // Mark a button as downloading for 22s, then promote it to downloaded.
-  // YouTube is slower than other platforms because the server has to spawn
-  // yt-dlp + ffmpeg to merge a video-only stream with an audio-only stream
-  // before the first byte can be written to the response. Production
-  // traces showed cold-start merges averaging 20-25s to first byte, so a
-  // 10s timer caused "Downloaded ✓" to appear ~15s before the file
-  // actually showed up in the browser — which users read as "broken".
-  // 22s lines the green state up with real file arrival.
-  // Both states stick around until the form is fully reset.
-  const beginDownloadingFlow = (key: string) => {
+  // Mark a button as downloading, then promote it to downloaded after a
+  // short buffer. Video downloads now stream directly from yt-dlp's stdout
+  // (first byte in 1-2s on a warm worker), so 6s comfortably covers the
+  // worst-case cold start. Audio downloads run through a temp-file MP3
+  // extraction which can take 8-15s — we use a separate longer buffer in
+  // downloadAudio(). Both states stick around until the form is fully reset.
+  const beginDownloadingFlow = (key: string, holdMs = 6000) => {
     setDownloadingSet((s) => {
       const next = new Set(s);
       next.add(key);
@@ -168,7 +165,7 @@ export default function YoutubeDownloader({
         return next;
       });
       downloadingTimers.current.delete(key);
-    }, 22000);
+    }, holdMs);
     downloadingTimers.current.set(key, t);
   };
 
@@ -200,7 +197,10 @@ export default function YoutubeDownloader({
     const streamUrl = `/api/stream?url=${encodeURIComponent(url)}&audio=1&name=${encodeURIComponent(name)}`;
     triggerNativeDownload(streamUrl, name);
     onDownload(videoInfo.title, url, "Audio MP3");
-    beginDownloadingFlow("audio");
+    // MP3 extraction runs ffmpeg on a temp file server-side, so bytes reach
+    // the browser 8-15s after the click on a cold worker. 15s keeps the
+    // green "Downloaded" state from appearing before the file does.
+    beginDownloadingFlow("audio", 15000);
   };
 
   const paste = async () => {

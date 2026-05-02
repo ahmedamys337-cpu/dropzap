@@ -32,26 +32,24 @@ function runYtDlp(args: string[]): Promise<{ code: number; stderr: string }> {
 export async function GET(request: NextRequest) {
   const url = request.nextUrl.searchParams.get("url");
   const format = request.nextUrl.searchParams.get("f") || "best";
-  // Preferred contract: client passes h=<height> so we can always merge the
-  // best video at that resolution with the best audio.
   const heightParam = request.nextUrl.searchParams.get("h");
   const filename = request.nextUrl.searchParams.get("name") || "download.mp4";
   const audio = request.nextUrl.searchParams.get("audio") === "1";
 
   if (!url) return new Response("URL required", { status: 400 });
 
+  const isYoutube = /youtu(?:\.be|be\.com)/i.test(url);
+
   // ---------- format selector ----------
   let fmtArg: string;
   if (audio) {
-    // Pick the best audio-only stream regardless of container. yt-dlp's
-    // post-processor will transcode it to mp3 below, so the source codec
-    // (m4a, opus, webm…) does not matter.
     fmtArg = "bestaudio/best";
   } else if (heightParam && /^\d+$/.test(heightParam)) {
-    const h = heightParam;
-    // Prefer H.264 (avc1) at <=1080p — it's the most universally playable
-    // codec. Above 1080p YouTube only ships VP9/AV1 so we accept those, but
-    // we still always prefer m4a audio so the final mp4 has AAC audio.
+    // Cap at 1080p. YouTube offers H.264 (avc1) up to 1080p which muxes
+    // cleanly into (fragmented) mp4 and plays everywhere. We hard-prefer
+    // avc1 so the streaming merge never ends up with VP9/AV1 (which would
+    // produce silent-video files on many players).
+    const h = Math.min(1080, parseInt(heightParam, 10));
     fmtArg =
       `bv*[height<=${h}][vcodec^=avc1]+ba[ext=m4a]/` +
       `bv*[height<=${h}][ext=mp4]+ba[ext=m4a]/` +
@@ -76,46 +74,102 @@ export async function GET(request: NextRequest) {
   const safeName =
     filename.replace(/[^\w\s.-]/g, "").trim() || `download.${ext}`;
 
-  const id = randomUUID().slice(0, 8);
-  // %(ext)s lets yt-dlp pick the right extension before post-processing;
-  // after the audio extractor / video merger runs we'll resolve the actual
-  // produced file by checking both possible suffixes.
-  const tempBase = join(tmpdir(), `dl-${id}`);
-  const tempTemplate = `${tempBase}.%(ext)s`;
-  const expectedFinal = `${tempBase}.${ext}`;
+  // =========================================================================
+  // AUDIO PATH — temp-file
+  // MP3 extraction requires ffmpeg post-processing, which needs a real file
+  // (can't pipe extract-audio to stdout reliably). Acceptable: audio files
+  // are small (~5-10 MB) so the wait before the browser sees bytes is short.
+  // =========================================================================
+  if (audio) {
+    const id = randomUUID().slice(0, 8);
+    const tempBase = join(tmpdir(), `dl-${id}`);
+    const tempTemplate = `${tempBase}.%(ext)s`;
+    const expectedFinal = `${tempBase}.mp3`;
 
-  try {
-    const isYoutube = /youtu(?:\.be|be\.com)/i.test(url);
-
-    const args: string[] = [
-      url,
-      "-o", tempTemplate,
-      "--no-check-certificates",
-      "--no-warnings",
-      "--no-playlist",
-      "--no-part",
-      "--socket-timeout", "30",
-      "-f", fmtArg,
-    ];
-
-    if (audio) {
-      // Re-encode the source audio to MP3 (VBR ~192kbps via -q 2). This
-      // also fixes the previous 0-byte downloads where the source was
-      // labeled m4a but turned out to be webm/opus, which the browser
-      // refused to save under a .m4a name.
-      args.push(
+    try {
+      const args: string[] = [
+        url,
+        "-o", tempTemplate,
+        "--no-check-certificates",
+        "--no-warnings",
+        "--no-playlist",
+        "--no-part",
+        "--socket-timeout", "30",
+        "-f", fmtArg,
         "--extract-audio",
         "--audio-format", "mp3",
         "--audio-quality", "2",
-      );
-    } else {
-      // Build a regular, seekable mp4 (NOT fragmented). Writing to a temp
-      // file means ffmpeg can seek back to write the moov atom, so VP9 / AV1
-      // 4K / 1440p downloads produce files that play correctly everywhere.
-      args.push("--merge-output-format", "mp4");
-      args.push("--remux-video", "mp4");
-    }
+      ];
+      if (isYoutube) {
+        args.push(
+          "--extractor-args",
+          "youtube:player_client=tv_embedded,android,ios,mweb,web,default",
+        );
+        args.push(...getYoutubeStreamAuthArgs());
+      }
 
+      const { code, stderr } = await runYtDlp(args);
+      if (code !== 0) {
+        unlink(expectedFinal).catch(() => {});
+        const msg = stderr.split("\n").find((l) => l.includes("ERROR")) || "yt-dlp failed";
+        return new Response("Download failed: " + msg, { status: 500 });
+      }
+
+      const stats = await stat(expectedFinal);
+      const nodeStream = createReadStream(expectedFinal);
+      const webStream = new ReadableStream({
+        start(controller) {
+          nodeStream.on("data", (c) => {
+            try { controller.enqueue(new Uint8Array(c as Buffer)); } catch {}
+          });
+          nodeStream.on("end", () => {
+            try { controller.close(); } catch {}
+            unlink(expectedFinal).catch(() => {});
+          });
+          nodeStream.on("error", () => {
+            try { controller.close(); } catch {}
+            unlink(expectedFinal).catch(() => {});
+          });
+        },
+        cancel() {
+          nodeStream.destroy();
+          unlink(expectedFinal).catch(() => {});
+        },
+      });
+
+      return new Response(webStream, {
+        status: 200,
+        headers: {
+          "Content-Type": "audio/mpeg",
+          "Content-Disposition": `attachment; filename="${safeName}"`,
+          "Content-Length": stats.size.toString(),
+          "Cache-Control": "no-store",
+        },
+      });
+    } catch (err: any) {
+      unlink(expectedFinal).catch(() => {});
+      return new Response("Download failed: " + err.message, { status: 500 });
+    }
+  }
+
+  // =========================================================================
+  // VIDEO PATH — live stream via stdout
+  // Since we cap at 1080p (guaranteed H.264/avc1 on YouTube), fragmented-mp4
+  // piped to stdout plays in every player, and the browser gets the first
+  // byte within 1-2 seconds. This removes the ~5 minute wait users saw with
+  // the temp-file approach for HD videos.
+  // =========================================================================
+  try {
+    const args: string[] = [
+      url, "-o", "-",
+      "--no-check-certificates",
+      "--no-warnings",
+      "--no-playlist",
+      "-f", fmtArg,
+      "--merge-output-format", "mp4",
+      "--postprocessor-args",
+      "Merger:-movflags +frag_keyframe+empty_moov+default_base_moof",
+    ];
     if (isYoutube) {
       args.push(
         "--extractor-args",
@@ -124,64 +178,37 @@ export async function GET(request: NextRequest) {
       args.push(...getYoutubeStreamAuthArgs());
     }
 
-    const { code, stderr } = await runYtDlp(args);
-    if (code !== 0) {
-      // Clean up any stray temp file
-      unlink(expectedFinal).catch(() => {});
-      const msg = stderr.split("\n").find((l) => l.includes("ERROR")) || "yt-dlp failed";
-      return new Response("Download failed: " + msg, { status: 500 });
-    }
+    const proc = spawn("yt-dlp", args, { stdio: ["ignore", "pipe", "pipe"] });
+    let stderr = "";
+    proc.stderr?.on("data", (c: Buffer) => { stderr += c.toString(); });
 
-    // Resolve the file yt-dlp actually produced
-    let finalPath = expectedFinal;
-    let stats;
-    try {
-      stats = await stat(finalPath);
-    } catch {
-      // Try common alternates (rare extension mismatch after post-processing)
-      const alternates = audio
-        ? [`${tempBase}.m4a`, `${tempBase}.opus`, `${tempBase}.webm`]
-        : [`${tempBase}.webm`, `${tempBase}.mkv`];
-      for (const p of alternates) {
-        try { stats = await stat(p); finalPath = p; break; } catch {}
-      }
-    }
-    if (!stats) {
-      return new Response("Download failed: output file missing", { status: 500 });
-    }
-
-    const fileSize = stats.size;
-    const nodeStream = createReadStream(finalPath);
     const webStream = new ReadableStream({
       start(controller) {
-        nodeStream.on("data", (chunk) => {
-          try { controller.enqueue(new Uint8Array(chunk as Buffer)); } catch {}
+        proc.stdout?.on("data", (c: Buffer) => {
+          try { controller.enqueue(new Uint8Array(c)); } catch {}
         });
-        nodeStream.on("end", () => {
+        proc.stdout?.on("end", () => {
           try { controller.close(); } catch {}
-          unlink(finalPath).catch(() => {});
         });
-        nodeStream.on("error", () => {
+        proc.stdout?.on("error", () => {
           try { controller.close(); } catch {}
-          unlink(finalPath).catch(() => {});
+        });
+        proc.on("error", () => {
+          try { controller.close(); } catch {}
         });
       },
-      cancel() {
-        nodeStream.destroy();
-        unlink(finalPath).catch(() => {});
-      },
+      cancel() { proc.kill("SIGTERM"); },
     });
 
-    const headers: Record<string, string> = {
-      "Content-Type": audio ? "audio/mpeg" : "video/mp4",
-      "Content-Disposition": `attachment; filename="${safeName}"`,
-      "Content-Length": fileSize.toString(),
-      "Cache-Control": "no-store",
-    };
-
-    return new Response(webStream, { status: 200, headers });
+    return new Response(webStream, {
+      status: 200,
+      headers: {
+        "Content-Type": "video/mp4",
+        "Content-Disposition": `attachment; filename="${safeName}"`,
+        "Cache-Control": "no-store",
+      },
+    });
   } catch (err: any) {
-    unlink(expectedFinal).catch(() => {});
     return new Response("Download failed: " + err.message, { status: 500 });
   }
 }

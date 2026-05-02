@@ -26,8 +26,14 @@ export async function POST(request: NextRequest) {
     // video with a non-standard aspect ratio. Range check + video-stream
     // check is safer: it still excludes storyboards (vcodec='none') and
     // implausibly small/huge heights, but lets real videos through.
+    // Cap at 1080p. YouTube only offers H.264 (avc1) up to 1080p; 1440p and
+    // 2160p are VP9/AV1-only, and remuxing those into mp4 on the fly
+    // produces files that don't play reliably on consumer players. Advertising
+    // 2K/4K buttons that silently deliver audio-only files is worse than not
+    // offering them at all, so we hide those tiers until we can ship a
+    // proper VP9/AV1-aware pipeline.
     const rawFormats = (info.formats || []).filter((f: any) => {
-      if (!f.height || f.height < 100 || f.height > 4320) return false;
+      if (!f.height || f.height < 100 || f.height > 1080) return false;
       const isVideo =
         (f.vcodec && f.vcodec !== "none") ||
         (!f.vcodec && f.acodec === "none");
