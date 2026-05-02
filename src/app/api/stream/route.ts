@@ -110,6 +110,22 @@ export async function GET(request: NextRequest) {
       "-f", fmtArg,
     ];
 
+    // --------------------------------------------------------------------
+    // BANDWIDTH OPTIMIZATION (critical for paid residential proxies)
+    // yt-dlp's default internal downloader routes fragment downloads
+    // through --proxy too. For a 50 MB video that means 50 MB of proxy
+    // bandwidth per download. Since the actual googlevideo.com CDN is not
+    // IP-gated (signed URLs work from any IP), we use ffmpeg as the
+    // external downloader and deliberately do NOT pass the proxy to it.
+    // Result: yt-dlp still uses the proxy for the small metadata calls
+    // (signature, manifest) while ffmpeg pulls the media bytes directly
+    // from googlevideo.com. Typical savings: ~98% of proxy bandwidth.
+    // --------------------------------------------------------------------
+    if (isYoutube) {
+      args.push("--external-downloader", "ffmpeg");
+      args.push("--external-downloader-args", "ffmpeg:-loglevel error");
+    }
+
     if (audio) {
       args.push(
         "--extract-audio",
