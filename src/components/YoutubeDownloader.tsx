@@ -139,12 +139,14 @@ export default function YoutubeDownloader({
       });
   };
 
-  // Mark a button as downloading for 10s, then promote it to downloaded.
+  // Mark a button as downloading for 22s, then promote it to downloaded.
   // YouTube is slower than other platforms because the server has to spawn
   // yt-dlp + ffmpeg to merge a video-only stream with an audio-only stream
-  // before the first byte can be written to the response. 10s comfortably
-  // covers the cold-start case so "Downloaded ✓" never appears before the
-  // file has actually shown up in the browser's download bar.
+  // before the first byte can be written to the response. Production
+  // traces showed cold-start merges averaging 20-25s to first byte, so a
+  // 10s timer caused "Downloaded ✓" to appear ~15s before the file
+  // actually showed up in the browser — which users read as "broken".
+  // 22s lines the green state up with real file arrival.
   // Both states stick around until the form is fully reset.
   const beginDownloadingFlow = (key: string) => {
     setDownloadingSet((s) => {
@@ -166,7 +168,7 @@ export default function YoutubeDownloader({
         return next;
       });
       downloadingTimers.current.delete(key);
-    }, 10000);
+    }, 22000);
     downloadingTimers.current.set(key, t);
   };
 

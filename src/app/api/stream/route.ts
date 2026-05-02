@@ -40,7 +40,18 @@ export async function GET(request: NextRequest) {
     // so HD requests don't come back silent.
     fmtArg = `${format}+ba[ext=m4a]/${format}+ba/${format}/best[ext=mp4]/best`;
   } else {
-    fmtArg = "bv*+ba/best[ext=mp4]/best";
+    // Generic non-YouTube default (Instagram, TikTok, Facebook, ...). The
+    // earlier 'best[ext=mp4]/best' fallback was matching audio-only mp4a
+    // tracks on some Instagram reels, which produced "videos" that were
+    // actually AAC audio in an mp4 container. Explicitly requiring a
+    // video codec at every rung stops that from happening. The last bare
+    // 'best' is a final safety net for extractors whose formats don't
+    // advertise vcodec reliably.
+    fmtArg =
+      "bv*+ba/" +
+      "b[vcodec!=none][acodec!=none]/" +
+      "best[vcodec!=none][ext=mp4]/" +
+      "best[vcodec!=none]/best";
   }
 
   const ext = audio ? "m4a" : "mp4";
