@@ -211,6 +211,37 @@ export async function getVideoInfo(url: string): Promise<any> {
       });
     }
 
+    // Attempt A2: alternate clients WITHOUT cookies. Different player_client
+    // values send different attestation fingerprints, and YouTube gates HD
+    // formats per-client. Even on a proxy-only setup (no cookies) this can
+    // recover the full ladder when the primary tv_embedded+android pair
+    // came back thin. Each client gets its own retry so a single broken
+    // client (e.g. ios returning empty) doesn't poison the whole batch.
+    attempts.push({
+      label: "alt-clients:web_safari",
+      args: [
+        "--extractor-args", "youtube:player_client=web_safari",
+        ...getCookiesArgs(),
+        ...getProxyArgs(),
+      ],
+    });
+    attempts.push({
+      label: "alt-clients:mediaconnect",
+      args: [
+        "--extractor-args", "youtube:player_client=mediaconnect",
+        ...getCookiesArgs(),
+        ...getProxyArgs(),
+      ],
+    });
+    attempts.push({
+      label: "alt-clients:tv_simply",
+      args: [
+        "--extractor-args", "youtube:player_client=tv_simply",
+        ...getCookiesArgs(),
+        ...getProxyArgs(),
+      ],
+    });
+
     // Attempt B: let yt-dlp pick its own default clients (no explicit
     // --extractor-args). The defaults shift across yt-dlp versions and
     // sometimes include clients we don't know to specify. Cheap to try.
