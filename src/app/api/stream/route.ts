@@ -9,6 +9,7 @@ import {
   getYoutubeStreamAuthArgs,
   getVideoInfo,
   pickYoutubeFormats,
+  HAS_YOUTUBE_PROXY,
   type PickedFormat,
 } from "@/lib/ytdlp";
 
@@ -184,16 +185,20 @@ export async function GET(request: NextRequest) {
   // =========================================================================
   // YOUTUBE FAST PATH — direct ffmpeg, NO proxy bytes for media
   //
-  // The cached info from /api/youtube/info already contains signed
-  // googlevideo.com URLs for every format. Those URLs are valid for several
-  // hours and are NOT IP-gated — Google's CDN serves them to any IP. So
-  // instead of running yt-dlp again here (which would re-extract through the
-  // proxy AND download all bytes through the proxy), we hand the URLs
-  // straight to ffmpeg. ffmpeg pulls them direct from googlevideo.com,
-  // bypassing the proxy entirely. Result: a 50 MB download costs ~0 KB of
-  // proxy bandwidth.
+  // Only enabled when there is NO residential proxy configured. YouTube
+  // embeds the requesting IP into every signed googlevideo.com URL it
+  // hands out, so a URL extracted via the proxy IP can ONLY be downloaded
+  // from that same proxy IP. ffmpeg fetching it from the server's IP gets
+  // a 403. With HAS_YOUTUBE_PROXY=true we therefore skip this fast path
+  // and let the yt-dlp temp-file path handle the download (which uses the
+  // proxy correctly, at the cost of proxy bandwidth).
+  //
+  // When HAS_YOUTUBE_PROXY is false (cookies-only or unproxied setup),
+  // the cached extraction URL is bound to the server's IP, ffmpeg can
+  // fetch it directly from googlevideo.com, and we get the ~0-proxy-byte
+  // optimization for free.
   // =========================================================================
-  if (isYoutube) {
+  if (isYoutube && !HAS_YOUTUBE_PROXY) {
     try {
       const info = await getVideoInfo(url);
       const heightCap = heightParam && /^\d+$/.test(heightParam)
@@ -204,8 +209,6 @@ export async function GET(request: NextRequest) {
       if (picked.audio && (audio || picked.video)) {
         return await runFfmpegMux(picked, audio, safeName);
       }
-      // If we couldn't find suitable formats in the cache, fall through to
-      // the yt-dlp temp-file path below (works but uses proxy bandwidth).
     } catch (e: any) {
       console.warn("[stream] direct ffmpeg path failed, falling back to yt-dlp:", e.message);
     }

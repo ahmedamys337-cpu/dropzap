@@ -134,6 +134,15 @@ const YT_FAST_ARGS = [
 // Public Piped/Invidious instances are mostly dead so skip them in that case.
 const HAS_PROXY = proxyList.length > 0;
 
+// Whether YouTube extraction goes through a residential proxy. When true,
+// every signed googlevideo.com URL we receive is IP-locked to the proxy
+// (YouTube embeds the requesting IP in the URL signature), so we MUST
+// download those URLs through the same proxy. The direct-ffmpeg fast path
+// in /api/stream uses this flag to decide whether to skip itself and let
+// the yt-dlp temp-file path handle the download (which routes through the
+// proxy correctly).
+export const HAS_YOUTUBE_PROXY = HAS_PROXY;
+
 export async function getVideoInfo(url: string): Promise<any> {
   const cached = cacheGet(url);
   if (cached) return cached;
