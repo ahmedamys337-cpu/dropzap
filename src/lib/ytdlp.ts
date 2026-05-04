@@ -120,7 +120,12 @@ const YT_FAST_ARGS = [
   "--skip-download",
   "--no-check-formats",
   "--socket-timeout", "30",
-  "--extractor-args", "youtube:player_client=tv_embedded,android",
+  // android+web returns the richest format ladder through a residential proxy.
+  // tv_embedded is the legacy no-auth fallback when no proxy is configured.
+  "--extractor-args",
+  proxyList.length > 0
+    ? "youtube:player_client=android,web"
+    : "youtube:player_client=tv_embedded,android",
 ];
 
 // If a residential proxy is configured, we can hit YouTube directly via yt-dlp.
@@ -185,8 +190,12 @@ export async function getVideoInfo(url: string): Promise<any> {
   // the primary response is thin (<2 heights) OR is missing any HD format
   // (no height >= 720), so users don't end up stuck at 360p when cookies
   // or alternate clients could unlock 720p+.
+  // With proxy: android+web primary already returns the full ladder.
+  // Alt-clients (ios/mweb/mediaconnect) all fail through residential proxy
+  // (they need PO-token attestation), so recovery just wastes 30s for nothing.
   const needsRecovery =
-    countUniqueHeights(data.formats) < 2 || !hasHdFormat(data.formats);
+    !HAS_PROXY &&
+    (countUniqueHeights(data.formats) < 2 || !hasHdFormat(data.formats));
   if (isYoutube && needsRecovery) {
     // Helper: run a single retry with a given player_client. Returns the
     // parsed info on success, or null on failure / non-HD result.
