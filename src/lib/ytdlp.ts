@@ -122,10 +122,14 @@ const YT_FAST_ARGS = [
   "--skip-download",
   "--no-check-formats",
   "--socket-timeout", "30",
-  // ios + mweb are the best clients for datacenter IPs (no PO-token needed,
-  // less aggressively flagged than android/web). tv_embedded is kept as a
-  // third fallback for completeness. The recovery chain handles HD unlock.
-  "--extractor-args", "youtube:player_client=ios,mweb,tv_embedded",
+  // When cookies are present, web client is the correct pair — browser cookies
+  // don't translate to the ios/mweb API token format and cause 'Requested format
+  // is not available'. Without cookies on datacenter IPs, ios+mweb bypass the
+  // bot-check better than web does.
+  "--extractor-args",
+  cookiesFilePath
+    ? "youtube:player_client=web,tv_embedded,android"
+    : "youtube:player_client=ios,mweb,tv_embedded",
 ];
 
 // If a residential proxy is configured, we can hit YouTube directly via yt-dlp.
@@ -264,7 +268,7 @@ export async function getVideoInfo(url: string): Promise<any> {
     if (cookiesFilePath && (countUniqueHeights(data.formats) < 2 || !hasHdFormat(data.formats))) {
       const r = await runRetry("cookies+broad-clients", [
         "--extractor-args",
-        "youtube:player_client=tv_simply,tv_embedded,android,ios,mweb,web_safari",
+        "youtube:player_client=web,android,tv_embedded,tv_simply",
         ...getCookiesArgs(),
         ...getProxyArgs(),
       ]);
