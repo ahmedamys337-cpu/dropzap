@@ -122,12 +122,10 @@ const YT_FAST_ARGS = [
   "--skip-download",
   "--no-check-formats",
   "--socket-timeout", "30",
-  // tv_embedded + android is the safe non-po-token pair: in production it
-  // ALWAYS returns at least the 360p progressive (itag 18), even for
-  // videos where the newer tv_simply / ios clients hard-error with
-  // "Requested format is not available". The recovery chain handles the
-  // upgrade to HD when the primary returns thin.
-  "--extractor-args", "youtube:player_client=tv_embedded,android",
+  // ios + mweb are the best clients for datacenter IPs (no PO-token needed,
+  // less aggressively flagged than android/web). tv_embedded is kept as a
+  // third fallback for completeness. The recovery chain handles HD unlock.
+  "--extractor-args", "youtube:player_client=ios,mweb,tv_embedded",
 ];
 
 // If a residential proxy is configured, we can hit YouTube directly via yt-dlp.
@@ -232,7 +230,9 @@ export async function getVideoInfo(url: string): Promise<any> {
     console.log(
       `[yt-dlp] Primary thin (${countUniqueHeights(data.formats)} heights); racing alt-clients`
     );
-    const altClients = ["mediaconnect", "tv_simply"];
+    // ios and mweb are added first — they are the most likely to work on
+    // datacenter IPs without cookies or proxy.
+    const altClients = ["ios", "mweb", "mediaconnect", "tv_simply"];
     const altPromises = altClients.map((c) =>
       runRetry(`alt-clients:${c}`, [
         "--extractor-args", `youtube:player_client=${c}`,
@@ -302,6 +302,13 @@ export async function getVideoInfo(url: string): Promise<any> {
   // that error so the API surface returns a meaningful message instead
   // of pretending success with zero formats.
   if (primaryError && countUniqueHeights(data.formats) === 0) {
+    const msg: string = primaryError.message || "";
+    if (msg.includes("Sign in to confirm") || msg.includes("bot")) {
+      console.error(
+        "[yt-dlp] Bot-check hit on all clients — server IP is flagged by YouTube. "
+        + "Change Render region to Frankfurt/Singapore or re-add YOUTUBE_PROXIES."
+      );
+    }
     throw primaryError;
   }
 
