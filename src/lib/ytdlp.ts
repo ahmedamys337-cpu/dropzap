@@ -120,7 +120,12 @@ const YT_FAST_ARGS = [
   "--skip-download",
   "--no-check-formats",
   "--socket-timeout", "30",
-  "--extractor-args", "youtube:player_client=tv_embedded,android",
+  // Multiple clients in one call — yt-dlp merges formats from all of them.
+  // tv_embedded+android are the no-auth pair that work through proxy.
+  // tv_simply+mediaconnect add extra HD format coverage when the others
+  // return thin ladders (360p only). web is NOT included because it needs
+  // PO-token and triggers bot-check.
+  "--extractor-args", "youtube:player_client=tv_embedded,android,tv_simply,mediaconnect",
 ];
 
 // If a residential proxy is configured, we can hit YouTube directly via yt-dlp.
