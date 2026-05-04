@@ -194,8 +194,11 @@ export async function getVideoInfo(url: string): Promise<any> {
   // the primary response is thin (<2 heights) OR is missing any HD format
   // (no height >= 720), so users don't end up stuck at 360p when cookies
   // or alternate clients could unlock 720p+.
+  // With a residential proxy the primary call returns full HD on the first
+  // attempt — skip the entire recovery chain to avoid the 30-40s delay.
   const needsRecovery =
-    countUniqueHeights(data.formats) < 2 || !hasHdFormat(data.formats);
+    !HAS_PROXY &&
+    (countUniqueHeights(data.formats) < 2 || !hasHdFormat(data.formats));
   if (isYoutube && needsRecovery) {
     // Helper: run a single retry with a given player_client. Returns the
     // parsed info on success, or null on failure / non-HD result.
