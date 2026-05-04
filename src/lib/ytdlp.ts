@@ -18,8 +18,6 @@ if (process.env.YOUTUBE_COOKIES) {
     console.error("[yt-dlp] Failed to write cookies file:", e);
     cookiesFilePath = null;
   }
-} else {
-  console.warn("[yt-dlp] No YOUTUBE_COOKIES env var — YouTube may fail on cloud IPs");
 }
 
 function getCookiesArgs(): string[] {
@@ -122,16 +120,7 @@ const YT_FAST_ARGS = [
   "--skip-download",
   "--no-check-formats",
   "--socket-timeout", "30",
-  // When cookies are present, web client is the correct pair — browser cookies
-  // don't translate to the ios/mweb API token format and cause 'Requested format
-  // is not available'. Without cookies on datacenter IPs, ios+mweb bypass the
-  // bot-check better than web does.
-  "--extractor-args",
-  cookiesFilePath
-    ? "youtube:player_client=web,tv_embedded,android"      // cookies → web is the correct pair
-    : proxyList.length > 0
-      ? "youtube:player_client=tv_embedded,android"        // proxy → original working pair
-      : "youtube:player_client=ios,mweb,tv_embedded",     // bare datacenter IP → bot-check bypass
+  "--extractor-args", "youtube:player_client=tv_embedded,android",
 ];
 
 // If a residential proxy is configured, we can hit YouTube directly via yt-dlp.
@@ -270,7 +259,7 @@ export async function getVideoInfo(url: string): Promise<any> {
     // Cookies-only attempt: only runs when YOUTUBE_COOKIES is provisioned.
     // Tries the broad client list with auth, which can unlock videos that
     // require account access (age-gated, region-locked).
-    if (cookiesFilePath && (countUniqueHeights(data.formats) < 2 || !hasHdFormat(data.formats))) {
+    if (false && cookiesFilePath && (countUniqueHeights(data.formats) < 2 || !hasHdFormat(data.formats))) {
       const r = await runRetry("cookies+broad-clients", [
         "--extractor-args",
         "youtube:player_client=web,android,tv_embedded,tv_simply",
