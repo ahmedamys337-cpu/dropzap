@@ -256,21 +256,6 @@ export async function getVideoInfo(url: string): Promise<any> {
       }
     }
 
-    // Cookies-only attempt: only runs when YOUTUBE_COOKIES is provisioned.
-    // Tries the broad client list with auth, which can unlock videos that
-    // require account access (age-gated, region-locked).
-    if (false && cookiesFilePath && (countUniqueHeights(data.formats) < 2 || !hasHdFormat(data.formats))) {
-      const r = await runRetry("cookies+broad-clients", [
-        "--extractor-args",
-        "youtube:player_client=web,android,tv_embedded,tv_simply",
-        ...getCookiesArgs(),
-        ...getProxyArgs(),
-      ]);
-      if (r && (r.heights > countUniqueHeights(data.formats) || (r.hasHd && !hasHdFormat(data.formats)))) {
-        data = r.data;
-      }
-    }
-
     // Attempt C: Piped / Invidious public instances. Entirely independent
     // code path — doesn't hit YouTube directly so cloud-IP gating doesn't
     // apply. Many instances are flaky, but the helper rotates through a
