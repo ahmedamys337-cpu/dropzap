@@ -120,12 +120,7 @@ const YT_FAST_ARGS = [
   "--skip-download",
   "--no-check-formats",
   "--socket-timeout", "30",
-  // android+web returns the richest format ladder through a residential proxy.
-  // tv_embedded is the legacy no-auth fallback when no proxy is configured.
-  "--extractor-args",
-  proxyList.length > 0
-    ? "youtube:player_client=android,web"
-    : "youtube:player_client=tv_embedded,android",
+  "--extractor-args", "youtube:player_client=tv_embedded,android",
 ];
 
 // If a residential proxy is configured, we can hit YouTube directly via yt-dlp.
