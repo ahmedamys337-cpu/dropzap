@@ -128,8 +128,10 @@ const YT_FAST_ARGS = [
   // bot-check better than web does.
   "--extractor-args",
   cookiesFilePath
-    ? "youtube:player_client=web,tv_embedded,android"
-    : "youtube:player_client=ios,mweb,tv_embedded",
+    ? "youtube:player_client=web,tv_embedded,android"      // cookies → web is the correct pair
+    : proxyList.length > 0
+      ? "youtube:player_client=tv_embedded,android"        // proxy → original working pair
+      : "youtube:player_client=ios,mweb,tv_embedded",     // bare datacenter IP → bot-check bypass
 ];
 
 // If a residential proxy is configured, we can hit YouTube directly via yt-dlp.
