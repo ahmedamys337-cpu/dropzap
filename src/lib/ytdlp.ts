@@ -58,28 +58,14 @@ function getProxyArgs(): string[] {
   return ["--proxy", proxy];
 }
 
-// Export combined helper for YouTube routes. When a proxy is configured we
-// deliberately DO NOT send cookies on the primary call: cookies created
-// from your home IP arriving through a rotating residential proxy looks
-// like account hijack to YouTube's anti-fraud, which then either returns
-// an empty formats list or a hard "Requested format is not available"
-// error. Proxy-only is what reliably gets at least the 360p progressive
-// for every video; the recovery chain in getVideoInfo will retry WITH
-// cookies as needed for videos where 360p isn't enough.
+// Always send cookies + proxy together. Webshare's free-tier IPs are
+// fingerprinted by YouTube and now return only 360p without auth — cookies
+// authenticate the request so YouTube returns the full HD ladder.
 export function getYoutubeAuthArgs(): string[] {
-  if (proxyList.length > 0) {
-    return getProxyArgs();
-  }
   return [...getCookiesArgs(), ...getProxyArgs()];
 }
 
-// Streaming auth follows the same rule as /info auth — proxy-only when
-// the proxy is present. Sending cookies on the streaming step also tripped
-// the same anti-fraud response and caused downloads to fail outright.
 export function getYoutubeStreamAuthArgs(): string[] {
-  if (proxyList.length > 0) {
-    return getProxyArgs();
-  }
   return [...getCookiesArgs(), ...getProxyArgs()];
 }
 
@@ -120,12 +106,14 @@ const YT_FAST_ARGS = [
   "--skip-download",
   "--no-check-formats",
   "--socket-timeout", "30",
-  // Multiple clients in one call — yt-dlp merges formats from all of them.
-  // tv_embedded+android are the no-auth pair that work through proxy.
-  // tv_simply+mediaconnect add extra HD format coverage when the others
-  // return thin ladders (360p only). web is NOT included because it needs
-  // PO-token and triggers bot-check.
-  "--extractor-args", "youtube:player_client=tv_embedded,android,tv_simply,mediaconnect",
+  // Cookies present → web client (the natural pair for browser cookies,
+  // unlocks the full HD ladder). Without cookies → no-auth client mix
+  // that works through residential proxy. web NEVER works without cookies
+  // because it needs PO-token and triggers bot-check.
+  "--extractor-args",
+  cookiesFilePath
+    ? "youtube:player_client=web,android,tv_embedded"
+    : "youtube:player_client=tv_embedded,android,tv_simply,mediaconnect",
 ];
 
 // If a residential proxy is configured, we can hit YouTube directly via yt-dlp.
