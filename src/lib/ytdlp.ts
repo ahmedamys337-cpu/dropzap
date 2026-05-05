@@ -58,24 +58,19 @@ function getProxyArgs(): string[] {
   return ["--proxy", proxy];
 }
 
-// Cookies and proxy are mutually exclusive on the primary call:
-//  - Cookies alone: auth bypasses Render's datacenter bot-check and
-//    returns the full HD ladder. Adding a rotating proxy on top causes a
-//    geo-mismatch (cookies from account's home geo arriving via a US
-//    datacenter/residential IP) which YouTube anti-fraud treats as account
-//    hijack → returns an empty/360p-only format list.
-//  - Proxy alone: no auth, but residential IP bypasses the datacenter
-//    bot-check well enough to get a thin format ladder (at least 360p).
+// Always send cookies + proxy together. Render's datacenter IPs are bot-
+// flagged and get blocked even with cookies; the rotating residential
+// proxy bypasses the IP block, and cookies authenticate the request to
+// unlock the full HD format ladder. CRITICAL: cookies must be exported
+// from a Google account that was signed-in via the same geo as the proxy
+// (USA), otherwise YouTube anti-fraud sees a geo-mismatch and returns
+// "Requested format is not available" with an empty format list.
 export function getYoutubeAuthArgs(): string[] {
-  const cookieArgs = getCookiesArgs();
-  if (cookieArgs.length > 0) return cookieArgs;
-  return getProxyArgs();
+  return [...getCookiesArgs(), ...getProxyArgs()];
 }
 
 export function getYoutubeStreamAuthArgs(): string[] {
-  const cookieArgs = getCookiesArgs();
-  if (cookieArgs.length > 0) return cookieArgs;
-  return getProxyArgs();
+  return [...getCookiesArgs(), ...getProxyArgs()];
 }
 
 // In-memory cache for video info (5 min TTL)
