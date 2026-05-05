@@ -106,13 +106,14 @@ const YT_FAST_ARGS = [
   "--skip-download",
   "--no-check-formats",
   "--socket-timeout", "30",
-  // Cookies present → web client (the natural pair for browser cookies,
-  // unlocks the full HD ladder). Without cookies → no-auth client mix
-  // that works through residential proxy. web NEVER works without cookies
-  // because it needs PO-token and triggers bot-check.
+  // android + tv_embedded accept cookies AND return HD without needing
+  // PO-token. We deliberately avoid 'web' here: web requires PO-token
+  // even with cookies, and when cookies (one geo) arrive via proxy
+  // (different geo) YouTube anti-fraud returns "Requested format is not
+  // available". tv_simply/mediaconnect help when no cookies are present.
   "--extractor-args",
   cookiesFilePath
-    ? "youtube:player_client=web,android,tv_embedded"
+    ? "youtube:player_client=android,tv_embedded"
     : "youtube:player_client=tv_embedded,android,tv_simply,mediaconnect",
 ];
 
