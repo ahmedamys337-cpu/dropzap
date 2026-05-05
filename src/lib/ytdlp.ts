@@ -58,15 +58,24 @@ function getProxyArgs(): string[] {
   return ["--proxy", proxy];
 }
 
-// Always send cookies + proxy together. Webshare's free-tier IPs are
-// fingerprinted by YouTube and now return only 360p without auth — cookies
-// authenticate the request so YouTube returns the full HD ladder.
+// Cookies and proxy are mutually exclusive on the primary call:
+//  - Cookies alone: auth bypasses Render's datacenter bot-check and
+//    returns the full HD ladder. Adding a rotating proxy on top causes a
+//    geo-mismatch (cookies from account's home geo arriving via a US
+//    datacenter/residential IP) which YouTube anti-fraud treats as account
+//    hijack → returns an empty/360p-only format list.
+//  - Proxy alone: no auth, but residential IP bypasses the datacenter
+//    bot-check well enough to get a thin format ladder (at least 360p).
 export function getYoutubeAuthArgs(): string[] {
-  return [...getCookiesArgs(), ...getProxyArgs()];
+  const cookieArgs = getCookiesArgs();
+  if (cookieArgs.length > 0) return cookieArgs;
+  return getProxyArgs();
 }
 
 export function getYoutubeStreamAuthArgs(): string[] {
-  return [...getCookiesArgs(), ...getProxyArgs()];
+  const cookieArgs = getCookiesArgs();
+  if (cookieArgs.length > 0) return cookieArgs;
+  return getProxyArgs();
 }
 
 // In-memory cache for video info (5 min TTL)
