@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { getVideoInfo } from "@/lib/ytdlp";
+import { isCobaltConfigured } from "@/lib/cobalt";
 
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
@@ -62,8 +63,14 @@ export async function POST(request: NextRequest) {
     // user always sees the full picker; the actual click goes to /api/stream
     // which tries cobalt first and falls back to yt-dlp at the requested
     // height. Real yt-dlp formats win when present (they carry filesize).
-    const COBALT_ENABLED = process.env.COBALT_DISABLED !== "1";
-    if (COBALT_ENABLED) {
+    // Only inject the synthetic ladder when cobalt is REALLY configured
+    // (API key or custom instance URL). The default public mirrors are
+    // unreliable — api.cobalt.tools now 400s without an Api-Key, and the
+    // community mirrors are frequently down. Advertising 1080p in that
+    // case produces the exact bug we saw: UI shows HD buttons, user
+    // clicks 1080p, cobalt fails, yt-dlp fallback only has 360p, user
+    // receives a 360p file. Honesty > false options.
+    if (isCobaltConfigured()) {
       const STANDARD = [1080, 720, 480, 360];
       for (const h of STANDARD) {
         if (!byHeight.has(h)) {

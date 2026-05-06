@@ -48,6 +48,21 @@ function getInstances(): string[] {
 // header for higher rate limits. We pass it on every request when set.
 const COBALT_API_KEY = process.env.COBALT_API_KEY?.trim() || "";
 
+// Is cobalt meaningfully configured? The official api.cobalt.tools has
+// required an Api-Key since late 2024 (returns 400 without one), and most
+// public community mirrors are unstable. Only consider cobalt "available"
+// when either (a) an API key is configured, or (b) the operator has
+// explicitly set COBALT_API_URL(S) — i.e. they've pointed us at something
+// they expect to work. Otherwise the UI should not advertise cobalt-only
+// quality tiers (1080p etc.) because the fallback yt-dlp path frequently
+// can't deliver them.
+export function isCobaltConfigured(): boolean {
+  if (process.env.COBALT_DISABLED === "1") return false;
+  if (COBALT_API_KEY) return true;
+  const env = (process.env.COBALT_API_URLS || process.env.COBALT_API_URL || "").trim();
+  return env.length > 0;
+}
+
 export type CobaltRequestOpts = {
   url: string;
   // Map our internal "audio | 1080 | 720 | 480 | 360" choice to the

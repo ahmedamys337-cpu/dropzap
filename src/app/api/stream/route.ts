@@ -13,7 +13,7 @@ import {
   getYoutubeProxyUrl,
   type PickedFormat,
 } from "@/lib/ytdlp";
-import { resolveViaCobalt } from "@/lib/cobalt";
+import { resolveViaCobalt, isCobaltConfigured } from "@/lib/cobalt";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -214,7 +214,7 @@ export async function GET(request: NextRequest) {
   // Fallback chain on failure: PATH 2 (yt-dlp ffmpeg streaming) → PATH 3
   // (yt-dlp temp-file). User never sees an error if any backend works.
   // =========================================================================
-  if (isYoutube && process.env.COBALT_DISABLED !== "1") {
+  if (isYoutube && isCobaltConfigured()) {
     try {
       const t0 = Date.now();
       const cap = heightParam && /^\d+$/.test(heightParam)
