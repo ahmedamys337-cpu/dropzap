@@ -139,6 +139,15 @@ const HAS_PROXY = proxyList.length > 0;
 // proxy correctly).
 export const HAS_YOUTUBE_PROXY = HAS_PROXY;
 
+// Returns a random proxy URL for routing media fetches (e.g. ffmpeg -http_proxy)
+// through the same residential IP yt-dlp used to extract the URL. googlevideo.com
+// signed URLs are IP-locked to the extracting IP, so ffmpeg fetching them direct
+// from the server will 403; routing through the proxy unlocks them.
+export function getYoutubeProxyUrl(): string | undefined {
+  if (proxyList.length === 0) return undefined;
+  return proxyList[Math.floor(Math.random() * proxyList.length)];
+}
+
 export async function getVideoInfo(url: string): Promise<any> {
   const cached = cacheGet(url);
   if (cached) return cached;

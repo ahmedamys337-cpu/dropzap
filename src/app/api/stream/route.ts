@@ -10,6 +10,7 @@ import {
   getVideoInfo,
   pickYoutubeFormats,
   HAS_YOUTUBE_PROXY,
+  getYoutubeProxyUrl,
   type PickedFormat,
 } from "@/lib/ytdlp";
 
@@ -43,6 +44,89 @@ function ffmpegHeaderBlob(h?: Record<string, string>): string {
   return Object.entries(h)
     .map(([k, v]) => `${k}: ${v}`)
     .join("\r\n") + "\r\n";
+}
+
+// Live-streaming muxer. Pipes ffmpeg stdout directly to the HTTP response so
+// the browser's download UI pops up immediately on the first byte instead of
+// after the full server-side download completes. Tradeoffs:
+//   • No Content-Length (unknown total before muxing finishes) → browser shows
+//     "X MB downloaded" without a percentage. Acceptable.
+//   • Fragmented mp4 (frag_keyframe+empty_moov+default_base_moof) is required
+//     because we can't seek back to write the moov atom on a pipe. Plays in
+//     every modern player (Chrome/Firefox/Safari/VLC/Win11 Movies & TV); fails
+//     only on very old players (e.g. Win7 Windows Media Player).
+//   • When HAS_YOUTUBE_PROXY is true, googlevideo URLs are IP-locked to the
+//     proxy IP — pass it via -http_proxy so ffmpeg fetches succeed.
+function runFfmpegStream(
+  picked: { video: PickedFormat | null; audio: PickedFormat | null },
+  audioOnly: boolean,
+  safeName: string,
+  proxyUrl: string | undefined,
+): Response {
+  const args: string[] = ["-loglevel", "error"];
+
+  // Per-input options (-headers, -http_proxy) must precede their -i.
+  const pushInput = (f: PickedFormat) => {
+    const headers = ffmpegHeaderBlob(f.http_headers);
+    if (headers) args.push("-headers", headers);
+    if (proxyUrl) args.push("-http_proxy", proxyUrl);
+    args.push("-i", f.url);
+  };
+
+  if (audioOnly) {
+    if (!picked.audio) throw new Error("no audio format");
+    pushInput(picked.audio);
+    // MP3 is naturally streamable — no special muxer flags needed.
+    args.push("-vn", "-c:a", "libmp3lame", "-q:a", "2", "-f", "mp3", "pipe:1");
+  } else {
+    if (!picked.video || !picked.audio) throw new Error("missing v/a format");
+    pushInput(picked.video);
+    pushInput(picked.audio);
+    args.push(
+      "-map", "0:v:0",
+      "-map", "1:a:0",
+      "-c", "copy",
+      // Streamable mp4 — moov atom written first, body chunked into fragments
+      // so the file plays while still being written.
+      "-movflags", "frag_keyframe+empty_moov+default_base_moof",
+      "-f", "mp4",
+      "pipe:1",
+    );
+  }
+
+  const proc = spawn("ffmpeg", args, { stdio: ["ignore", "pipe", "pipe"] });
+  let stderr = "";
+  proc.stderr?.on("data", (c) => { stderr += c.toString(); });
+  proc.on("close", (code) => {
+    if (code !== 0) console.warn("[ffmpeg-stream] exit", code, stderr.slice(0, 500));
+  });
+
+  const webStream = new ReadableStream({
+    start(controller) {
+      proc.stdout!.on("data", (c: Buffer) => {
+        try { controller.enqueue(new Uint8Array(c)); } catch {}
+      });
+      proc.stdout!.on("end", () => {
+        try { controller.close(); } catch {}
+      });
+      proc.stdout!.on("error", () => {
+        try { controller.close(); } catch {}
+      });
+    },
+    cancel() {
+      try { proc.kill("SIGKILL"); } catch {}
+    },
+  });
+
+  return new Response(webStream, {
+    status: 200,
+    headers: {
+      "Content-Type": audioOnly ? "audio/mpeg" : "video/mp4",
+      "Content-Disposition": `attachment; filename="${safeName}"`,
+      "Cache-Control": "no-store",
+      "X-Accel-Buffering": "no",
+    },
+  });
 }
 
 // Run ffmpeg with direct googlevideo.com URLs. Produces a regular seekable
@@ -183,22 +267,23 @@ export async function GET(request: NextRequest) {
     filename.replace(/[^\w\s.-]/g, "").trim() || `download.${ext}`;
 
   // =========================================================================
-  // YOUTUBE FAST PATH — direct ffmpeg, NO proxy bytes for media
+  // YOUTUBE STREAMING PATH — ffmpeg stdout piped straight to the browser
   //
-  // Only enabled when there is NO residential proxy configured. YouTube
-  // embeds the requesting IP into every signed googlevideo.com URL it
-  // hands out, so a URL extracted via the proxy IP can ONLY be downloaded
-  // from that same proxy IP. ffmpeg fetching it from the server's IP gets
-  // a 403. With HAS_YOUTUBE_PROXY=true we therefore skip this fast path
-  // and let the yt-dlp temp-file path handle the download (which uses the
-  // proxy correctly, at the cost of proxy bandwidth).
+  // The browser's download UI pops up on the first byte (vs. waiting for the
+  // server to download + merge the entire file before sending). Total time
+  // also drops because we pipeline server-download with client-write instead
+  // of doing them sequentially.
   //
-  // When HAS_YOUTUBE_PROXY is false (cookies-only or unproxied setup),
-  // the cached extraction URL is bound to the server's IP, ffmpeg can
-  // fetch it directly from googlevideo.com, and we get the ~0-proxy-byte
-  // optimization for free.
+  // Proxy passthrough: googlevideo.com signed URLs are IP-locked to the
+  // extracting IP. When HAS_YOUTUBE_PROXY is true we pass the same proxy to
+  // ffmpeg via -http_proxy so the fetch succeeds; when it's false (cookies-
+  // only or unproxied setup) the URL is bound to the server's IP and ffmpeg
+  // fetches direct, saving any proxy bandwidth.
+  //
+  // We only fall back to the yt-dlp temp-file path if format selection or
+  // ffmpeg startup fails — the streaming path covers ~all real videos.
   // =========================================================================
-  if (isYoutube && !HAS_YOUTUBE_PROXY) {
+  if (isYoutube) {
     try {
       const info = await getVideoInfo(url);
       const heightCap = heightParam && /^\d+$/.test(heightParam)
@@ -207,10 +292,11 @@ export async function GET(request: NextRequest) {
       const picked = pickYoutubeFormats(info, heightCap, audio);
 
       if (picked.audio && (audio || picked.video)) {
-        return await runFfmpegMux(picked, audio, safeName);
+        const proxyUrl = HAS_YOUTUBE_PROXY ? getYoutubeProxyUrl() : undefined;
+        return runFfmpegStream(picked, audio, safeName, proxyUrl);
       }
     } catch (e: any) {
-      console.warn("[stream] direct ffmpeg path failed, falling back to yt-dlp:", e.message);
+      console.warn("[stream] streaming ffmpeg path failed, falling back to yt-dlp:", e.message);
     }
   }
 
