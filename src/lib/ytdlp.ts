@@ -183,12 +183,14 @@ export async function getVideoInfo(url: string): Promise<any> {
   // the primary response is thin (<2 heights) OR is missing any HD format
   // (no height >= 720), so users don't end up stuck at 360p when cookies
   // or alternate clients could unlock 720p+.
-  // With proxy: android+web primary already returns the full ladder.
-  // Alt-clients (ios/mweb/mediaconnect) all fail through residential proxy
-  // (they need PO-token attestation), so recovery just wastes 30s for nothing.
+  // Always run recovery when the primary returned a thin format ladder.
+  // We previously gated recovery on !HAS_PROXY (assuming proxy+cookies
+  // always returned full HD), but YouTube has tightened format gating to
+  // the point that even cookies+proxy frequently returns just itag 18
+  // (360p progressive). Skipping recovery in that case stranded users at
+  // 360p, so we now always race alt-clients on thin responses.
   const needsRecovery =
-    !HAS_PROXY &&
-    (countUniqueHeights(data.formats) < 2 || !hasHdFormat(data.formats));
+    countUniqueHeights(data.formats) < 2 || !hasHdFormat(data.formats);
   if (isYoutube && needsRecovery) {
     // Helper: run a single retry with a given player_client. Returns the
     // parsed info on success, or null on failure / non-HD result.
