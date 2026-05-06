@@ -11,7 +11,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digita
 const SITE_NAME = "DropZap";
 const SITE_TAGLINE = "Media Downloader";
 const SITE_DESCRIPTION =
-  "DropZap — the fastest free media downloader. Save videos from YouTube, Instagram Reels, TikTok, Twitter/X, Facebook, and Reddit in HD without watermarks. No signup, no limits.";
+  "DropZap — the fastest free media downloader. Save Instagram Reels, photos & carousels, TikTok videos, Facebook & Reddit videos, plus Twitter/X and Threads posts in HD without watermarks. No signup, no limits.";
 
 export const viewport: Viewport = {
   themeColor: [
@@ -26,10 +26,10 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${SITE_NAME} — Free YouTube, Instagram, TikTok Downloader`,
+    default: `${SITE_NAME} — Free Instagram, TikTok, Facebook & Twitter Downloader`,
     template: `%s | ${SITE_NAME}`,
   },
-  description: "DropZap: free video downloader for YouTube, Instagram Reels, TikTok & Twitter/X. HD quality, no watermark, no signup required.",
+  description: "DropZap: free video downloader for Instagram Reels & photos, TikTok, Facebook, Twitter/X, Reddit, Pinterest, and Threads. HD quality, no watermark, no signup required.",
   applicationName: SITE_NAME,
   generator: "Next.js",
   authors: [{ name: SITE_NAME, url: SITE_URL }],
@@ -40,10 +40,6 @@ export const metadata: Metadata = {
     "DropZap",
     "media downloader",
     "video downloader",
-    "youtube downloader",
-    "youtube video downloader",
-    "youtube to mp3",
-    "youtube to mp4",
     "instagram downloader",
     "instagram reels downloader",
     "instagram video download",
@@ -62,6 +58,8 @@ export const metadata: Metadata = {
     "no watermark downloader",
     "thumbnail downloader",
     "youtube thumbnail downloader",
+    "instagram photo downloader",
+    "instagram carousel downloader",
     "bulk video downloader",
   ],
   alternates: {
@@ -72,7 +70,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: SITE_URL,
     siteName: SITE_NAME,
-    title: `${SITE_NAME} — Free YouTube, Instagram, TikTok & Twitter Video Downloader`,
+    title: `${SITE_NAME} — Free Instagram, TikTok, Facebook & Twitter Video Downloader`,
     description: SITE_DESCRIPTION,
     images: [
       {
@@ -172,12 +170,12 @@ const jsonLd = {
         availability: "https://schema.org/InStock",
       },
       featureList: [
-        "Download YouTube videos in HD/4K",
-        "Download Instagram Reels and posts",
+        "Download Instagram Reels, photos and carousels",
         "Download TikTok videos without watermark",
         "Download Twitter/X videos",
         "Download Facebook videos and Reels",
         "Download Reddit videos with sound",
+        "Download Pinterest pins and Threads posts",
         "Convert videos to MP3",
         "Bulk download queue",
         "YouTube thumbnail downloader",
@@ -186,14 +184,14 @@ const jsonLd = {
     {
       "@type": "HowTo",
       name: "How to download a video with DropZap",
-      description: "Download any video from YouTube, Instagram, TikTok or Twitter/X for free in 3 steps.",
+      description: "Download any video from Instagram, TikTok, Facebook, Twitter/X, Reddit, Pinterest, or Threads for free in 3 steps.",
       totalTime: "PT1M",
       step: [
         {
           "@type": "HowToStep",
           position: 1,
           name: "Copy the video URL",
-          text: "Go to YouTube, Instagram, TikTok, or Twitter/X and copy the URL of the video you want to download.",
+          text: "Go to Instagram, TikTok, Facebook, Twitter/X, Reddit, Pinterest, or Threads and copy the URL of the post you want to download.",
         },
         {
           "@type": "HowToStep",
@@ -233,7 +231,7 @@ const jsonLd = {
           name: "What platforms does DropZap support?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "DropZap supports YouTube, Instagram (Reels & Posts), TikTok, Twitter/X, Facebook, and Reddit (with sound). You can also convert videos to MP3 and bulk-download multiple links.",
+            text: "DropZap supports Instagram (Reels, photos & carousels), TikTok (no watermark), Twitter/X, Facebook, Reddit (with sound), Pinterest, and Threads. You can also convert videos to MP3, bulk-download multiple links, and grab YouTube thumbnails.",
           },
         },
         {

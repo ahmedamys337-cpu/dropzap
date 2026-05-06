@@ -6,8 +6,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital";
   const lastModified = new Date();
 
+  // /youtube-downloader is intentionally excluded — the page now 308s to /
+  // while YouTube downloads are disabled. Listing it would cause search
+  // engines to crawl the redirect repeatedly and surface "broken" warnings.
   const platformPages = [
-    "youtube-downloader",
     "tiktok-downloader",
     "instagram-downloader",
     "twitter-video-downloader",

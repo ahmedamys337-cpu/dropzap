@@ -1,82 +1,25 @@
+// YouTube downloads are temporarily disabled site-wide while we work around
+// YouTube's intensified anti-bot extraction (datacenter IPs are limited to
+// 360p even with cookies + residential proxy). The original SEO landing
+// page lives in `platforms.youtube` inside `@/lib/seo-data` and the
+// `YoutubeDownloader` component is still in the repo, so reviving this
+// page is a single-commit revert once we have a working backend (cobalt
+// API key, self-hosted cobalt, or a fix for yt-dlp HD extraction).
+//
+// While disabled we 308-redirect any inbound /youtube-downloader request
+// to the homepage so:
+//   • Users never see a broken / 360p-only experience.
+//   • Search engines drop the URL from rankings (robots: noindex).
+//   • Old backlinks still resolve to a useful destination instead of 404.
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { platforms, SITE_URL, SITE_NAME } from "@/lib/seo-data";
-import PlatformPageClient from "@/components/PlatformPageClient";
-
-const p = platforms.youtube;
+import { SITE_URL } from "@/lib/seo-data";
 
 export const metadata: Metadata = {
-  title: p.title,
-  description: p.description,
-  keywords: p.keywords,
-  alternates: { canonical: `${SITE_URL}/${p.slug}` },
-  openGraph: {
-    type: "website",
-    locale: "en_US",
-    url: `${SITE_URL}/${p.slug}`,
-    siteName: SITE_NAME,
-    title: p.title,
-    description: p.description,
-    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: p.title }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: p.title,
-    description: p.description,
-    images: ["/opengraph-image"],
-  },
-};
-
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "WebPage",
-      "@id": `${SITE_URL}/${p.slug}`,
-      url: `${SITE_URL}/${p.slug}`,
-      name: p.title,
-      description: p.description,
-      isPartOf: { "@id": `${SITE_URL}/#website` },
-    },
-    {
-      "@type": "SoftwareApplication",
-      name: `${SITE_NAME} ${p.name} Downloader`,
-      url: `${SITE_URL}/${p.slug}`,
-      applicationCategory: "MultimediaApplication",
-      operatingSystem: "Any (Web Browser)",
-      description: p.description,
-      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-    },
-    {
-      "@type": "HowTo",
-      name: `How to download ${p.name} videos with ${SITE_NAME}`,
-      description: `Download ${p.name} videos for free in 3 easy steps.`,
-      totalTime: "PT1M",
-      step: p.howTo.map((s, i) => ({
-        "@type": "HowToStep",
-        position: i + 1,
-        name: s.step,
-        text: s.desc,
-      })),
-    },
-    {
-      "@type": "FAQPage",
-      mainEntity: p.faq.map((f) => ({
-        "@type": "Question",
-        name: f.q,
-        acceptedAnswer: { "@type": "Answer", text: f.a },
-      })),
-    },
-  ],
+  robots: { index: false, follow: false },
+  alternates: { canonical: SITE_URL },
 };
 
 export default function YouTubeDownloaderPage() {
-  return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <PlatformPageClient platform={p} platformKey="youtube" />
-    </>
-  );
+  redirect("/");
 }

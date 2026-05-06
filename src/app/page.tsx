@@ -2,7 +2,6 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import YoutubeDownloader from "@/components/YoutubeDownloader";
 import RecentDownloads from "@/components/RecentDownloads";
 import AdBanner from "@/components/AdBanner";
 import { useDownloadHistory } from "@/lib/hooks";
@@ -18,7 +17,6 @@ import PinterestDownloader from "@/components/PinterestDownloader";
 import ThreadsDownloader from "@/components/ThreadsDownloader";
 import {
   Zap,
-  Youtube,
   Image as ImageIcon,
   Instagram,
   Twitter,
@@ -67,8 +65,8 @@ export default function Home() {
           <span className="text-foreground"> — Free Online Media Downloader</span>
         </h1>
         <p className="mt-3 text-base sm:text-lg text-muted-foreground max-w-3xl mx-auto">
-          Download videos from <strong>YouTube</strong>, <strong>Instagram Reels</strong>,{" "}
-          <strong>TikTok</strong>, and <strong>Twitter/X</strong> in HD — no watermark, no signup, 100% free.
+          Download <strong>Instagram Reels</strong>, <strong>TikTok</strong>, <strong>Facebook</strong>,{" "}
+          <strong>Twitter/X</strong>, <strong>Reddit</strong>, <strong>Pinterest</strong>, and <strong>Threads</strong> videos in HD — no watermark, no signup, 100% free.
         </p>
       </section>
 
@@ -79,7 +77,7 @@ export default function Home() {
 
       {/* Main Content */}
       <div className="max-w-6xl mx-auto px-4 py-8">
-        <Tabs defaultValue="youtube" className="space-y-6">
+        <Tabs defaultValue="instagram" className="space-y-6">
           <div className="overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
             {/*
               Each tab uses a shared base that gives:
@@ -87,17 +85,10 @@ export default function Home() {
                   and dark themes (black-tinted in light, white-tinted in dark)
                 - a lift-on-hover micro-interaction (translate + scale + shadow)
               Each tab then layers on its own platform color for the hover and
-              active states so hovering YouTube turns it red, hovering Facebook
-              turns it blue, etc. — matching the active appearance.
+              active states so hovering Instagram turns pink/orange, hovering
+              Facebook turns blue, etc. — matching the active appearance.
             */}
             <TabsList className="glass-strong h-auto p-1.5 gap-1 flex w-max lg:w-full justify-start">
-              <TabsTrigger
-                value="youtube"
-                className="lg:flex-1 gap-1.5 px-2.5 py-1.5 text-xs font-medium cursor-pointer rounded-md bg-foreground/[0.06] border border-foreground/15 hover:bg-red-600 hover:text-white hover:border-red-600 hover:-translate-y-0.5 hover:scale-105 hover:shadow-lg hover:shadow-red-600/40 data-[state=active]:bg-red-600 data-[state=active]:border-red-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-red-600/30 transition-all duration-300 ease-out"
-              >
-                <Youtube className="h-3.5 w-3.5" />
-                <span>YouTube</span>
-              </TabsTrigger>
               <TabsTrigger
                 value="thumbnail"
                 className="lg:flex-1 gap-1.5 px-2.5 py-1.5 text-xs font-medium cursor-pointer rounded-md bg-foreground/[0.06] border border-foreground/15 hover:bg-orange-500 hover:text-white hover:border-orange-500 hover:-translate-y-0.5 hover:scale-105 hover:shadow-lg hover:shadow-orange-500/40 data-[state=active]:bg-orange-500 data-[state=active]:border-orange-500 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-orange-500/30 transition-all duration-300 ease-out"
@@ -167,23 +158,6 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
               <div className="glass rounded-2xl p-6">
-                <TabsContent value="youtube" className="mt-0">
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3 pb-2 border-b border-red-600/20">
-                      <div className="h-10 w-10 rounded-lg bg-red-600 flex items-center justify-center shadow-lg shadow-red-600/30">
-                        <Youtube className="h-5 w-5 text-white" />
-                      </div>
-                      <div>
-                        <h2 className="text-xl font-bold">YouTube Downloader</h2>
-                        <p className="text-sm text-muted-foreground">
-                          Download videos in any quality or extract audio as MP3
-                        </p>
-                      </div>
-                    </div>
-                    <YoutubeDownloader onDownload={handleDownload} />
-                  </div>
-                </TabsContent>
-
                 <TabsContent value="thumbnail" className="mt-0">
                   <div className="space-y-4">
                     <div className="flex items-center gap-3 pb-2 border-b border-orange-500/20">
@@ -360,9 +334,9 @@ export default function Home() {
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="glass rounded-xl p-5">
-            <h3 className="font-bold mb-2">YouTube Video Downloader</h3>
+            <h3 className="font-bold mb-2">Instagram Photos &amp; Carousels</h3>
             <p className="text-sm text-muted-foreground">
-              Save YouTube videos in 4K, 1080p, 720p, or extract audio as MP3. Works with Shorts and long-form videos.
+              Save Instagram photo posts and full carousels — single image as JPG, multi-slide carousels packaged into a clean ZIP.
             </p>
           </div>
           <div className="glass rounded-xl p-5">
@@ -408,7 +382,7 @@ export default function Home() {
             <div className="text-3xl font-extrabold bg-gradient-to-br from-blue-500 to-purple-600 bg-clip-text text-transparent">1</div>
             <h3 className="font-bold mt-2 mb-1">Copy the link</h3>
             <p className="text-sm text-muted-foreground">
-              Copy the URL of the video from YouTube, Instagram, TikTok, or Twitter/X.
+              Copy the URL of the post or video from Instagram, TikTok, Facebook, Twitter/X, Reddit, or any supported platform.
             </p>
           </li>
           <li className="glass rounded-xl p-5">
@@ -445,7 +419,7 @@ export default function Home() {
             },
             {
               q: "What platforms does DropZap support?",
-              a: "DropZap supports YouTube (videos and Shorts), Instagram (Reels, photos, and carousels), TikTok, Twitter/X, Facebook, Reddit (with sound), Pinterest, and Threads. You can also convert videos to MP3.",
+              a: "DropZap supports Instagram (Reels, photos, and carousels), TikTok, Twitter/X, Facebook, Reddit (with sound), Pinterest, and Threads. You can also convert videos to MP3 and grab YouTube thumbnails.",
             },
             {
               q: "Do I need to install anything?",
@@ -484,7 +458,6 @@ export default function Home() {
               <span className="text-xs text-muted-foreground">— Media Downloader</span>
             </div>
             <nav aria-label="Footer navigation" className="flex flex-wrap gap-5 text-xs text-muted-foreground">
-              <a href="/youtube-downloader" className="hover:text-foreground transition-colors">YouTube Downloader</a>
               <a href="/tiktok-downloader" className="hover:text-foreground transition-colors">TikTok Downloader</a>
               <a href="/instagram-downloader" className="hover:text-foreground transition-colors">Instagram Downloader</a>
               <a href="/twitter-video-downloader" className="hover:text-foreground transition-colors">Twitter Downloader</a>
