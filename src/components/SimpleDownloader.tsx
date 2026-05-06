@@ -43,6 +43,19 @@ interface SimpleDownloaderProps {
   help?: string;
   /** Called when a download begins so the page can record it in history. */
   onDownload?: (title: string, url: string, type: string) => void;
+  /**
+   * Override the API endpoint hit on click. Defaults to the unified video
+   * pipeline (`/api/stream`); the Instagram photos tab points it at
+   * `/api/instagram/photos` so a single component drives both reels and
+   * carousel-zip downloads.
+   */
+  endpoint?: string;
+  /**
+   * File extension for the downloaded asset. Defaults to "mp4" so every
+   * existing video caller keeps working unchanged. Photo carousels pass
+   * "zip", single photos pass "jpg".
+   */
+  fileExtension?: string;
 }
 
 export default function SimpleDownloader({
@@ -54,6 +67,8 @@ export default function SimpleDownloader({
   buttonClassName,
   help,
   onDownload,
+  endpoint = "/api/stream",
+  fileExtension = "mp4",
 }: SimpleDownloaderProps) {
   const [url, setUrl] = useState("");
   // Phase machine:
@@ -87,8 +102,8 @@ export default function SimpleDownloader({
     // (yt-dlp warm-up, format selection, transcoding) while the user watches
     // the 5-second ad. By the time the ad closes the file is usually already
     // streaming into the browser's download bar.
-    const name = `${safeFilename(`${filePrefix}-video`, filePrefix)}.mp4`;
-    const streamUrl = `/api/stream?url=${encodeURIComponent(url)}&name=${encodeURIComponent(name)}`;
+    const name = `${safeFilename(`${filePrefix}-video`, filePrefix)}.${fileExtension}`;
+    const streamUrl = `${endpoint}?url=${encodeURIComponent(url)}&name=${encodeURIComponent(name)}`;
     triggerNativeDownload(streamUrl, name);
     onDownload?.(`${platform} ${mediaTypeLabel}`, url, mediaTypeLabel);
 

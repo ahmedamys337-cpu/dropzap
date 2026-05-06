@@ -12,10 +12,17 @@ const execFileAsync = promisify(execFile);
 // common cause of "HD worked yesterday, only 360p today" regressions.
 // This single log line in Render's startup output answers the question
 // "is the latest fix actually deployed?" in 3 seconds.
-execFile("yt-dlp", ["--version"], (err, stdout) => {
-  if (err) console.error("[yt-dlp] version check failed:", err.message);
-  else console.log(`[yt-dlp] version: ${stdout.trim()}`);
-});
+//
+// Skip during `next build` — Next.js imports this module from each page's
+// data-collection pass, where yt-dlp isn't installed yet (it lives only in
+// the Stage 3 runner image of our Dockerfile). Without this guard the build
+// log fills with a dozen scary-looking ENOENT lines per build.
+if (process.env.NEXT_PHASE !== "phase-production-build") {
+  execFile("yt-dlp", ["--version"], (err, stdout) => {
+    if (err) console.error("[yt-dlp] version check failed:", err.message);
+    else console.log(`[yt-dlp] version: ${stdout.trim()}`);
+  });
+}
 
 // Write YouTube cookies from env var to a temp file once at startup
 let cookiesFilePath: string | null = null;

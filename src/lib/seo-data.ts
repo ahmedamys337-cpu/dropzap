@@ -143,9 +143,9 @@ export const platforms: Record<string, PlatformSEO> = {
   instagram: {
     slug: "instagram-downloader",
     name: "Instagram",
-    title: "Instagram Reels Downloader - Save Instagram Videos & Reels Free",
-    h1: "Instagram Reels & Video Downloader",
-    description: "Download Instagram Reels, videos, and posts in HD quality. Free Instagram downloader — save IG Reels to your device. No watermark, no login required.",
+    title: "Instagram Downloader - Reels, Photos & Carousels (Free, No Login)",
+    h1: "Instagram Reels, Photos & Carousel Downloader",
+    description: "Download Instagram Reels, video posts, photos, and carousel slides in original HD quality. Two clear modes — Reels & Videos as MP4, Photos & Carousels as JPG or ZIP. Free, no watermark, no login.",
     keywords: [
       "instagram downloader", "instagram reels downloader", "download instagram reels",
       "instagram video downloader", "save instagram reels", "ig reels download",
