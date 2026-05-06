@@ -358,6 +358,10 @@ export type PickedFormat = {
   acodec?: string;
   height?: number;
   filesize?: number;
+  // True when this format already contains both video and audio in a single
+  // URL (YouTube's "progressive" itag 18 = 360p mp4, etc.). The muxer uses
+  // this to avoid a separate audio -i input and just copy both streams.
+  combined?: boolean;
 };
 
 export function pickYoutubeFormats(
@@ -406,7 +410,26 @@ export function pickYoutubeFormats(
     return s;
   };
   videoCandidates.sort((a, b) => scoreVideo(b) - scoreVideo(a));
-  const video = videoCandidates[0] || null;
+  let video: any = videoCandidates[0] || null;
+
+  // Combined-stream fallback. When YouTube has gated us hard (cookies stale,
+  // bot-flagged IP, etc.) it sometimes returns ONLY a single progressive
+  // mp4 with audio baked in (typically itag 18, 360p). The strict pure-
+  // video filter above rejects it because acodec is present. Without this
+  // fallback the caller falls through to the 4-minute yt-dlp temp-file
+  // path. Detect it here and pass it along as a combined pick.
+  if (!video) {
+    const combined = all.find(
+      (f) =>
+        f?.url &&
+        f.vcodec && f.vcodec !== "none" &&
+        f.acodec && f.acodec !== "none" &&
+        f.height && f.height <= cap,
+    );
+    if (combined) {
+      video = { ...combined, combined: true };
+    }
+  }
 
   return { video, audio };
 }

@@ -78,6 +78,16 @@ function runFfmpegStream(
     pushInput(picked.audio);
     // MP3 is naturally streamable — no special muxer flags needed.
     args.push("-vn", "-c:a", "libmp3lame", "-q:a", "2", "-f", "mp3", "pipe:1");
+  } else if (picked.video?.combined) {
+    // Combined progressive stream (e.g. itag 18 360p) — audio is already
+    // muxed into the URL. Single input, copy both streams, no -map needed.
+    pushInput(picked.video);
+    args.push(
+      "-c", "copy",
+      "-movflags", "frag_keyframe+empty_moov+default_base_moof",
+      "-f", "mp4",
+      "pipe:1",
+    );
   } else {
     if (!picked.video || !picked.audio) throw new Error("missing v/a format");
     pushInput(picked.video);
@@ -94,16 +104,31 @@ function runFfmpegStream(
     );
   }
 
+  const t0 = Date.now();
+  const tag = audioOnly ? "audio" : "video";
+  console.log(`[ffmpeg-stream:${tag}] spawn (proxy=${proxyUrl ? "yes" : "no"})`);
   const proc = spawn("ffmpeg", args, { stdio: ["ignore", "pipe", "pipe"] });
   let stderr = "";
+  let bytesOut = 0;
+  let firstByteAt = 0;
   proc.stderr?.on("data", (c) => { stderr += c.toString(); });
   proc.on("close", (code) => {
-    if (code !== 0) console.warn("[ffmpeg-stream] exit", code, stderr.slice(0, 500));
+    const dt = Date.now() - t0;
+    const ttfb = firstByteAt ? firstByteAt - t0 : -1;
+    console.log(
+      `[ffmpeg-stream:${tag}] exit=${code} total=${dt}ms ttfb=${ttfb}ms bytes=${bytesOut}`
+    );
+    if (code !== 0) console.warn(`[ffmpeg-stream:${tag}] stderr:`, stderr.slice(0, 500));
   });
 
   const webStream = new ReadableStream({
     start(controller) {
       proc.stdout!.on("data", (c: Buffer) => {
+        if (!firstByteAt) {
+          firstByteAt = Date.now();
+          console.log(`[ffmpeg-stream:${tag}] first byte at ${firstByteAt - t0}ms`);
+        }
+        bytesOut += c.length;
         try { controller.enqueue(new Uint8Array(c)); } catch {}
       });
       proc.stdout!.on("end", () => {
@@ -114,6 +139,7 @@ function runFfmpegStream(
       });
     },
     cancel() {
+      console.log(`[ffmpeg-stream:${tag}] client cancelled at ${Date.now() - t0}ms`);
       try { proc.kill("SIGKILL"); } catch {}
     },
   });
@@ -199,7 +225,13 @@ export async function GET(request: NextRequest) {
         : 1080;
       const picked = pickYoutubeFormats(info, heightCap, audio);
 
-      if (picked.audio && (audio || picked.video)) {
+      // Stream when:
+      //   audio-only request: need a pure audio pick.
+      //   video request: need either (video + audio) or a combined stream.
+      const canStream = audio
+        ? !!picked.audio
+        : !!picked.video && (!!picked.audio || !!picked.video.combined);
+      if (canStream) {
         const proxyUrl = HAS_YOUTUBE_PROXY ? getYoutubeProxyUrl() : undefined;
         return runFfmpegStream(picked, audio, safeName, proxyUrl);
       }
