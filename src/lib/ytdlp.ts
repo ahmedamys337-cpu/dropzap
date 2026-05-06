@@ -7,6 +7,16 @@ import { getYoutubeInfoViaPiped, extractYoutubeVideoId } from "./youtube-piped";
 
 const execFileAsync = promisify(execFile);
 
+// Log yt-dlp version on startup. YouTube ships anti-bot updates ~weekly
+// and yt-dlp counter-fixes ~daily; a stale binary is by far the most
+// common cause of "HD worked yesterday, only 360p today" regressions.
+// This single log line in Render's startup output answers the question
+// "is the latest fix actually deployed?" in 3 seconds.
+execFile("yt-dlp", ["--version"], (err, stdout) => {
+  if (err) console.error("[yt-dlp] version check failed:", err.message);
+  else console.log(`[yt-dlp] version: ${stdout.trim()}`);
+});
+
 // Write YouTube cookies from env var to a temp file once at startup
 let cookiesFilePath: string | null = null;
 if (process.env.YOUTUBE_COOKIES) {

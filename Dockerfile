@@ -38,16 +38,27 @@ RUN npm run build
 FROM node:20-slim AS runner
 WORKDIR /app
 
-# Install runtime system deps: ffmpeg + yt-dlp (latest binary, no Python needed)
+# Install runtime system deps: ffmpeg + ca-certs.
+# yt-dlp is installed in its own layer below so we can bust its cache
+# independently — Render aggressively caches Docker layers, and a stale
+# yt-dlp binary is the #1 reason HD downloads silently regress (YouTube
+# ships anti-bot updates ~weekly, yt-dlp ships counter-fixes ~daily).
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     curl \
     ca-certificates \
-    && curl -L https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp_linux \
-       -o /usr/local/bin/yt-dlp \
-    && chmod a+rx /usr/local/bin/yt-dlp \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# Bump YTDLP_CACHEBUST any time you want to force a fresh nightly pull.
+# (Render's "Clear build cache & deploy" also works, but this is more
+# reliable when the cache decision is per-layer.)
+ARG YTDLP_CACHEBUST=2026-05-06-1
+RUN echo "ytdlp cachebust: $YTDLP_CACHEBUST" \
+    && curl -fsSL https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp_linux \
+       -o /usr/local/bin/yt-dlp \
+    && chmod a+rx /usr/local/bin/yt-dlp \
+    && /usr/local/bin/yt-dlp --version
 
 # Create non-root user
 RUN groupadd --system --gid 1001 nodejs \
