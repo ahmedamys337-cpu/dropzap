@@ -115,9 +115,14 @@ const YT_FAST_ARGS = [
   // even with cookies, and when cookies (one geo) arrive via proxy
   // (different geo) YouTube anti-fraud returns "Requested format is not
   // available". tv_simply/mediaconnect help when no cookies are present.
+  // mediaconnect leads when cookies are present: in production it has been
+  // the only client consistently returning the full HD ladder through
+  // cookies+proxy. android and tv_embedded stay in the list so the primary
+  // call still resolves the video on rare cases where mediaconnect 404s
+  // (e.g. age-gated content), avoiding a recovery-chain round trip.
   "--extractor-args",
   cookiesFilePath
-    ? "youtube:player_client=android,tv_embedded"
+    ? "youtube:player_client=mediaconnect,android,tv_embedded"
     : "youtube:player_client=tv_embedded,android,tv_simply,mediaconnect",
 ];
 
