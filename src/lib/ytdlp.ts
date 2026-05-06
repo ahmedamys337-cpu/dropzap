@@ -98,11 +98,19 @@ function cacheSet(key: string, data: any) {
   infoCache.set(key, { data, expires: Date.now() + CACHE_TTL_MS });
 }
 
-// Fast YouTube extraction flags
-// With a residential proxy, we can use the standard web+android clients
-// which return ALL formats reliably (tv_embedded etc. sometimes return
-// incomplete format lists that cause "Requested format not available" errors).
-// --no-check-formats skips per-URL HEAD validation (much faster).
+// Fast YouTube extraction flags. --no-check-formats skips per-URL HEAD
+// validation (saves several seconds on long format ladders).
+//
+// Player-client choice (the single biggest factor in whether HD comes back):
+//   With cookies: mediaconnect first — in production it's the only client
+//     that consistently returns the full HD ladder through a residential
+//     proxy. android/tv_embedded stay as in-call fallbacks so age-gated
+//     content still resolves without bouncing to recovery.
+//   Without cookies: tv_embedded first (lightweight, no PO-token) then
+//     android, tv_simply, mediaconnect.
+// 'web' is deliberately omitted everywhere: it requires a PO-token even
+// with cookies, and a cookies/proxy geo mismatch makes it return "Requested
+// format is not available".
 const YT_FAST_ARGS = [
   "--no-check-certificates",
   "--no-warnings",
@@ -110,16 +118,6 @@ const YT_FAST_ARGS = [
   "--skip-download",
   "--no-check-formats",
   "--socket-timeout", "30",
-  // android + tv_embedded accept cookies AND return HD without needing
-  // PO-token. We deliberately avoid 'web' here: web requires PO-token
-  // even with cookies, and when cookies (one geo) arrive via proxy
-  // (different geo) YouTube anti-fraud returns "Requested format is not
-  // available". tv_simply/mediaconnect help when no cookies are present.
-  // mediaconnect leads when cookies are present: in production it has been
-  // the only client consistently returning the full HD ladder through
-  // cookies+proxy. android and tv_embedded stay in the list so the primary
-  // call still resolves the video on rare cases where mediaconnect 404s
-  // (e.g. age-gated content), avoiding a recovery-chain round trip.
   "--extractor-args",
   cookiesFilePath
     ? "youtube:player_client=mediaconnect,android,tv_embedded"
@@ -232,20 +230,20 @@ export async function getVideoInfo(url: string): Promise<any> {
       }
     };
 
-    // PARALLEL RECOVERY: race the alternate clients that have proven to
-    // unlock HD without cookies. Both are TV-app-style clients that send
-    // distinct attestation fingerprints from the primary tv_embedded.
-    // First one to return HD wins; we don't wait for the slower one.
-    // This cuts recovery from ~25s sequential to ~12s parallel.
+    // PARALLEL RECOVERY: race alternate clients that send a different
+    // attestation fingerprint than the primary call. First one to return
+    // HD wins.
     //
-    // mediaconnect is listed first in our preference because in practice
-    // it succeeds on more videos than tv_simply on cloud-IP setups.
+    // We deliberately exclude any client the primary already tried so the
+    // recovery list adds fresh signal instead of repeating failures: when
+    // cookies are present the primary chain is mediaconnect→android→
+    // tv_embedded, so recovery only adds ios/mweb/tv_simply.
     console.log(
       `[yt-dlp] Primary thin (${countUniqueHeights(data.formats)} heights); racing alt-clients`
     );
-    // ios and mweb are added first — they are the most likely to work on
-    // datacenter IPs without cookies or proxy.
-    const altClients = ["ios", "mweb", "mediaconnect", "tv_simply"];
+    const altClients = cookiesFilePath
+      ? ["ios", "mweb", "tv_simply"]
+      : ["ios", "mweb", "mediaconnect", "tv_simply"];
     const altPromises = altClients.map((c) =>
       runRetry(`alt-clients:${c}`, [
         "--extractor-args", `youtube:player_client=${c}`,
@@ -271,11 +269,15 @@ export async function getVideoInfo(url: string): Promise<any> {
       }
     }
 
-    // Attempt C: Piped / Invidious public instances. Entirely independent
-    // code path — doesn't hit YouTube directly so cloud-IP gating doesn't
-    // apply. Many instances are flaky, but the helper rotates through a
-    // pool until one works.
-    if (countUniqueHeights(data.formats) < 2 || !hasHdFormat(data.formats)) {
+    // Attempt C: Piped / Invidious public instances. Independent code
+    // path — doesn't hit YouTube directly so cloud-IP gating doesn't
+    // apply. Public instances are mostly dead and add 5-15s of timeout
+    // even on fast failure, so skip entirely when a proxy is available
+    // (yt-dlp + proxy is faster and more reliable than any public Piped).
+    if (
+      !HAS_PROXY &&
+      (countUniqueHeights(data.formats) < 2 || !hasHdFormat(data.formats))
+    ) {
       try {
         console.log(`[yt-dlp] Falling back to Piped/Invidious for ${url}`);
         const pipedData = await getYoutubeInfoViaPiped(url);

@@ -140,15 +140,12 @@ export default function YoutubeDownloader({
   };
 
   // Mark a button as downloading, then promote it to downloaded after a
-  // buffer sized to match the real server-side processing time for
-  // YouTube. The yt-dlp temp-file path through the residential proxy
-  // typically lands HD videos in 20-30s. 30s gives enough headroom that
-  // the green "Downloaded" state arrives AFTER the file is actually in
-  // the browser's download bar — which is what the user expects. Audio
-  // is faster (just bestaudio + MP3 transcode) so downloadAudio()
-  // overrides with a shorter buffer. Both states stick until the form
-  // is reset.
-  const beginDownloadingFlow = (key: string, holdMs = 40000) => {
+  // short buffer. With the live ffmpeg streaming path (/api/stream), the
+  // browser's native download dialog opens within ~1-2s of the click and
+  // the file finishes in roughly 8-15s for HD videos / 5-8s for audio.
+  // We give a small safety margin so the green "Downloaded" state lands
+  // shortly after the file actually does. Both states stick until reset.
+  const beginDownloadingFlow = (key: string, holdMs = 12000) => {
     setDownloadingSet((s) => {
       const next = new Set(s);
       next.add(key);
@@ -200,10 +197,9 @@ export default function YoutubeDownloader({
     const streamUrl = `/api/stream?url=${encodeURIComponent(url)}&audio=1&name=${encodeURIComponent(name)}`;
     triggerNativeDownload(streamUrl, name);
     onDownload(videoInfo.title, url, "Audio MP3");
-    // MP3 extraction runs ffmpeg on a temp file server-side, so bytes reach
-    // the browser 8-15s after the click on a cold worker. 15s keeps the
-    // green "Downloaded" state from appearing before the file does.
-    beginDownloadingFlow("audio", 15000);
+    // Audio streams direct via ffmpeg → mp3 transcode → stdout. Bytes start
+    // arriving within ~1-2s; the file fully lands in 5-8s.
+    beginDownloadingFlow("audio", 8000);
   };
 
   const paste = async () => {
