@@ -55,7 +55,34 @@ export async function POST(request: NextRequest) {
       if (!existing || fSize > eSize) byHeight.set(f.height, f);
     }
 
+    // Synthetic standard ladder. When YouTube's anti-bot has thinned the
+    // response down to just 360p (or nothing) but cobalt.tools is still
+    // able to deliver HD on demand, the UI must offer the higher tiers
+    // anyway. We inject any missing rung from {1080,720,480,360} so the
+    // user always sees the full picker; the actual click goes to /api/stream
+    // which tries cobalt first and falls back to yt-dlp at the requested
+    // height. Real yt-dlp formats win when present (they carry filesize).
+    const COBALT_ENABLED = process.env.COBALT_DISABLED !== "1";
+    if (COBALT_ENABLED) {
+      const STANDARD = [1080, 720, 480, 360];
+      for (const h of STANDARD) {
+        if (!byHeight.has(h)) {
+          byHeight.set(h, {
+            format_id: `cobalt-${h}`,
+            ext: "mp4",
+            resolution: `${Math.round((h * 16) / 9)}x${h}`,
+            height: h,
+            filesize: null,
+            vcodec: "avc1",
+            acodec: "mp4a",
+            format_note: "",
+          });
+        }
+      }
+    }
+
     const formats = Array.from(byHeight.values())
+      .filter((f: any) => f.height >= 360 && f.height <= 1080)
       .map((f: any) => ({
         format_id: f.format_id,
         ext: f.ext,

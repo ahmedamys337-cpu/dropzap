@@ -13,6 +13,7 @@ import {
   getYoutubeProxyUrl,
   type PickedFormat,
 } from "@/lib/ytdlp";
+import { resolveViaCobalt } from "@/lib/cobalt";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -201,7 +202,59 @@ export async function GET(request: NextRequest) {
     filename.replace(/[^\w\s.-]/g, "").trim() || `download.${ext}`;
 
   // =========================================================================
-  // YOUTUBE STREAMING PATH — ffmpeg stdout piped straight to the browser
+  // YOUTUBE PATH 1 — cobalt.tools (preferred)
+  //
+  // Cobalt's hosted infrastructure handles YouTube's anti-bot extraction,
+  // returning a direct download URL we can redirect the user's browser to.
+  // The file flows cobalt → user; our server just relays a small JSON call.
+  // This bypasses every problem we hit running yt-dlp from a datacenter IP
+  // (cookie geo-mismatch, PO-token gating, format-list thinning), and the
+  // user gets full HD reliably.
+  //
+  // Fallback chain on failure: PATH 2 (yt-dlp ffmpeg streaming) → PATH 3
+  // (yt-dlp temp-file). User never sees an error if any backend works.
+  // =========================================================================
+  if (isYoutube && process.env.COBALT_DISABLED !== "1") {
+    try {
+      const t0 = Date.now();
+      const cap = heightParam && /^\d+$/.test(heightParam)
+        ? Math.min(1080, parseInt(heightParam, 10))
+        : 1080;
+      // Cobalt only accepts these specific quality strings.
+      const videoQuality = (
+        cap >= 1080 ? "1080" :
+        cap >= 720  ? "720"  :
+        cap >= 480  ? "480"  :
+        cap >= 360  ? "360"  : "360"
+      ) as "1080" | "720" | "480" | "360";
+
+      const r = await resolveViaCobalt({
+        url,
+        audio,
+        videoQuality,
+        audioFormat: audio ? "mp3" : undefined,
+      });
+
+      if (r) {
+        console.log(`[stream] cobalt resolved in ${Date.now() - t0}ms -> ${r.url.slice(0, 80)}…`);
+        // 302 redirect the browser straight to cobalt. The Content-Disposition
+        // header on cobalt's response already triggers a download; the
+        // attachment_filename query param ensures our preferred name wins.
+        const target = new URL(r.url);
+        // Some cobalt instances accept ?filename= overrides on tunnel URLs.
+        if (!target.searchParams.has("filename")) {
+          target.searchParams.set("filename", safeName);
+        }
+        return Response.redirect(target.toString(), 302);
+      }
+      console.warn(`[stream] cobalt returned no usable response in ${Date.now() - t0}ms; falling back`);
+    } catch (e: any) {
+      console.warn("[stream] cobalt error, falling back to yt-dlp:", e.message);
+    }
+  }
+
+  // =========================================================================
+  // YOUTUBE PATH 2 — yt-dlp + ffmpeg stdout piped straight to the browser
   //
   // The browser's download UI pops up on the first byte (vs. waiting for the
   // server to download + merge the entire file before sending). Total time
