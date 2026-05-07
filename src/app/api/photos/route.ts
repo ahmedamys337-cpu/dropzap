@@ -152,10 +152,14 @@ async function handleDownload(url: string): Promise<Response> {
     // asked to download, but its JSON metadata still includes display_url for
     // every slide. We then fetch those image URLs directly — bypasses the
     // video-format requirement entirely.
+    // --ignore-no-formats-error: IG extractor still emits "No video formats"
+    // for image-only posts even with -J. This flag downgrades that fatal
+    // error to a warning so we still get the full JSON (with display_url
+    // entries) on stdout.
     const args = [
       url,
       "-J",
-      "--flat-playlist",
+      "--ignore-no-formats-error",
       ...getGenericCookiesArgs(),
       "--no-check-certificates",
       "--no-warnings",
@@ -163,21 +167,22 @@ async function handleDownload(url: string): Promise<Response> {
     ];
 
     const { code, stdout, stderr } = await runYtDlpJson(args);
-    if (code !== 0 || !stdout.trim()) {
-      console.warn(`[photos:${platform}] yt-dlp -J failed:`, stderr.slice(0, 400));
+
+    // Even with --ignore-no-formats-error, some yt-dlp builds still set a
+    // non-zero exit code while still emitting valid JSON on stdout. So we
+    // try to parse stdout first; only fall through to the error response if
+    // there's truly nothing usable.
+    let meta: any = null;
+    if (stdout.trim()) {
+      try { meta = JSON.parse(stdout); } catch {}
+    }
+    if (!meta) {
+      console.warn(`[photos:${platform}] yt-dlp -J failed (code=${code}):`, stderr.slice(0, 400));
       cleanup();
       const friendly = /private|login|account|not.*available/i.test(stderr)
         ? "This post is private, deleted, or requires login."
         : `Failed to fetch this ${platform} post.`;
       return new Response(friendly, { status: 502 });
-    }
-
-    let meta: any;
-    try { meta = JSON.parse(stdout); }
-    catch (e) {
-      console.warn(`[photos:${platform}] JSON parse failed`);
-      cleanup();
-      return new Response("Failed to parse post metadata", { status: 502 });
     }
 
     const imageUrls = extractImageUrls(meta);
