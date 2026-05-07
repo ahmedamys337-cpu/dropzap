@@ -166,19 +166,20 @@ async function handleDownload(url: string): Promise<Response> {
   const cleanup = () => rm(workDir, { recursive: true, force: true }).catch(() => {});
 
   try {
-    // Use -J (dump-single-json) instead of downloading. yt-dlp's Instagram
-    // extractor errors with "No video formats found" on image-only posts when
-    // asked to download, but its JSON metadata still includes display_url for
-    // every slide. We then fetch those image URLs directly — bypasses the
-    // video-format requirement entirely.
-    // --ignore-no-formats-error: IG extractor still emits "No video formats"
-    // for image-only posts even with -J. This flag downgrades that fatal
-    // error to a warning so we still get the full JSON (with display_url
-    // entries) on stdout.
+    // Use -j (lowercase) which forces full extraction of every entry in a
+    // playlist/carousel and prints ONE JSON object per entry (NDJSON).
+    //
+    // Why not -J (capital)? yt-dlp's IG extractor returns a shallow playlist
+    // with -J — entries lack display_url/thumbnail. -j makes it actually
+    // resolve each slide individually so we get the image URLs.
+    //
+    // --ignore-no-formats-error keeps image-only slides from aborting the
+    // whole run with "No video formats found".
     const args = [
       url,
-      "-J",
+      "-j",
       "--ignore-no-formats-error",
+      "--no-playlist-reverse",
       ...getGenericCookiesArgs(),
       "--no-check-certificates",
       "--no-warnings",
@@ -187,16 +188,17 @@ async function handleDownload(url: string): Promise<Response> {
 
     const { code, stdout, stderr } = await runYtDlpJson(args);
 
-    // Even with --ignore-no-formats-error, some yt-dlp builds still set a
-    // non-zero exit code while still emitting valid JSON on stdout. So we
-    // try to parse stdout first; only fall through to the error response if
-    // there's truly nothing usable.
-    let meta: any = null;
-    if (stdout.trim()) {
-      try { meta = JSON.parse(stdout); } catch {}
+    // Parse NDJSON: one entry per line. Tolerate non-zero exit if any lines
+    // parsed successfully (yt-dlp may exit non-zero after warnings).
+    const entries: any[] = [];
+    for (const line of stdout.split(/\r?\n/)) {
+      const t = line.trim();
+      if (!t || t[0] !== "{") continue;
+      try { entries.push(JSON.parse(t)); } catch {}
     }
-    if (!meta) {
-      console.warn(`[photos:${platform}] yt-dlp -J failed (code=${code}):`, stderr.slice(0, 400));
+
+    if (entries.length === 0) {
+      console.warn(`[photos:${platform}] yt-dlp -j produced no entries (code=${code}):`, stderr.slice(0, 400));
       cleanup();
       const friendly = /private|login|account|not.*available/i.test(stderr)
         ? "This post is private, deleted, or requires login."
@@ -204,27 +206,26 @@ async function handleDownload(url: string): Promise<Response> {
       return new Response(friendly, { status: 502 });
     }
 
-    const imageUrls = extractImageUrls(meta);
+    // Walk every entry and pull image URLs. extractImageUrls() handles the
+    // single-object case too (entries.length === 1 → single photo post).
+    const imageUrls: string[] = [];
+    for (const e of entries) imageUrls.push(...extractImageUrls(e));
+
     if (imageUrls.length === 0) {
-      // Log a compact summary so we can see what yt-dlp actually returned
-      // when extraction comes up empty. This is critical for diagnosing
-      // whether IG returned a video, an empty post, or an unfamiliar shape.
+      // Log a summary of the FIRST entry so we can see what yt-dlp returned
+      // when extraction comes up empty (e.g. all slides were videos).
+      const first = entries[0] || {};
       const summary = {
-        _type: meta?._type,
-        ext: meta?.ext,
-        has_display_url: !!meta?.display_url,
-        has_url: !!meta?.url,
-        has_thumbnail: !!meta?.thumbnail,
-        thumbnails_count: Array.isArray(meta?.thumbnails) ? meta.thumbnails.length : 0,
-        formats_count: Array.isArray(meta?.formats) ? meta.formats.length : 0,
-        entries_count: Array.isArray(meta?.entries) ? meta.entries.length : 0,
-        first_entry_keys: Array.isArray(meta?.entries) && meta.entries[0]
-          ? Object.keys(meta.entries[0]).slice(0, 20)
-          : [],
-        first_entry_ext: meta?.entries?.[0]?.ext,
-        title: typeof meta?.title === "string" ? meta.title.slice(0, 80) : undefined,
+        entries: entries.length,
+        ext: first.ext,
+        has_display_url: !!first.display_url,
+        has_url: !!first.url,
+        has_thumbnail: !!first.thumbnail,
+        thumbnails_count: Array.isArray(first.thumbnails) ? first.thumbnails.length : 0,
+        formats_count: Array.isArray(first.formats) ? first.formats.length : 0,
+        keys: Object.keys(first).slice(0, 25),
       };
-      console.warn(`[photos:${platform}] no images extracted; meta summary:`, JSON.stringify(summary));
+      console.warn(`[photos:${platform}] no images extracted; first-entry summary:`, JSON.stringify(summary));
       cleanup();
       return new Response(
         `No images found. If this is a video, use the ${platform === "instagram" ? "Reel" : "Video"} downloader instead.`,
