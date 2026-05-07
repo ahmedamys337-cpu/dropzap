@@ -155,8 +155,22 @@ async function fetchInstagramImageUrls(postUrl: string): Promise<string[] | null
   const mediaId = shortcodeToMediaId(shortcode);
   if (!mediaId) return null;
 
-  const apiUrl = `https://i.instagram.com/api/v1/media/${mediaId}/info/`;
-  const cookieHeader = getCookieHeader("i.instagram.com") || getCookieHeader("www.instagram.com");
+  // Try cookies for both subdomains; IG sets some cookies on i.instagram.com
+  // and others on www.instagram.com. Combine when both exist.
+  const cookieHeader = [
+    getCookieHeader("i.instagram.com"),
+    getCookieHeader("www.instagram.com"),
+  ].filter(Boolean).join("; ");
+  const cookieNames = cookieHeader
+    ? cookieHeader.split(";").map((p) => p.trim().split("=")[0]).filter(Boolean)
+    : [];
+  console.log(`[photos:instagram] shortcode=${shortcode} mediaId=${mediaId} cookieCount=${cookieNames.length} hasSessionId=${cookieNames.includes("sessionid")}`);
+
+  // Try both API hosts; sometimes one is blocked while the other works.
+  const apiUrls = [
+    `https://i.instagram.com/api/v1/media/${mediaId}/info/`,
+    `https://www.instagram.com/api/v1/media/${mediaId}/info/`,
+  ];
 
   const headers: Record<string, string> = {
     "X-IG-App-ID": "936619743392459",
@@ -166,22 +180,24 @@ async function fetchInstagramImageUrls(postUrl: string): Promise<string[] | null
   };
   if (cookieHeader) headers["Cookie"] = cookieHeader;
 
-  let res: Response;
-  try {
-    res = await fetch(apiUrl, { headers, redirect: "follow" });
-  } catch (e: any) {
-    console.warn(`[photos:instagram] private-API fetch failed:`, e?.message);
-    return null;
+  let data: any = null;
+  for (const apiUrl of apiUrls) {
+    try {
+      const res = await fetch(apiUrl, { headers, redirect: "follow" });
+      console.log(`[photos:instagram] ${apiUrl} -> ${res.status}`);
+      if (!res.ok) continue;
+      try { data = await res.json(); } catch { data = null; }
+      if (data) break;
+    } catch (e: any) {
+      console.warn(`[photos:instagram] fetch ${apiUrl} threw:`, e?.message);
+    }
   }
-  if (!res.ok) {
-    console.warn(`[photos:instagram] private-API status ${res.status} for ${shortcode}`);
-    return null;
-  }
-  let data: any;
-  try { data = await res.json(); } catch { return null; }
 
   const item = data?.items?.[0];
-  if (!item) return null;
+  if (!item) {
+    console.warn(`[photos:instagram] no items[0] in API response`);
+    return null;
+  }
 
   const urls: string[] = [];
   // Carousel: items[0].carousel_media[] each with image_versions2.candidates[].url
