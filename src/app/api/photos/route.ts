@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { spawn } from "child_process";
 import { createReadStream } from "fs";
-import { mkdir, stat, rm } from "fs/promises";
+import { mkdir, stat, rm, writeFile } from "fs/promises";
 import { tmpdir } from "os";
 import { join } from "path";
 import { randomUUID } from "crypto";
@@ -225,19 +225,18 @@ async function fetchToFile(url: string, dest: string): Promise<{ ext: string }> 
       "Accept": "image/avif,image/webp,image/png,image/jpeg,*/*",
     },
   });
-  if (!res.ok || !res.body) throw new Error(`fetch ${res.status}`);
+  if (!res.ok) throw new Error(`fetch ${res.status}`);
   const ct = res.headers.get("content-type") || "";
   const ext = ct.includes("png") ? ".png"
     : ct.includes("webp") ? ".webp"
     : ct.includes("heic") ? ".heic"
     : ".jpg";
-  const fs = await import("fs");
-  const { Readable } = await import("stream");
-  const { pipeline } = await import("stream/promises");
-  await pipeline(
-    Readable.fromWeb(res.body as any),
-    fs.createWriteStream(dest + ext),
-  );
+  // Plain arrayBuffer→writeFile avoids the Node version sensitivity of
+  // Readable.fromWeb (which was undefined under our Render runtime even
+  // though the docs say it landed in 17). Carousel images are small (a
+  // few MB max) so buffering is fine.
+  const buf = Buffer.from(await res.arrayBuffer());
+  await writeFile(dest + ext, buf);
   return { ext };
 }
 
