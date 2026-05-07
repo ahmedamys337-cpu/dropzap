@@ -24,13 +24,30 @@ if (process.env.NEXT_PHASE !== "phase-production-build") {
   });
 }
 
-// Write YouTube cookies from env var to a temp file once at startup
+// Write cookies from env var to a temp file once at startup. We prefer the
+// new MEDIA_COOKIES name (since the same file holds IG/FB/X/etc. cookies,
+// not just YouTube's), but fall back to the legacy YOUTUBE_COOKIES name so
+// existing deployments keep working until the env var is renamed.
+//
+// Whichever variable is present, the file format is unchanged: a single
+// Netscape cookies.txt blob. yt-dlp filters by domain at request time, so
+// it doesn't matter that the file holds cookies for many platforms — only
+// the cookies whose domain matches the URL being downloaded are sent.
+const cookiesEnvSource = process.env.MEDIA_COOKIES
+  ? "MEDIA_COOKIES"
+  : process.env.YOUTUBE_COOKIES
+  ? "YOUTUBE_COOKIES"
+  : null;
+const cookiesEnvValue = process.env.MEDIA_COOKIES || process.env.YOUTUBE_COOKIES;
+
 let cookiesFilePath: string | null = null;
-if (process.env.YOUTUBE_COOKIES) {
+if (cookiesEnvValue && cookiesEnvSource) {
   try {
     cookiesFilePath = join(tmpdir(), "yt-cookies.txt");
-    writeFileSync(cookiesFilePath, process.env.YOUTUBE_COOKIES, "utf-8");
-    console.log("[yt-dlp] Cookies written:", process.env.YOUTUBE_COOKIES.length, "bytes");
+    writeFileSync(cookiesFilePath, cookiesEnvValue, "utf-8");
+    console.log(
+      `[yt-dlp] Cookies written from ${cookiesEnvSource}: ${cookiesEnvValue.length} bytes`,
+    );
   } catch (e) {
     console.error("[yt-dlp] Failed to write cookies file:", e);
     cookiesFilePath = null;
