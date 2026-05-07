@@ -35,3 +35,6 @@ next-env.d.ts
 
 # whisper model cache
 /.cache/
+headers.txt
+response.bin
+*.bin
