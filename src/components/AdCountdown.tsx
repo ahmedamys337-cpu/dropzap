@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, X, Zap } from "lucide-react";
 
 interface AdCountdownProps {
-  /** How long the ad is shown in seconds (default 5). */
+  /** How long the ad is shown in seconds (default 3). */
   seconds?: number;
   /** Status message displayed above the ad. */
   message?: string;
@@ -27,7 +27,7 @@ interface AdCountdownProps {
  * an `<ins class="adsbygoogle">` unit.
  */
 export default function AdCountdown({
-  seconds = 5,
+  seconds = 3,
   message = "Processing the link to download. Stay on the page.",
   onComplete,
   onClose,

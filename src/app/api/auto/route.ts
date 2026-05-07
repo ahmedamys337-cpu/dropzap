@@ -7,6 +7,7 @@ import { join } from "path";
 import { randomUUID } from "crypto";
 import archiver from "archiver";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
+import { getGenericCookiesArgs } from "@/lib/ytdlp";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -117,6 +118,10 @@ async function handleDownload(url: string): Promise<Response> {
     // multi-image tweets / Threads carousels deliver every slide.
     const args = [
       url,
+      // Pass cookies (IG/FB/X cookies in the same file) — see getGeneric…
+      // doc in lib/ytdlp.ts. Big success-rate bump for X video posts and
+      // for Reddit NSFW (which 401s anonymously).
+      ...getGenericCookiesArgs(),
       "-o", join(workDir, "%(playlist_index|0)s-%(id)s.%(ext)s"),
       "--no-check-certificates",
       "--no-warnings",

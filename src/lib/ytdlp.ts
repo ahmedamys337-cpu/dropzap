@@ -41,6 +41,17 @@ function getCookiesArgs(): string[] {
   return cookiesFilePath ? ["--cookies", cookiesFilePath] : [];
 }
 
+// Public counterpart for endpoints outside the YouTube pipeline (e.g.
+// /api/photos, /api/auto for IG/FB/Reddit/X/Pinterest/Threads). Instagram
+// in particular often returns 401 for anonymous extraction of newer
+// posts; passing the same cookies file (which can carry IG/FB/etc.
+// cookies alongside YouTube's) bumps success rates significantly.
+// Returns [] when no cookies env var is configured, so callers can
+// always spread it into their args list without conditional checks.
+export function getGenericCookiesArgs(): string[] {
+  return getCookiesArgs();
+}
+
 // Parse YOUTUBE_PROXIES env var into a list of proxy URLs
 // Accepts these formats (one per line):
 //   host:port:user:pass         (Webshare default download format)

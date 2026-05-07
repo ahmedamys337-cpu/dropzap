@@ -212,7 +212,7 @@ export default function MediaPostDownloader({
 
       {phase === "ad" && (
         <AdCountdown
-          seconds={5}
+          seconds={3}
           onComplete={() => setPhase("ready")}
           onClose={() => setPhase("ready")}
         />

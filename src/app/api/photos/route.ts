@@ -7,6 +7,7 @@ import { join } from "path";
 import { randomUUID } from "crypto";
 import archiver from "archiver";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
+import { getGenericCookiesArgs } from "@/lib/ytdlp";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -103,8 +104,16 @@ async function handleDownload(url: string): Promise<Response> {
     // playlist_index in the template gives us a stable slide ordering for
     // carousels. --no-playlist keeps us from accidentally following profile
     // listings; for albums yt-dlp still follows the in-post slide list.
+    //
+    // getGenericCookiesArgs() injects --cookies <file> when YOUTUBE_COOKIES
+    // env var is set. Despite the name, the cookies file can hold IG/FB
+    // cookies alongside YouTube's; yt-dlp filters by domain. Without
+    // cookies, Instagram returns 401 / "login required" for many posts —
+    // those failures are the most common cause of the user-visible
+    // "Site wasn't available" download error.
     const args = [
       url,
+      ...getGenericCookiesArgs(),
       "-o", join(workDir, "%(playlist_index)s-%(id)s.%(ext)s"),
       "--no-check-certificates",
       "--no-warnings",

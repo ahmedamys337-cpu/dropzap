@@ -100,9 +100,15 @@ export default function SimpleDownloader({
 
     // Fire the native download IMMEDIATELY so the server starts working
     // (yt-dlp warm-up, format selection, transcoding) while the user watches
-    // the 5-second ad. By the time the ad closes the file is usually already
+    // the 3-second ad. By the time the ad closes the file is usually already
     // streaming into the browser's download bar.
-    const name = `${safeFilename(`${filePrefix}-video`, filePrefix)}.${fileExtension}`;
+    //
+    // The filename here is just the BROWSER FALLBACK shown in the download
+    // bar before the response arrives; the server always overrides via its
+    // Content-Disposition header (e.g. "instagram-photos.zip"). Keeping it
+    // consistent with the platform makes the briefly-flashed name correct
+    // for both video and photo downloads.
+    const name = `${safeFilename(filePrefix, filePrefix)}.${fileExtension}`;
     const streamUrl = `${endpoint}?url=${encodeURIComponent(url)}&name=${encodeURIComponent(name)}`;
     triggerNativeDownload(streamUrl, name);
     onDownload?.(`${platform} ${mediaTypeLabel}`, url, mediaTypeLabel);
@@ -117,13 +123,13 @@ export default function SimpleDownloader({
     // browser's download bar.
     setPhase("downloading");
     if (downloadingTimer.current) clearTimeout(downloadingTimer.current);
-    // Server now downloads the file to a temp path, then streams it with a
-    // real Content-Length so the browser shows accurate progress. For short
-    // Instagram / TikTok clips that usually completes in 5-10s. 10s is a
-    // safe cap: if the file arrives earlier the browser progress bar is
-    // already showing it; if it arrives later the user still sees bytes
-    // landing in their downloads list.
-    downloadingTimer.current = setTimeout(() => setPhase("downloaded"), 10000);
+    // Server downloads the file to a temp path, then streams it with a real
+    // Content-Length so the browser shows accurate progress. 5s is a safe
+    // cap for IG/TikTok-class clips: if the file arrives earlier the browser
+    // progress bar is already showing it; if it arrives later the user
+    // still sees bytes landing in their downloads list. Was 10s but felt
+    // unnecessarily slow for the (common) sub-1s server response.
+    downloadingTimer.current = setTimeout(() => setPhase("downloaded"), 5000);
   };
 
   const paste = async () => {
@@ -244,7 +250,7 @@ export default function SimpleDownloader({
       {/* Ad runs in parallel with the server's yt-dlp warm-up + stream start. */}
       {isAd && (
         <AdCountdown
-          seconds={5}
+          seconds={3}
           message="Starting your download. Stay on the page."
           onComplete={finishAd}
         />
