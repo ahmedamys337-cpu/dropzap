@@ -2,9 +2,7 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import RecentDownloads from "@/components/RecentDownloads";
 import AdBanner from "@/components/AdBanner";
-import { useDownloadHistory } from "@/lib/hooks";
 // Static imports so switching tabs is instant — no per-tab chunk fetch.
 import ThumbnailDownloader from "@/components/ThumbnailDownloader";
 import InstagramDownloader from "@/components/InstagramDownloader";
@@ -28,10 +26,12 @@ import {
 } from "lucide-react";
 
 export default function Home() {
-  const { history, addToHistory, clearHistory } = useDownloadHistory();
-
-  const handleDownload = (title: string, url: string, type: string) => {
-    addToHistory({ title, url, type });
+  // Download history was removed at user request — the panel often confused
+  // people into thinking previous failed attempts were still pending. We
+  // keep the handler signature as a noop so child Downloader components
+  // don't have to change their prop contracts.
+  const handleDownload = (_title: string, _url: string, _type: string) => {
+    void _title; void _url; void _type;
   };
 
   return (
@@ -155,8 +155,8 @@ export default function Home() {
             </TabsList>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
+          <div className="space-y-6">
+            <div>
               <div className="glass rounded-2xl p-6">
                 <TabsContent value="thumbnail" className="mt-0">
                   <div className="space-y-4">
@@ -315,12 +315,9 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Sidebar */}
-            <div className="lg:col-span-1 space-y-6">
-              <div className="glass rounded-2xl p-6 sticky top-20">
-                <RecentDownloads history={history} onClear={clearHistory} />
-              </div>
-              {/* === AD ZONE: Sidebar Ad === */}
+            {/* Inline ad slot — used to live in the right sidebar; moves here
+                now that the sidebar is gone so we keep the impression. */}
+            <div>
               <AdBanner slot="sidebar" />
             </div>
           </div>

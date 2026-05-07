@@ -18,6 +18,7 @@ export default function ThreadsDownloader({
       buttonClassName="bg-gradient-to-r from-zinc-800 to-zinc-900 hover:from-zinc-700 hover:to-zinc-800 shadow-black/40 border border-white/10"
       help="Downloads Threads videos and images from public posts."
       onDownload={onDownload}
+      endpoint="/api/auto"
     />
   );
 }

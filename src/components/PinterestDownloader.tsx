@@ -18,6 +18,7 @@ export default function PinterestDownloader({
       buttonClassName="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 shadow-red-600/30"
       help="Downloads Pinterest pin images and videos in their original quality."
       onDownload={onDownload}
+      endpoint="/api/auto"
     />
   );
 }
