@@ -76,10 +76,29 @@ function extractImageUrls(meta: any): string[] {
   const urls: string[] = [];
   const pick = (entry: any) => {
     if (!entry || typeof entry !== "object") return;
-    // Skip slides that are videos (have formats / ext mp4)
-    const isVideo = Array.isArray(entry.formats) && entry.formats.some((f: any) => f?.vcodec && f.vcodec !== "none");
-    if (isVideo) return;
-    const u = entry.display_url || entry.url || entry.thumbnail;
+    // Try the most reliable image fields IG returns first, then fall back
+    // to the highest-res thumbnail. We intentionally don't filter on
+    // entry.formats — IG carousel image slides sometimes carry a stub
+    // "format" with vcodec=none which made the old check skip them.
+    let u: string | undefined =
+      entry.display_url ||
+      entry.url ||
+      entry.thumbnail;
+    if (!u && Array.isArray(entry.thumbnails) && entry.thumbnails.length > 0) {
+      // Highest-resolution thumbnail (last one is usually largest)
+      const t = entry.thumbnails[entry.thumbnails.length - 1];
+      u = t?.url;
+    }
+    // Skip pure-video slides: they have an mp4 url, not a jpg.
+    // Detect by ext field rather than guessing from formats.
+    if (entry.ext && /^(mp4|m4v|mov|webm)$/i.test(entry.ext)) {
+      // But still try thumbnail so a mixed post grabs the cover image
+      u = entry.thumbnail || (Array.isArray(entry.thumbnails) ? entry.thumbnails.at(-1)?.url : undefined);
+      // If we only have a thumbnail for a video, skip — user wants the Reel downloader
+      if (!u) return;
+      // Don't include video thumbnails in image-only output
+      return;
+    }
     if (typeof u === "string" && /^https?:\/\//.test(u)) urls.push(u);
   };
   if (Array.isArray(meta?.entries) && meta.entries.length > 0) {
@@ -187,6 +206,25 @@ async function handleDownload(url: string): Promise<Response> {
 
     const imageUrls = extractImageUrls(meta);
     if (imageUrls.length === 0) {
+      // Log a compact summary so we can see what yt-dlp actually returned
+      // when extraction comes up empty. This is critical for diagnosing
+      // whether IG returned a video, an empty post, or an unfamiliar shape.
+      const summary = {
+        _type: meta?._type,
+        ext: meta?.ext,
+        has_display_url: !!meta?.display_url,
+        has_url: !!meta?.url,
+        has_thumbnail: !!meta?.thumbnail,
+        thumbnails_count: Array.isArray(meta?.thumbnails) ? meta.thumbnails.length : 0,
+        formats_count: Array.isArray(meta?.formats) ? meta.formats.length : 0,
+        entries_count: Array.isArray(meta?.entries) ? meta.entries.length : 0,
+        first_entry_keys: Array.isArray(meta?.entries) && meta.entries[0]
+          ? Object.keys(meta.entries[0]).slice(0, 20)
+          : [],
+        first_entry_ext: meta?.entries?.[0]?.ext,
+        title: typeof meta?.title === "string" ? meta.title.slice(0, 80) : undefined,
+      };
+      console.warn(`[photos:${platform}] no images extracted; meta summary:`, JSON.stringify(summary));
       cleanup();
       return new Response(
         `No images found. If this is a video, use the ${platform === "instagram" ? "Reel" : "Video"} downloader instead.`,
