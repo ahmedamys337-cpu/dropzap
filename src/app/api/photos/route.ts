@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { spawn } from "child_process";
 import { createReadStream } from "fs";
-import { mkdir, readdir, stat, rm } from "fs/promises";
+import { mkdir, stat, rm } from "fs/promises";
 import { tmpdir } from "os";
 import { join } from "path";
 import { randomUUID } from "crypto";
@@ -56,15 +56,61 @@ function platformPrefix(url: string): string {
   return "post";
 }
 
-function runYtDlp(args: string[]): Promise<{ code: number; stderr: string }> {
+function runYtDlpJson(args: string[]): Promise<{ code: number; stdout: string; stderr: string }> {
   return new Promise((resolve) => {
     const proc = spawn("yt-dlp", args, { stdio: ["ignore", "pipe", "pipe"] });
+    let stdout = "";
     let stderr = "";
+    proc.stdout?.on("data", (c: Buffer) => { stdout += c.toString(); });
     proc.stderr?.on("data", (c: Buffer) => { stderr += c.toString(); });
-    proc.stdout?.on("data", () => {});
-    proc.on("close", (code) => resolve({ code: code ?? 1, stderr }));
-    proc.on("error", () => resolve({ code: 1, stderr }));
+    proc.on("close", (code) => resolve({ code: code ?? 1, stdout, stderr }));
+    proc.on("error", () => resolve({ code: 1, stdout, stderr }));
   });
+}
+
+// Pull image URLs out of yt-dlp's JSON metadata. Handles both single posts
+// (top-level `display_url` / `thumbnail`) and carousels (`entries[]`).
+// We deliberately prefer `display_url` (full-res original) over `thumbnail`
+// (cropped). For video slides we skip — this endpoint is image-only.
+function extractImageUrls(meta: any): string[] {
+  const urls: string[] = [];
+  const pick = (entry: any) => {
+    if (!entry || typeof entry !== "object") return;
+    // Skip slides that are videos (have formats / ext mp4)
+    const isVideo = Array.isArray(entry.formats) && entry.formats.some((f: any) => f?.vcodec && f.vcodec !== "none");
+    if (isVideo) return;
+    const u = entry.display_url || entry.url || entry.thumbnail;
+    if (typeof u === "string" && /^https?:\/\//.test(u)) urls.push(u);
+  };
+  if (Array.isArray(meta?.entries) && meta.entries.length > 0) {
+    for (const e of meta.entries) pick(e);
+  } else {
+    pick(meta);
+  }
+  return urls;
+}
+
+async function fetchToFile(url: string, dest: string): Promise<{ ext: string }> {
+  const res = await fetch(url, {
+    headers: {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+      "Accept": "image/avif,image/webp,image/png,image/jpeg,*/*",
+    },
+  });
+  if (!res.ok || !res.body) throw new Error(`fetch ${res.status}`);
+  const ct = res.headers.get("content-type") || "";
+  const ext = ct.includes("png") ? ".png"
+    : ct.includes("webp") ? ".webp"
+    : ct.includes("heic") ? ".heic"
+    : ".jpg";
+  const fs = await import("fs");
+  const { Readable } = await import("stream");
+  const { pipeline } = await import("stream/promises");
+  await pipeline(
+    Readable.fromWeb(res.body as any),
+    fs.createWriteStream(dest + ext),
+  );
+  return { ext };
 }
 
 export async function POST(request: NextRequest) {
@@ -101,29 +147,24 @@ async function handleDownload(url: string): Promise<Response> {
   const cleanup = () => rm(workDir, { recursive: true, force: true }).catch(() => {});
 
   try {
-    // playlist_index in the template gives us a stable slide ordering for
-    // carousels. --no-playlist keeps us from accidentally following profile
-    // listings; for albums yt-dlp still follows the in-post slide list.
-    //
-    // getGenericCookiesArgs() injects --cookies <file> when YOUTUBE_COOKIES
-    // env var is set. Despite the name, the cookies file can hold IG/FB
-    // cookies alongside YouTube's; yt-dlp filters by domain. Without
-    // cookies, Instagram returns 401 / "login required" for many posts —
-    // those failures are the most common cause of the user-visible
-    // "Site wasn't available" download error.
+    // Use -J (dump-single-json) instead of downloading. yt-dlp's Instagram
+    // extractor errors with "No video formats found" on image-only posts when
+    // asked to download, but its JSON metadata still includes display_url for
+    // every slide. We then fetch those image URLs directly — bypasses the
+    // video-format requirement entirely.
     const args = [
       url,
+      "-J",
+      "--flat-playlist",
       ...getGenericCookiesArgs(),
-      "-o", join(workDir, "%(playlist_index)s-%(id)s.%(ext)s"),
       "--no-check-certificates",
       "--no-warnings",
-      "--no-playlist",
       "--socket-timeout", "30",
     ];
 
-    const { code, stderr } = await runYtDlp(args);
-    if (code !== 0) {
-      console.warn(`[photos:${platform}] yt-dlp failed:`, stderr.slice(0, 400));
+    const { code, stdout, stderr } = await runYtDlpJson(args);
+    if (code !== 0 || !stdout.trim()) {
+      console.warn(`[photos:${platform}] yt-dlp -J failed:`, stderr.slice(0, 400));
       cleanup();
       const friendly = /private|login|account|not.*available/i.test(stderr)
         ? "This post is private, deleted, or requires login."
@@ -131,22 +172,44 @@ async function handleDownload(url: string): Promise<Response> {
       return new Response(friendly, { status: 502 });
     }
 
-    const entries = await readdir(workDir);
-    const images = entries.filter((n) => IMAGE_EXT_RE.test(n)).sort();
-    const videos = entries.filter((n) => /\.mp4$/i.test(n));
-
-    if (images.length === 0) {
+    let meta: any;
+    try { meta = JSON.parse(stdout); }
+    catch (e) {
+      console.warn(`[photos:${platform}] JSON parse failed`);
       cleanup();
-      const msg = videos.length > 0
-        ? `This post contains only video. Use the ${platform === "instagram" ? "Reel" : "Video"} downloader instead.`
-        : "No images found in this post.";
-      return new Response(msg, { status: 422 });
+      return new Response("Failed to parse post metadata", { status: 502 });
     }
 
-    if (images.length === 1) {
-      return streamSingleImage(join(workDir, images[0]), images[0], platform, cleanup);
+    const imageUrls = extractImageUrls(meta);
+    if (imageUrls.length === 0) {
+      cleanup();
+      return new Response(
+        `No images found. If this is a video, use the ${platform === "instagram" ? "Reel" : "Video"} downloader instead.`,
+        { status: 422 },
+      );
     }
-    return streamZip(workDir, images, platform, cleanup);
+
+    // Download each image URL into workDir with a stable index prefix.
+    const downloaded: string[] = [];
+    for (let i = 0; i < imageUrls.length; i++) {
+      const base = join(workDir, String(i + 1).padStart(2, "0"));
+      try {
+        const { ext } = await fetchToFile(imageUrls[i], base);
+        downloaded.push(`${String(i + 1).padStart(2, "0")}${ext}`);
+      } catch (e: any) {
+        console.warn(`[photos:${platform}] image ${i + 1} fetch failed:`, e?.message);
+      }
+    }
+
+    if (downloaded.length === 0) {
+      cleanup();
+      return new Response("Failed to download any images from this post.", { status: 502 });
+    }
+
+    if (downloaded.length === 1) {
+      return streamSingleImage(join(workDir, downloaded[0]), downloaded[0], platform, cleanup);
+    }
+    return streamZip(workDir, downloaded, platform, cleanup);
   } catch (e: any) {
     console.error(`[photos:${platform}] handler error:`, e?.message);
     cleanup();
