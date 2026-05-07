@@ -1,6 +1,6 @@
 import { execFile } from "child_process";
 import { promisify } from "util";
-import { writeFileSync } from "fs";
+import { writeFileSync, readFileSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 import { getYoutubeInfoViaPiped, extractYoutubeVideoId } from "./youtube-piped";
@@ -67,6 +67,45 @@ function getCookiesArgs(): string[] {
 // always spread it into their args list without conditional checks.
 export function getGenericCookiesArgs(): string[] {
   return getCookiesArgs();
+}
+
+// Build a Cookie header string for a given hostname from the same Netscape
+// cookies file yt-dlp uses. Needed by endpoints that bypass yt-dlp and call
+// platform APIs directly (e.g. Instagram's private /api/v1/media/.../info/
+// endpoint, which yt-dlp can't see). Returns "" if no cookies file is set
+// or no cookies match the host's domain.
+//
+// Netscape cookies.txt format (tab-separated, one cookie per line):
+//   domain  HTTPONLY_FLAG  path  secure  expires  name  value
+// Lines starting with `#` are comments, except `#HttpOnly_` which prefixes
+// HttpOnly cookies. Domain matching: a cookie with domain `.foo.com` is
+// sent for any subdomain of foo.com; an exact-match cookie (no leading dot)
+// only matches that exact host. We replicate that here.
+export function getCookieHeader(hostname: string): string {
+  if (!cookiesFilePath) return "";
+  let raw = "";
+  try { raw = readFileSync(cookiesFilePath, "utf-8"); } catch { return ""; }
+  const host = hostname.toLowerCase();
+  const pairs: string[] = [];
+  for (const rawLine of raw.split(/\r?\n/)) {
+    let line = rawLine;
+    if (!line) continue;
+    if (line.startsWith("#HttpOnly_")) line = line.slice("#HttpOnly_".length);
+    if (line.startsWith("#")) continue;
+    const cols = line.split("\t");
+    if (cols.length < 7) continue;
+    const [domainRaw, , , , , name, value] = cols;
+    const domain = domainRaw.toLowerCase();
+    const isWild = domain.startsWith(".");
+    const bare = isWild ? domain.slice(1) : domain;
+    const match = isWild
+      ? host === bare || host.endsWith("." + bare)
+      : host === bare;
+    if (!match) continue;
+    if (!name) continue;
+    pairs.push(`${name}=${value ?? ""}`);
+  }
+  return pairs.join("; ");
 }
 
 // Parse YOUTUBE_PROXIES env var into a list of proxy URLs

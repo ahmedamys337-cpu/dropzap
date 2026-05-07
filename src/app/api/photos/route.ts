@@ -7,7 +7,7 @@ import { join } from "path";
 import { randomUUID } from "crypto";
 import archiver from "archiver";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
-import { getGenericCookiesArgs } from "@/lib/ytdlp";
+import { getGenericCookiesArgs, getCookieHeader } from "@/lib/ytdlp";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -109,6 +109,99 @@ function extractImageUrls(meta: any): string[] {
   return urls;
 }
 
+// =============================================================================
+// Instagram private-API extractor
+//
+// yt-dlp's IG extractor returns shallow carousel entries (no display_url,
+// no thumbnails) on Render — even with -j and proper cookies. So for IG
+// we hit IG's public-but-undocumented mobile API directly:
+//
+//   GET https://i.instagram.com/api/v1/media/{media_id}/info/
+//   Headers:
+//     X-IG-App-ID: 936619743392459     (constant for the web app)
+//     User-Agent:   <Instagram mobile UA>
+//     Cookie:       <session cookies>   (optional but recommended)
+//
+// This is the same endpoint IG's own web frontend calls. It returns full
+// carousel data including image_versions2.candidates[].url for every slide.
+// Works for public posts without cookies; cookies unlock private-followed
+// posts.
+//
+// Shortcode → media_id conversion: IG shortcodes are base64-encoded big
+// integers using a custom alphabet (A–Z, a–z, 0–9, -, _). We decode it back
+// to the numeric ID the API expects.
+// =============================================================================
+const IG_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+function shortcodeToMediaId(shortcode: string): string | null {
+  let id = BigInt(0);
+  const SIXTY_FOUR = BigInt(64);
+  for (const c of shortcode) {
+    const idx = IG_ALPHABET.indexOf(c);
+    if (idx < 0) return null;
+    id = id * SIXTY_FOUR + BigInt(idx);
+  }
+  return id.toString();
+}
+
+function extractIgShortcode(url: string): string | null {
+  // Matches /p/<code>, /reel/<code>, /tv/<code>, /reels/<code>
+  const m = url.match(/instagram\.com\/(?:p|reel|reels|tv)\/([A-Za-z0-9_-]+)/i);
+  return m ? m[1] : null;
+}
+
+async function fetchInstagramImageUrls(postUrl: string): Promise<string[] | null> {
+  const shortcode = extractIgShortcode(postUrl);
+  if (!shortcode) return null;
+  const mediaId = shortcodeToMediaId(shortcode);
+  if (!mediaId) return null;
+
+  const apiUrl = `https://i.instagram.com/api/v1/media/${mediaId}/info/`;
+  const cookieHeader = getCookieHeader("i.instagram.com") || getCookieHeader("www.instagram.com");
+
+  const headers: Record<string, string> = {
+    "X-IG-App-ID": "936619743392459",
+    "User-Agent": "Instagram 219.0.0.12.117 Android (28/9; 480dpi; 1080x2137; samsung; SM-N960U; crownqltesq; qcom; en_US; 346138365)",
+    "Accept": "*/*",
+    "Accept-Language": "en-US,en;q=0.9",
+  };
+  if (cookieHeader) headers["Cookie"] = cookieHeader;
+
+  let res: Response;
+  try {
+    res = await fetch(apiUrl, { headers, redirect: "follow" });
+  } catch (e: any) {
+    console.warn(`[photos:instagram] private-API fetch failed:`, e?.message);
+    return null;
+  }
+  if (!res.ok) {
+    console.warn(`[photos:instagram] private-API status ${res.status} for ${shortcode}`);
+    return null;
+  }
+  let data: any;
+  try { data = await res.json(); } catch { return null; }
+
+  const item = data?.items?.[0];
+  if (!item) return null;
+
+  const urls: string[] = [];
+  // Carousel: items[0].carousel_media[] each with image_versions2.candidates[].url
+  // Single image: items[0].image_versions2.candidates[].url
+  // Video slides have video_versions[]; we skip those (image-only endpoint).
+  const slides = Array.isArray(item.carousel_media) && item.carousel_media.length > 0
+    ? item.carousel_media
+    : [item];
+  for (const s of slides) {
+    if (Array.isArray(s.video_versions) && s.video_versions.length > 0) continue;
+    const candidates = s?.image_versions2?.candidates;
+    if (Array.isArray(candidates) && candidates.length > 0) {
+      // First candidate is the highest-resolution version
+      const top = candidates[0]?.url;
+      if (typeof top === "string" && /^https?:\/\//.test(top)) urls.push(top);
+    }
+  }
+  return urls;
+}
+
 async function fetchToFile(url: string, dest: string): Promise<{ ext: string }> {
   const res = await fetch(url, {
     headers: {
@@ -166,6 +259,36 @@ async function handleDownload(url: string): Promise<Response> {
   const cleanup = () => rm(workDir, { recursive: true, force: true }).catch(() => {});
 
   try {
+    // ── Instagram fast path: hit IG's private API directly ─────────────
+    // yt-dlp's IG extractor returns shallow carousel entries on Render
+    // (no display_url). Bypassing it with the private mobile API is
+    // dramatically faster and actually returns full carousel data.
+    if (platform === "instagram") {
+      const igUrls = await fetchInstagramImageUrls(url);
+      if (igUrls && igUrls.length > 0) {
+        console.log(`[photos:instagram] private-API got ${igUrls.length} image(s)`);
+        const downloaded: string[] = [];
+        for (let i = 0; i < igUrls.length; i++) {
+          const base = join(workDir, String(i + 1).padStart(2, "0"));
+          try {
+            const { ext } = await fetchToFile(igUrls[i], base);
+            downloaded.push(`${String(i + 1).padStart(2, "0")}${ext}`);
+          } catch (e: any) {
+            console.warn(`[photos:instagram] image ${i + 1} fetch failed:`, e?.message);
+          }
+        }
+        if (downloaded.length > 0) {
+          if (downloaded.length === 1) {
+            return streamSingleImage(join(workDir, downloaded[0]), downloaded[0], platform, cleanup);
+          }
+          return streamZip(workDir, downloaded, platform, cleanup);
+        }
+        // Fell through (all image fetches failed) → try yt-dlp below.
+      }
+      // igUrls null/empty → post might be a video, or API blocked us.
+      // Fall through to yt-dlp which can handle other shapes.
+    }
+
     // Use -j (lowercase) which forces full extraction of every entry in a
     // playlist/carousel and prints ONE JSON object per entry (NDJSON).
     //
