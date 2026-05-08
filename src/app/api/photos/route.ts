@@ -248,8 +248,32 @@ type FbPhotoResult =
 // the resulting HTML.
 //
 // Cap at 30 photos to keep latency / disk usage sane and avoid abuse.
+// Harvest all photo fbids that appear on a given FB page (either the album
+// listing /media/set/?set=a.Y or the in-album single-photo viewer
+// /photo/?fbid=X&set=a.Y). FB embeds prev/next navigation data with all
+// album fbids in the page's JSON blobs when the viewer is logged in.
+//
+// Regex passes are intentionally generous: mbasic uses `photo.php?fbid=N`,
+// www uses `/photo/?fbid=N`, the GraphQL response embeds `"fbid":"N"` AND
+// `"node_id":"N"`, and permalink-style URLs use `/photos/<set>/<fbid>/`.
+function harvestFbidsFromHtml(html: string): string[] {
+  const ids = new Set<string>();
+  const patterns: RegExp[] = [
+    /(?:photo\.php\?fbid=|\/photo\/\?fbid=)(\d{8,})/gi,
+    /"fbid":"?(\d{8,})"?/gi,
+    /\/photos\/[^"'\s\\]*?\/(\d{8,})(?:\/|\?|"|\\)/gi,
+    /"id":"(\d{15,})"\s*,\s*"__typename":"Photo"/gi,
+    /story_fbid=(\d{8,})/gi,
+  ];
+  for (const re of patterns) {
+    for (const m of html.matchAll(re)) ids.add(m[1]);
+  }
+  return Array.from(ids);
+}
+
 async function fetchFacebookAlbumFbids(
   setParam: string,
+  originalFbid: string | null,
   cookieHeader: string,
 ): Promise<string[]> {
   const ANDROID_UA =
@@ -257,15 +281,31 @@ async function fetchFacebookAlbumFbids(
   const DESKTOP_UA =
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 
-  // mbasic gives clean static HTML with explicit photo.php?fbid=N links —
-  // ideal for regex harvesting when it's not login-walled. Fall through to
-  // www if mbasic walls us.
-  const mirrors: { url: string; ua: string }[] = [
-    { url: `https://mbasic.facebook.com/media/set/?set=${encodeURIComponent(setParam)}`, ua: ANDROID_UA },
-    { url: `https://m.facebook.com/media/set/?set=${encodeURIComponent(setParam)}`, ua: ANDROID_UA },
-    { url: `https://www.facebook.com/media/set/?set=${encodeURIComponent(setParam)}`, ua: DESKTOP_UA },
-  ];
+  // The www photo viewer with `set=a.Y` is the most reliable source: its
+  // JSON contains every album photo's fbid for the prev/next strip, and
+  // we already know it doesn't login-wall when cookies are valid (it's
+  // the same URL the single-photo extractor succeeds on).
+  //
+  // mbasic/m album listings come second — they often render a paginated
+  // grid with explicit photo.php?fbid=N hrefs, but they login-wall more
+  // often than the www photo viewer.
+  const mirrors: { url: string; ua: string; label: string }[] = [];
+  if (originalFbid) {
+    mirrors.push({
+      url: `https://www.facebook.com/photo/?fbid=${originalFbid}&set=${encodeURIComponent(setParam)}`,
+      ua: DESKTOP_UA,
+      label: "www-viewer",
+    });
+  }
+  mirrors.push(
+    { url: `https://mbasic.facebook.com/media/set/?set=${encodeURIComponent(setParam)}`, ua: ANDROID_UA, label: "mbasic-set" },
+    { url: `https://m.facebook.com/media/set/?set=${encodeURIComponent(setParam)}`, ua: ANDROID_UA, label: "m-set" },
+    { url: `https://www.facebook.com/media/set/?set=${encodeURIComponent(setParam)}`, ua: DESKTOP_UA, label: "www-set" },
+  );
 
+  // Aggregate fbids across mirrors so a partial result from one mirror
+  // can be supplemented by another. Stop early once we have plenty.
+  const all = new Set<string>();
   for (const m of mirrors) {
     try {
       const res = await fetch(m.url, {
@@ -277,32 +317,24 @@ async function fetchFacebookAlbumFbids(
         },
         redirect: "follow",
       });
-      console.log(`[photos:facebook] album ${m.url} -> ${res.status} (final: ${res.url})`);
+      console.log(`[photos:facebook] album:${m.label} ${m.url} -> ${res.status} (final: ${res.url})`);
       if (/\/(login|checkpoint|recover)/i.test(res.url) || !res.ok) continue;
       const html = await res.text();
-      if (/Log in to Facebook|You must log in/i.test(html) && !/photo\.php\?fbid=/i.test(html)) continue;
+      if (/Log in to Facebook|You must log in/i.test(html) && !/fbid/i.test(html)) continue;
 
-      // Collect every fbid value referenced on the page. mbasic uses
-      // photo.php?fbid=N; www uses /photo/?fbid=N and JSON "fbid":"N".
-      const ids = new Set<string>();
-      for (const mm of html.matchAll(/(?:photo\.php\?fbid=|\/photo\/\?fbid=|"fbid":")(\d{6,})/gi)) {
-        ids.add(mm[1]);
-      }
-      // Also `pcb.<id>` style permalinks sometimes appear
-      for (const mm of html.matchAll(/\/photos\/[^"'\/\s]+\/(\d{6,})\//gi)) {
-        ids.add(mm[1]);
-      }
-      const arr = Array.from(ids);
-      if (arr.length > 0) {
-        console.log(`[photos:facebook] album extracted ${arr.length} fbid(s) from ${m.url}`);
-        return arr.slice(0, 30);
-      }
-      console.log(`[photos:facebook] album page had 0 fbids (size=${html.length})`);
+      const ids = harvestFbidsFromHtml(html);
+      console.log(`[photos:facebook] album:${m.label} harvested ${ids.length} fbid(s) (size=${html.length})`);
+      for (const id of ids) all.add(id);
+
+      // The www viewer reliably exposes every prev/next sibling — once
+      // we get >= 2 ids from it, that's the whole album in nearly all
+      // cases. Skip the slower /media/set/ mirrors.
+      if (m.label === "www-viewer" && all.size >= 2) break;
     } catch (e: any) {
-      console.warn(`[photos:facebook] album fetch ${m.url} threw:`, e?.message);
+      console.warn(`[photos:facebook] album:${m.label} threw:`, e?.message);
     }
   }
-  return [];
+  return Array.from(all).slice(0, 30);
 }
 
 async function fetchFacebookImageUrl(postUrl: string): Promise<FbPhotoResult> {
@@ -605,7 +637,7 @@ async function handleDownload(url: string): Promise<Response> {
       // listing missed it). Otherwise just the single fbid.
       let fbids: string[] = [];
       if (setParam && /^a\./.test(setParam)) {
-        const albumIds = await fetchFacebookAlbumFbids(setParam, fbCookieHeader);
+        const albumIds = await fetchFacebookAlbumFbids(setParam, originalFbid, fbCookieHeader);
         if (albumIds.length > 0) {
           const dedup = new Set<string>();
           if (originalFbid) dedup.add(originalFbid);
