@@ -232,7 +232,16 @@ async function fetchInstagramImageUrls(postUrl: string): Promise<string[] | null
 // photo as a static page with a clean og:image meta tag — no login wall
 // for public photos. We fetch that, regex out og:image, done.
 // =============================================================================
-async function fetchFacebookImageUrl(postUrl: string): Promise<string | null> {
+/**
+ * Result type so callers can distinguish "post is genuinely empty" (null)
+ * from "we got walled by FB on every mirror" (loginWalled=true). The latter
+ * surfaces a more actionable error to the user.
+ */
+type FbPhotoResult =
+  | { url: string; loginWalled?: false }
+  | { url: null; loginWalled: boolean };
+
+async function fetchFacebookImageUrl(postUrl: string): Promise<FbPhotoResult> {
   // Extract fbid (the photo ID) from any URL shape FB uses.
   let fbid: string | null = null;
   try {
@@ -244,80 +253,104 @@ async function fetchFacebookImageUrl(postUrl: string): Promise<string | null> {
     }
   } catch {}
 
-  // Try multiple mirrors in order. mbasic is the "no-JS legacy" variant
-  // that's most permissive for anonymous viewers, but it sometimes 302s
-  // to a login wall. m.facebook.com (mobile) is occasionally more
-  // generous, especially when sent FB cookies. We try both.
-  const candidates: string[] = [];
-  if (fbid) {
-    candidates.push(`https://mbasic.facebook.com/photo.php?fbid=${fbid}`);
-    candidates.push(`https://m.facebook.com/photo.php?fbid=${fbid}`);
-  }
-  candidates.push(postUrl.replace(/(www|m|web)\.facebook\.com/i, "mbasic.facebook.com"));
-
-  const cookieHeader =
-    getCookieHeader("mbasic.facebook.com") ||
-    getCookieHeader("m.facebook.com") ||
+  // Pull cookies once. We log the count so deployment issues (no FB cookies
+  // in MEDIA_COOKIES) are diagnosable from the server logs.
+  const fbCookieHeader =
     getCookieHeader("www.facebook.com") ||
     getCookieHeader("facebook.com") ||
-    getCookieHeader(".facebook.com");
+    getCookieHeader(".facebook.com") ||
+    getCookieHeader("mbasic.facebook.com") ||
+    getCookieHeader("m.facebook.com");
+  const cookieNames = fbCookieHeader
+    ? fbCookieHeader.split(";").map((p) => p.trim().split("=")[0]).filter(Boolean)
+    : [];
+  const hasSession = cookieNames.includes("c_user") && cookieNames.includes("xs");
+  console.log(`[photos:facebook] cookieCount=${cookieNames.length} hasSession=${hasSession}`);
 
-  // Reject FB logos and other static assets that aren't actual photos.
-  // Real FB photos always live on scontent*.fbcdn.net (CDN). FB chrome
-  // assets (logo, navigation icons) live on static.xx.fbcdn.net. The
-  // login-wall og:image is the FB logo on static, so this filter is what
-  // distinguishes "got the photo" from "got bounced to login".
+  // Each candidate carries its own UA — desktop www.facebook.com needs a
+  // modern desktop UA, while mbasic only renders for an old Android UA.
+  const ANDROID_UA =
+    "Mozilla/5.0 (Linux; Android 4.4; Nexus 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.93 Mobile Safari/537.36";
+  const DESKTOP_UA =
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
+
+  type Candidate = { url: string; ua: string };
+  const candidates: Candidate[] = [];
+  if (fbid) {
+    // mbasic + m.facebook give clean HTML when they don't login-wall.
+    candidates.push({ url: `https://mbasic.facebook.com/photo.php?fbid=${fbid}`, ua: ANDROID_UA });
+    candidates.push({ url: `https://m.facebook.com/photo.php?fbid=${fbid}`, ua: ANDROID_UA });
+    // Desktop www.facebook.com path — when the user has valid FB cookies in
+    // MEDIA_COOKIES this is the most reliable: scontent URLs are inlined
+    // in the page's JSON blobs and the og:image is the real photo.
+    candidates.push({ url: `https://www.facebook.com/photo/?fbid=${fbid}`, ua: DESKTOP_UA });
+    candidates.push({ url: `https://www.facebook.com/photo.php?fbid=${fbid}`, ua: DESKTOP_UA });
+  }
+  // Last-ditch: rewrite the original to mbasic in case it carried params we
+  // need (set=, id=) that the bare ?fbid= form doesn't.
+  candidates.push({
+    url: postUrl.replace(/(www|m|web)\.facebook\.com/i, "mbasic.facebook.com"),
+    ua: ANDROID_UA,
+  });
+
+  // Reject FB logos and other static assets. Real photos live on
+  // scontent*.fbcdn.net / external.fbcdn.net; chrome assets (logo, nav
+  // icons) live on static.xx.fbcdn.net which the login-wall og:image
+  // points to.
   const isRealPhoto = (u: string) => /^https:\/\/(?:scontent|external)[^/]*\.fbcdn\.net\//i.test(u);
 
-  for (const tryUrl of candidates) {
+  let everWalled = false;
+
+  for (const c of candidates) {
     try {
-      const res = await fetch(tryUrl, {
+      const res = await fetch(c.url, {
         headers: {
-          // Old Android Chrome UA: mbasic gives full HTML for this; modern UAs
-          // get redirected to the JS-heavy m.facebook.com which we can't parse.
-          "User-Agent": "Mozilla/5.0 (Linux; Android 4.4; Nexus 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.93 Mobile Safari/537.36",
-          "Accept": "text/html,*/*",
-          ...(cookieHeader ? { Cookie: cookieHeader } : {}),
+          "User-Agent": c.ua,
+          "Accept": "text/html,application/xhtml+xml,*/*",
+          "Accept-Language": "en-US,en;q=0.9",
+          ...(fbCookieHeader ? { Cookie: fbCookieHeader } : {}),
         },
         redirect: "follow",
       });
-      console.log(`[photos:facebook] ${tryUrl} -> ${res.status} (final: ${res.url})`);
-      // If FB redirected us to a login/checkpoint URL, this mirror won't work.
+      console.log(`[photos:facebook] ${c.url} -> ${res.status} (final: ${res.url})`);
+
+      // FB redirected us to a login/checkpoint URL → this mirror won't work.
       if (/\/(login|checkpoint|recover)/i.test(res.url)) {
         console.log(`[photos:facebook] hit login wall, trying next mirror`);
+        everWalled = true;
         continue;
       }
       if (!res.ok) continue;
       const html = await res.text();
 
-      // Skip if HTML is a login form (sometimes the URL looks fine but body
-      // is the login wall served as 200).
+      // Body-level login wall served at the original URL with HTTP 200.
       if (/Log in to Facebook|You must log in/i.test(html) && !/scontent[^/]*\.fbcdn\.net/i.test(html)) {
         console.log(`[photos:facebook] login-wall body detected`);
+        everWalled = true;
         continue;
       }
 
-      // Preference order: explicit "View full size" anchor → og:image → any
-      // scontent URL anywhere in HTML. Each result is gated by isRealPhoto
-      // so we never return the FB logo.
+      // Preference: explicit "View full size" anchor → og:image → first
+      // scontent URL anywhere. All gated by isRealPhoto so the FB logo
+      // (static.xx.fbcdn.net) is rejected.
       const anchor = html.match(/href="(https:\/\/[^"]*scontent[^"]*\.(?:jpe?g|png|webp)[^"]*)"/i);
       if (anchor && isRealPhoto(anchor[1])) {
-        return anchor[1].replace(/&amp;/g, "&");
+        return { url: anchor[1].replace(/&amp;/g, "&") };
       }
       const og = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
       if (og && isRealPhoto(og[1])) {
-        return og[1].replace(/&amp;/g, "&");
+        return { url: og[1].replace(/&amp;/g, "&") };
       }
       const anyMatch = html.match(/https:\/\/scontent[^"'\\\s]+\.(?:jpe?g|png|webp)[^"'\\\s]*/i);
       if (anyMatch) {
-        return anyMatch[0].replace(/&amp;/g, "&");
+        return { url: anyMatch[0].replace(/&amp;/g, "&") };
       }
       console.log(`[photos:facebook] no scontent URL in HTML (size=${html.length})`);
     } catch (e: any) {
-      console.warn(`[photos:facebook] fetch ${tryUrl} threw:`, e?.message);
+      console.warn(`[photos:facebook] fetch ${c.url} threw:`, e?.message);
     }
   }
-  return null;
+  return { url: null, loginWalled: everWalled };
 }
 
 async function fetchToFile(url: string, dest: string): Promise<{ ext: string }> {
@@ -406,22 +439,38 @@ async function handleDownload(url: string): Promise<Response> {
       // Fall through to yt-dlp which can handle other shapes.
     }
 
-    // ── Facebook fast path: scrape mbasic.facebook.com ─────────────────
-    // yt-dlp redirects FB photo URLs to /login/?next=... and gives up.
-    // mbasic delivers the same photos as plain HTML for public posts.
+    // ── Facebook fast path: scrape FB across mirrors ───────────────────
+    // yt-dlp itself gets bounced to /login/?next=... (and then errors with
+    // "Unsupported URL: .../login/..."), so we try multiple FB hosts with
+    // appropriate UAs + cookies. Returns either a CDN URL or a flag
+    // indicating every mirror hit a login wall — the latter is a
+    // deployment problem, not a "post is private" problem.
     if (platform === "facebook") {
-      const fbUrl = await fetchFacebookImageUrl(url);
-      if (fbUrl) {
-        console.log(`[photos:facebook] mbasic extractor got 1 image`);
+      const fbResult = await fetchFacebookImageUrl(url);
+      if (fbResult.url) {
+        console.log(`[photos:facebook] extractor got 1 image`);
         const base = join(workDir, "01");
         try {
-          const { ext } = await fetchToFile(fbUrl, base);
+          const { ext } = await fetchToFile(fbResult.url, base);
           return streamSingleImage(join(workDir, `01${ext}`), `01${ext}`, platform, cleanup);
         } catch (e: any) {
           console.warn(`[photos:facebook] image fetch failed:`, e?.message);
         }
+      } else if (fbResult.loginWalled) {
+        // Every mirror redirected to /login. yt-dlp will fail the same
+        // way (it already tried and emitted "Unsupported URL: .../login/").
+        // Skip the yt-dlp round-trip and surface a useful error so the
+        // user / admin knows the cause is missing/expired FB cookies, not
+        // a bug in the URL.
+        cleanup();
+        return new Response(
+          "Facebook is requiring login to view this photo. " +
+          "This usually means the post is restricted, OR the server's Facebook cookies (in MEDIA_COOKIES) are missing or expired. " +
+          "Public photos do still work when valid FB cookies are configured.",
+          { status: 403 },
+        );
       }
-      // Fall through to yt-dlp.
+      // fbResult.url null AND not walled → yt-dlp may still find it.
     }
 
     // Use -j (lowercase) which forces full extraction of every entry in a
