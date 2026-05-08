@@ -38,3 +38,7 @@ next-env.d.ts
 headers.txt
 response.bin
 *.bin
+fb.html
+*.html
+!public/**/*.html
+!src/**/*.html
