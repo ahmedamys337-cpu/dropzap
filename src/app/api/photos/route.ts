@@ -299,6 +299,34 @@ async function fetchFacebookImageUrl(postUrl: string): Promise<FbPhotoResult> {
   // points to.
   const isRealPhoto = (u: string) => /^https:\/\/(?:scontent|external)[^/]*\.fbcdn\.net\//i.test(u);
 
+  // Reject tiny thumbnails / profile pics. FB embeds the photo's owner
+  // avatar at the top of every /photo page on scontent — without this
+  // filter the first regex match is a 40x40 .png profile thumbnail, not
+  // the real photo. Patterns:
+  //   /c<x>.<y>.<w>.<h>(a|q)/     → cropped thumbnail (c0.0.40.40a)
+  //   /s<w>x<h>/ , /p<w>x<h>/     → resized variants under ~200px
+  //   /t39.30808-1/                → profile-pic CDN bucket
+  //   /t1.6435-9/, /t31.18172-8/   → cover photos / story images, not photo
+  const isThumbnailUrl = (u: string): boolean => {
+    if (/\/c\d+\.\d+\.(\d+)\.(\d+)[a-z]?\//i.test(u)) {
+      const m = u.match(/\/c\d+\.\d+\.(\d+)\.(\d+)[a-z]?\//i);
+      if (m && (parseInt(m[1], 10) <= 200 || parseInt(m[2], 10) <= 200)) return true;
+    }
+    const sm = u.match(/\/[sp](\d+)x(\d+)\//i);
+    if (sm && (parseInt(sm[1], 10) <= 200 || parseInt(sm[2], 10) <= 200)) return true;
+    if (/\/t39\.30808-1\//i.test(u)) return true; // profile pics bucket
+    return false;
+  };
+
+  // Score a scontent URL: bigger = better. Heavily penalize thumbnails so
+  // they sort last. Used as a tiebreaker after JSON dimension parsing.
+  const scoreUrl = (u: string, w?: number, h?: number): number => {
+    if (isThumbnailUrl(u)) return -1;
+    if (typeof w === "number" && typeof h === "number") return w * h;
+    // Heuristic: t39.30808-6 is the "full photo" bucket
+    return /\/t39\.30808-6\//i.test(u) ? 1_000_000 : 10_000;
+  };
+
   let everWalled = false;
 
   for (const c of candidates) {
@@ -330,22 +358,60 @@ async function fetchFacebookImageUrl(postUrl: string): Promise<FbPhotoResult> {
         continue;
       }
 
-      // Preference: explicit "View full size" anchor → og:image → first
-      // scontent URL anywhere. All gated by isRealPhoto so the FB logo
-      // (static.xx.fbcdn.net) is rejected.
-      const anchor = html.match(/href="(https:\/\/[^"]*scontent[^"]*\.(?:jpe?g|png|webp)[^"]*)"/i);
-      if (anchor && isRealPhoto(anchor[1])) {
-        return { url: anchor[1].replace(/&amp;/g, "&") };
+      // Strategy: collect ALL candidate scontent image URLs from the page,
+      // score them by dimensions / bucket type, pick the largest non-
+      // thumbnail. FB embeds the owner's avatar near the top of every
+      // /photo page, so a naive "first match wins" picks a 40x40 profile
+      // pic instead of the real photo.
+      type Cand = { url: string; score: number; src: string };
+      const cands: Cand[] = [];
+      const norm = (s: string) => s.replace(/\\\//g, "/").replace(/&amp;/g, "&");
+
+      // 1. JSON shape: "uri":"https:\/\/scontent...","height":N,"width":N
+      //    The width/height let us pick the actual full-resolution image.
+      const jsonRe = /"uri":"(https:\\?\/\\?\/[^"\\]*scontent[^"\\]*\.(?:jpe?g|png|webp)[^"\\]*)"\s*,\s*"height":(\d+)\s*,\s*"width":(\d+)/gi;
+      for (const m of html.matchAll(jsonRe)) {
+        const u = norm(m[1]);
+        if (!isRealPhoto(u)) continue;
+        const w = parseInt(m[3], 10), h = parseInt(m[2], 10);
+        cands.push({ url: u, score: scoreUrl(u, w, h), src: `json(${w}x${h})` });
       }
+
+      // 2. og:image meta tag — usually the real photo when cookies are valid.
       const og = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
-      if (og && isRealPhoto(og[1])) {
-        return { url: og[1].replace(/&amp;/g, "&") };
+      if (og) {
+        const u = norm(og[1]);
+        if (isRealPhoto(u)) cands.push({ url: u, score: scoreUrl(u), src: "og:image" });
       }
-      const anyMatch = html.match(/https:\/\/scontent[^"'\\\s]+\.(?:jpe?g|png|webp)[^"'\\\s]*/i);
-      if (anyMatch) {
-        return { url: anyMatch[0].replace(/&amp;/g, "&") };
+
+      // 3. Anchor href to a full-size scontent jpeg (mbasic "View full size").
+      for (const m of html.matchAll(/href=["'](https:\/\/[^"']*scontent[^"']*\.(?:jpe?g|png|webp)[^"']*)["']/gi)) {
+        const u = norm(m[1]);
+        if (isRealPhoto(u)) cands.push({ url: u, score: scoreUrl(u), src: "anchor" });
       }
-      console.log(`[photos:facebook] no scontent URL in HTML (size=${html.length})`);
+
+      // 4. Any scontent URL anywhere in the HTML (last-resort sweep).
+      for (const m of html.matchAll(/https:\\?\/\\?\/scontent[^"'\\\s]+\.(?:jpe?g|png|webp)[^"'\\\s]*/gi)) {
+        const u = norm(m[0]);
+        if (isRealPhoto(u)) cands.push({ url: u, score: scoreUrl(u), src: "sweep" });
+      }
+
+      // Dedupe by URL keeping the highest score.
+      const byUrl = new Map<string, Cand>();
+      for (const c of cands) {
+        const prev = byUrl.get(c.url);
+        if (!prev || c.score > prev.score) byUrl.set(c.url, c);
+      }
+      const ranked = Array.from(byUrl.values())
+        .filter((c) => c.score >= 0)
+        .sort((a, b) => b.score - a.score);
+
+      if (ranked.length > 0) {
+        const top = ranked[0];
+        console.log(`[photos:facebook] picked ${top.src} score=${top.score} candidates=${ranked.length}`);
+        return { url: top.url };
+      }
+      console.log(`[photos:facebook] no usable scontent URL in HTML (size=${html.length}, raw=${cands.length})`);
     } catch (e: any) {
       console.warn(`[photos:facebook] fetch ${c.url} threw:`, e?.message);
     }
