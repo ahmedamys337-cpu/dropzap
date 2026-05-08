@@ -22,9 +22,30 @@ export default function InstagramDownloader({
 }: {
   onDownload?: (title: string, url: string, type: string) => void;
 }) {
-  const igButton =
-    "bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 hover:opacity-90 shadow-pink-600/30";
-  const igChip = "bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500";
+  // Two visually distinct themes so the side-by-side cards read as
+  // different products at a glance:
+  //   • Reel / Video → cool indigo→violet (#4F46E5 → #7C3AED)
+  //   • Photos       → warm coral→pink   (#F97316 → #EC4899)
+  const reelTheme = {
+    icon: "bg-gradient-to-br from-indigo-600 to-violet-600",
+    button:
+      "bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 shadow-violet-600/30",
+    border: "border-indigo-500/30",
+    leftAccent: "border-l-4 border-l-indigo-600",
+    hoverShadow: "hover:shadow-indigo-500/30",
+    inputRing: "focus-visible:ring-indigo-500",
+    badge: "bg-indigo-500/10 text-indigo-700 dark:text-indigo-300",
+  };
+  const photoTheme = {
+    icon: "bg-gradient-to-br from-orange-500 to-pink-500",
+    button:
+      "bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-400 hover:to-pink-400 shadow-pink-500/30",
+    border: "border-orange-500/30",
+    leftAccent: "border-l-4 border-l-orange-500",
+    hoverShadow: "hover:shadow-orange-500/30",
+    inputRing: "focus-visible:ring-orange-500",
+    badge: "bg-orange-500/10 text-orange-700 dark:text-orange-300",
+  };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -32,8 +53,10 @@ export default function InstagramDownloader({
         icon={<Film className="h-5 w-5" />}
         title="Reel & Video Downloader"
         description="Save Instagram Reels, IGTV, and video posts as MP4 in HD."
-        iconBgClassName={igChip}
-        borderColorClassName="border-pink-600/25"
+        iconBgClassName={reelTheme.icon}
+        borderColorClassName={reelTheme.border}
+        borderLeftAccentClassName={reelTheme.leftAccent}
+        hoverShadowClassName={reelTheme.hoverShadow}
       >
         <SimpleDownloader
           platform="Instagram"
@@ -41,7 +64,10 @@ export default function InstagramDownloader({
           mediaTypeLabel="Reel / Video MP4"
           placeholder="Paste Instagram Reel or video URL..."
           validate={isValidInstagramUrl}
-          buttonClassName={igButton}
+          buttonClassName={reelTheme.button}
+          inputFocusRingClassName={reelTheme.inputRing}
+          badges={[{ icon: "🎬", label: "Output: MP4 HD" }]}
+          badgeClassName={reelTheme.badge}
           help="Works on any public Reel, IGTV episode, or video post."
           onDownload={onDownload}
         />
@@ -51,8 +77,10 @@ export default function InstagramDownloader({
         icon={<Images className="h-5 w-5" />}
         title="Photos & Carousel Downloader"
         description="Single photo → JPG. Multi-slide carousel → ZIP of all images."
-        iconBgClassName={igChip}
-        borderColorClassName="border-pink-600/25"
+        iconBgClassName={photoTheme.icon}
+        borderColorClassName={photoTheme.border}
+        borderLeftAccentClassName={photoTheme.leftAccent}
+        hoverShadowClassName={photoTheme.hoverShadow}
       >
         <SimpleDownloader
           platform="Instagram"
@@ -60,7 +88,13 @@ export default function InstagramDownloader({
           mediaTypeLabel="Photo / Carousel"
           placeholder="Paste Instagram photo or carousel URL..."
           validate={isValidInstagramUrl}
-          buttonClassName={igButton}
+          buttonClassName={photoTheme.button}
+          inputFocusRingClassName={photoTheme.inputRing}
+          badges={[
+            { icon: "🖼️", label: "Output: JPG" },
+            { icon: "📦", label: "Carousel → ZIP" },
+          ]}
+          badgeClassName={photoTheme.badge}
           help="Pulls every slide of a carousel in original quality."
           onDownload={onDownload}
           endpoint="/api/photos"

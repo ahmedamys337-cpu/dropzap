@@ -62,7 +62,7 @@ export default function PlatformLanding({ platform, children }: PlatformLandingP
 
       {/* Download Tool */}
       <section className="max-w-3xl mx-auto px-4 py-8">
-        <div className="glass rounded-2xl p-6">
+        <div className="glass rounded-2xl p-6 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-2xl hover:shadow-foreground/10">
           {children}
         </div>
       </section>

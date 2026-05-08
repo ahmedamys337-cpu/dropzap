@@ -23,6 +23,8 @@ export default function DownloaderSection({
   description,
   iconBgClassName,
   borderColorClassName,
+  borderLeftAccentClassName,
+  hoverShadowClassName,
   children,
 }: {
   icon: ReactNode;
@@ -41,15 +43,33 @@ export default function DownloaderSection({
    * `iconBgClassName` for visual cohesion.
    */
   borderColorClassName: string;
+  /**
+   * Optional thick (4px) accent stripe down the card's left edge. Use a
+   * border-l-4 + border-l-<color> class string. Lets sibling cards on
+   * the same page (e.g. IG Reel vs Photos) be color-coded at a glance.
+   */
+  borderLeftAccentClassName?: string;
+  /**
+   * Optional hover shadow color class (e.g. "hover:shadow-indigo-500/30").
+   * Falls back to a neutral hover shadow when omitted.
+   */
+  hoverShadowClassName?: string;
   children: ReactNode;
 }) {
   return (
     <section
-      className={`rounded-xl border ${borderColorClassName} bg-foreground/[0.02] p-5 space-y-4`}
+      className={[
+        "group rounded-xl border bg-foreground/[0.02] p-5 space-y-4",
+        "transition-all duration-300",
+        "hover:-translate-y-1 hover:shadow-xl",
+        hoverShadowClassName ?? "hover:shadow-foreground/10",
+        borderColorClassName,
+        borderLeftAccentClassName ?? "",
+      ].join(" ")}
     >
       <header className="flex items-center gap-3 pb-2 border-b border-border/40">
         <div
-          className={`h-10 w-10 rounded-lg flex items-center justify-center shadow-md text-white ${iconBgClassName}`}
+          className={`h-10 w-10 rounded-lg flex items-center justify-center shadow-md text-white transition-transform duration-300 group-hover:scale-110 ${iconBgClassName}`}
         >
           {icon}
         </div>

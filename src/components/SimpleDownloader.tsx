@@ -56,6 +56,25 @@ interface SimpleDownloaderProps {
    * "zip", single photos pass "jpg".
    */
   fileExtension?: string;
+  /**
+   * Optional pill/badge tags rendered between the URL input and the
+   * Download button. Used on Instagram/Facebook to spell out output
+   * format (e.g. "MP4 HD", "JPG", "Carousel → ZIP") so the user
+   * picks the right card without reading the description text.
+   */
+  badges?: { icon: string; label: string }[];
+  /**
+   * Tailwind class string applied to each badge for tinted background +
+   * text color matching the card's accent. Example:
+   * "bg-indigo-500/10 text-indigo-600 dark:text-indigo-300".
+   */
+  badgeClassName?: string;
+  /**
+   * Tailwind class for the input's focus ring color (e.g.
+   * "focus-visible:ring-indigo-500"). Lets each card's URL field echo
+   * its accent color when active.
+   */
+  inputFocusRingClassName?: string;
 }
 
 export default function SimpleDownloader({
@@ -69,6 +88,9 @@ export default function SimpleDownloader({
   onDownload,
   endpoint = "/api/stream",
   fileExtension = "mp4",
+  badges,
+  badgeClassName,
+  inputFocusRingClassName,
 }: SimpleDownloaderProps) {
   const [url, setUrl] = useState("");
   // Phase machine:
@@ -158,7 +180,7 @@ export default function SimpleDownloader({
           onChange={(e) => setUrl(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && !isBusy && !isDone && start()}
           disabled={isBusy}
-          className="h-14 text-base pr-20 bg-white/5 border-white/10 backdrop-blur-sm"
+          className={`h-14 text-base pr-20 bg-white/5 border-white/10 backdrop-blur-sm transition-shadow ${inputFocusRingClassName ?? ""}`}
         />
         <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
           <Button
@@ -184,15 +206,35 @@ export default function SimpleDownloader({
         </div>
       </div>
 
+      {/* Output-format pills. Sit between input + button so users see
+          "what file will I get?" right where they're about to commit. */}
+      {badges && badges.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {badges.map((b, i) => (
+            <span
+              key={i}
+              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${badgeClassName ?? "bg-foreground/5 text-foreground/80"}`}
+            >
+              <span aria-hidden="true">{b.icon}</span>
+              {b.label}
+            </span>
+          ))}
+        </div>
+      )}
+
       <Button
         onClick={start}
-        disabled={!url || isBusy || isDone}
+        // Intentionally NOT disabling on empty URL: keeps the button
+        // visually "alive" (hover gradient, lift) before the user has
+        // pasted anything. validate() handles empty/invalid URLs and
+        // surfaces a toast so the click isn't silently ignored.
+        disabled={isBusy || isDone}
         className={
           isDone
             ? "w-full h-14 text-lg font-bold bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-600/30 transition-all"
             : isDownloading
               ? "w-full h-14 text-lg font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/30 transition-all"
-              : `w-full h-14 text-lg font-bold text-white shadow-lg transition-all hover:scale-[1.01] active:scale-[0.99] ${buttonClassName}`
+              : `w-full h-14 text-lg font-bold text-white shadow-lg transition-all duration-200 hover:scale-[1.02] hover:shadow-xl active:scale-[0.99] ${buttonClassName}`
         }
       >
         {isAd ? (
