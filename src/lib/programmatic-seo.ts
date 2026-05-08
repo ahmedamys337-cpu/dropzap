@@ -18,57 +18,19 @@ const templates: {
   platformSlug: string;
   variants: { slug: string; keyword: string; quality?: string; device?: string; extra?: string }[];
 }[] = [
+  // YouTube programmatic SEO is intentionally disabled while
+  // /youtube-downloader is 308-redirected to /. Their primary CTA links
+  // to that redirect, which Google reads as a dead-end and tanks the
+  // quality score of every generated YT page (44 pages). Re-enable this
+  // block when YouTube downloads are working again.
+  /*
   {
     pattern: "youtube",
     platform: "YouTube",
     platformSlug: "/youtube-downloader",
-    variants: [
-      { slug: "youtube-to-mp4", keyword: "YouTube to MP4" },
-      { slug: "youtube-to-mp3", keyword: "YouTube to MP3" },
-      { slug: "youtube-to-mp4-hd", keyword: "YouTube to MP4 HD", quality: "HD" },
-      { slug: "youtube-to-mp4-4k", keyword: "YouTube to MP4 4K", quality: "4K" },
-      { slug: "youtube-to-mp4-1080p", keyword: "YouTube to MP4 1080p", quality: "1080p" },
-      { slug: "youtube-to-mp3-320kbps", keyword: "YouTube to MP3 320kbps", quality: "320kbps" },
-      { slug: "youtube-shorts-downloader", keyword: "YouTube Shorts downloader" },
-      { slug: "youtube-video-downloader-free", keyword: "YouTube video downloader free" },
-      { slug: "youtube-downloader-online", keyword: "YouTube downloader online" },
-      { slug: "youtube-downloader-no-app", keyword: "YouTube downloader no app" },
-      { slug: "download-youtube-video-iphone", keyword: "download YouTube video iPhone", device: "iPhone" },
-      { slug: "download-youtube-video-android", keyword: "download YouTube video Android", device: "Android" },
-      { slug: "download-youtube-video-pc", keyword: "download YouTube video PC", device: "PC" },
-      { slug: "download-youtube-video-mac", keyword: "download YouTube video Mac", device: "Mac" },
-      { slug: "youtube-playlist-downloader", keyword: "YouTube playlist downloader" },
-      { slug: "youtube-music-downloader", keyword: "YouTube music downloader" },
-      { slug: "youtube-audio-downloader", keyword: "YouTube audio downloader" },
-      { slug: "youtube-thumbnail-grabber", keyword: "YouTube thumbnail grabber" },
-      { slug: "youtube-to-mp4-2026", keyword: "YouTube to MP4 2026" },
-      { slug: "youtube-to-mp3-2026", keyword: "YouTube to MP3 2026" },
-      { slug: "best-youtube-downloader-2026", keyword: "best YouTube downloader 2026" },
-      { slug: "free-youtube-to-mp3-converter", keyword: "free YouTube to MP3 converter" },
-      { slug: "youtube-to-wav", keyword: "YouTube to WAV" },
-      { slug: "youtube-to-m4a", keyword: "YouTube to M4A" },
-      { slug: "youtube-720p-downloader", keyword: "YouTube 720p downloader", quality: "720p" },
-      { slug: "youtube-480p-downloader", keyword: "YouTube 480p downloader", quality: "480p" },
-      { slug: "youtube-2k-downloader", keyword: "YouTube 2K downloader", quality: "2K (1440p)" },
-      { slug: "youtube-live-stream-downloader", keyword: "YouTube live stream downloader" },
-      { slug: "youtube-to-mp3-online-free", keyword: "YouTube to MP3 online free" },
-      { slug: "youtube-converter-no-watermark", keyword: "YouTube converter no watermark" },
-      { slug: "youtube-downloader-ipad", keyword: "YouTube downloader iPad", device: "iPad" },
-      { slug: "youtube-downloader-chromebook", keyword: "YouTube downloader Chromebook", device: "Chromebook" },
-      { slug: "youtube-downloader-linux", keyword: "YouTube downloader Linux", device: "Linux" },
-      { slug: "youtube-shorts-to-mp4", keyword: "YouTube Shorts to MP4" },
-      { slug: "youtube-shorts-to-mp3", keyword: "YouTube Shorts to MP3" },
-      { slug: "y2mate-alternative", keyword: "Y2Mate alternative", extra: "DropZap is a cleaner Y2Mate alternative — no aggressive pop-ups, no fake CAPTCHAs." },
-      { slug: "savefrom-alternative", keyword: "SaveFrom alternative", extra: "DropZap is a safer SaveFrom alternative without browser hijack attempts." },
-      { slug: "keepvid-alternative", keyword: "KeepVid alternative", extra: "DropZap replaces the discontinued KeepVid with modern, reliable downloads." },
-      { slug: "4k-video-downloader-alternative", keyword: "4K Video Downloader alternative", extra: "DropZap is a free web-based alternative to 4K Video Downloader — no installation required." },
-      { slug: "download-youtube-without-app", keyword: "download YouTube without app" },
-      { slug: "youtube-download-no-software", keyword: "YouTube download no software" },
-      { slug: "youtube-download-fast", keyword: "YouTube download fast" },
-      { slug: "youtube-download-unlimited", keyword: "YouTube download unlimited" },
-      { slug: "save-youtube-offline", keyword: "save YouTube offline" },
-    ],
+    variants: [],
   },
+  */
   {
     pattern: "tiktok",
     platform: "TikTok",
