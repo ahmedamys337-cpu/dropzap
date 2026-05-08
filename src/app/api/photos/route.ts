@@ -218,6 +218,73 @@ async function fetchInstagramImageUrls(postUrl: string): Promise<string[] | null
   return urls;
 }
 
+// =============================================================================
+// Facebook photo extractor
+//
+// FB public photo URLs look like:
+//   facebook.com/photo/?fbid=XXX&set=YYY
+//   facebook.com/photo.php?fbid=XXX
+//   facebook.com/<user>/photos/<set>/<id>/
+//   m.facebook.com/photo.php?fbid=XXX
+//
+// yt-dlp gets bounced to /login/?next=... because FB requires session
+// cookies for the desktop UI. The mobile mbasic site exposes the same
+// photo as a static page with a clean og:image meta tag — no login wall
+// for public photos. We fetch that, regex out og:image, done.
+// =============================================================================
+async function fetchFacebookImageUrl(postUrl: string): Promise<string | null> {
+  try {
+    let fbid: string | null = null;
+    let mbasicUrl = "";
+    try {
+      const u = new URL(postUrl);
+      fbid = u.searchParams.get("fbid");
+      // Path-style: /<user>/photos/<set>/<id>/  → id is the trailing numeric segment
+      if (!fbid) {
+        const m = u.pathname.match(/\/photos\/[^\/]+\/(\d+)/);
+        if (m) fbid = m[1];
+      }
+    } catch {}
+
+    if (fbid) {
+      mbasicUrl = `https://mbasic.facebook.com/photo.php?fbid=${fbid}`;
+    } else {
+      // Last-ditch: rewrite host to mbasic and hope the path resolves
+      mbasicUrl = postUrl.replace(/(www|m|web)\.facebook\.com/i, "mbasic.facebook.com");
+    }
+
+    const cookieHeader = getCookieHeader("mbasic.facebook.com")
+      || getCookieHeader("www.facebook.com")
+      || getCookieHeader("facebook.com");
+    const res = await fetch(mbasicUrl, {
+      headers: {
+        // mbasic requires a non-modern UA or it returns the JS-only "upgrade your browser" stub
+        "User-Agent": "Mozilla/5.0 (Linux; Android 4.4; Nexus 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.93 Mobile Safari/537.36",
+        "Accept": "text/html,*/*",
+        ...(cookieHeader ? { Cookie: cookieHeader } : {}),
+      },
+      redirect: "follow",
+    });
+    console.log(`[photos:facebook] mbasic ${mbasicUrl} -> ${res.status}`);
+    if (!res.ok) return null;
+    const html = await res.text();
+
+    // mbasic embeds the full-resolution image in an <a href="...scontent..."> wrapping
+    // the <img>. Try that first (it's the "View full size" link), then fall back to
+    // og:image, then to any scontent.*.fbcdn.net image URL in the HTML.
+    const fullSize = html.match(/href="(https:\/\/[^"]*scontent[^"]*\.(?:jpe?g|png|webp)[^"]*)"/i);
+    if (fullSize) return fullSize[1].replace(/&amp;/g, "&");
+    const og = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
+    if (og) return og[1].replace(/&amp;/g, "&");
+    const any = html.match(/https:\/\/scontent[^"'\\\s]+\.(?:jpe?g|png|webp)/i);
+    if (any) return any[0];
+    return null;
+  } catch (e: any) {
+    console.warn(`[photos:facebook] extractor threw:`, e?.message);
+    return null;
+  }
+}
+
 async function fetchToFile(url: string, dest: string): Promise<{ ext: string }> {
   const res = await fetch(url, {
     headers: {
@@ -302,6 +369,24 @@ async function handleDownload(url: string): Promise<Response> {
       }
       // igUrls null/empty → post might be a video, or API blocked us.
       // Fall through to yt-dlp which can handle other shapes.
+    }
+
+    // ── Facebook fast path: scrape mbasic.facebook.com ─────────────────
+    // yt-dlp redirects FB photo URLs to /login/?next=... and gives up.
+    // mbasic delivers the same photos as plain HTML for public posts.
+    if (platform === "facebook") {
+      const fbUrl = await fetchFacebookImageUrl(url);
+      if (fbUrl) {
+        console.log(`[photos:facebook] mbasic extractor got 1 image`);
+        const base = join(workDir, "01");
+        try {
+          const { ext } = await fetchToFile(fbUrl, base);
+          return streamSingleImage(join(workDir, `01${ext}`), `01${ext}`, platform, cleanup);
+        } catch (e: any) {
+          console.warn(`[photos:facebook] image fetch failed:`, e?.message);
+        }
+      }
+      // Fall through to yt-dlp.
     }
 
     // Use -j (lowercase) which forces full extraction of every entry in a

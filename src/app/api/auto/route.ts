@@ -7,7 +7,8 @@ import { join } from "path";
 import { randomUUID } from "crypto";
 import archiver from "archiver";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
-import { getGenericCookiesArgs } from "@/lib/ytdlp";
+import { writeFile } from "fs/promises";
+import { getGenericCookiesArgs, getCookieHeader } from "@/lib/ytdlp";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -76,6 +77,141 @@ function runYtDlp(args: string[]): Promise<{ code: number; stderr: string }> {
   });
 }
 
+// =============================================================================
+// Direct image extractors (bypass yt-dlp for image-only posts where it fails)
+// =============================================================================
+
+const BROWSER_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
+
+async function fetchImageToFile(url: string, dest: string): Promise<{ ext: string }> {
+  const res = await fetch(url, {
+    headers: { "User-Agent": BROWSER_UA, "Accept": "image/avif,image/webp,image/png,image/jpeg,*/*" },
+  });
+  if (!res.ok) throw new Error(`fetch ${res.status}`);
+  const ct = res.headers.get("content-type") || "";
+  const ext = ct.includes("png") ? ".png"
+    : ct.includes("webp") ? ".webp"
+    : ct.includes("gif") ? ".gif"
+    : ".jpg";
+  const buf = Buffer.from(await res.arrayBuffer());
+  await writeFile(dest + ext, buf);
+  return { ext };
+}
+
+// ── Reddit ───────────────────────────────────────────────────────────────────
+// Reddit posts come in three image-bearing flavours that yt-dlp struggles with:
+//   1. /media?url=https%3A%2F%2Fi.redd.it%2F...jpeg  (direct media wrapper)
+//   2. /r/<sub>/comments/<id>/...                    (single-image post)
+//   3. /gallery/<id> or /r/<sub>/comments/<id>/...   (multi-image gallery)
+// For (1) we just decode the `url` query. For (2)/(3) Reddit conveniently
+// supports a JSON view at <post_url>.json that returns full post data
+// including media_metadata for galleries.
+async function extractRedditImageUrls(postUrl: string): Promise<string[] | null> {
+  try {
+    const u = new URL(postUrl);
+    // Case 1: /media?url=ENCODED
+    if (u.pathname === "/media") {
+      const inner = u.searchParams.get("url");
+      if (inner && /^https?:\/\//.test(inner)) return [inner];
+    }
+
+    // Case 2/3: fetch <url>.json
+    // Reddit's www host requires UA + cookies. old.reddit.com is more lenient.
+    const jsonUrl = `https://www.reddit.com${u.pathname.replace(/\/$/, "")}.json`;
+    const cookieHeader = getCookieHeader("www.reddit.com") || getCookieHeader("reddit.com");
+    const res = await fetch(jsonUrl, {
+      headers: {
+        "User-Agent": BROWSER_UA,
+        "Accept": "application/json",
+        ...(cookieHeader ? { Cookie: cookieHeader } : {}),
+      },
+      redirect: "follow",
+    });
+    console.log(`[auto:reddit] ${jsonUrl} -> ${res.status}`);
+    if (!res.ok) return null;
+    const data = await res.json().catch(() => null);
+    if (!Array.isArray(data) || !data[0]?.data?.children?.[0]?.data) return null;
+    const post = data[0].data.children[0].data;
+    const urls: string[] = [];
+
+    // Multi-image gallery: media_metadata is keyed by image ID; gallery_data
+    // gives the ordered list of those IDs.
+    if (post.is_gallery && post.media_metadata && post.gallery_data?.items) {
+      for (const item of post.gallery_data.items) {
+        const meta = post.media_metadata[item.media_id];
+        // s = source (highest res); URL is HTML-entity encoded (&amp;)
+        const src = meta?.s?.u || meta?.s?.gif;
+        if (typeof src === "string") urls.push(src.replace(/&amp;/g, "&"));
+      }
+      if (urls.length > 0) return urls;
+    }
+
+    // Single image: post.url usually points straight at i.redd.it/<id>.jpg
+    if (typeof post.url === "string" && /\.(jpe?g|png|gif|webp)(\?|$)/i.test(post.url)) {
+      return [post.url];
+    }
+    // Fallback: preview.images[0].source.url
+    const preview = post.preview?.images?.[0]?.source?.url;
+    if (typeof preview === "string") return [preview.replace(/&amp;/g, "&")];
+
+    return null;
+  } catch (e: any) {
+    console.warn(`[auto:reddit] extractor threw:`, e?.message);
+    return null;
+  }
+}
+
+// ── Pinterest ────────────────────────────────────────────────────────────────
+// Pinterest's pin pages embed all media URLs in a JSON blob inside a
+// <script id="__PWS_INITIAL_PROPS__"> or <script id="__PWS_DATA__"> tag.
+// Easier and more reliable than yt-dlp for image pins.
+async function extractPinterestImageUrls(pinUrl: string): Promise<string[] | null> {
+  try {
+    // pin.it short links redirect to pinterest.com/pin/<id>/
+    const res = await fetch(pinUrl, {
+      headers: { "User-Agent": BROWSER_UA, "Accept": "text/html,*/*" },
+      redirect: "follow",
+    });
+    console.log(`[auto:pinterest] page -> ${res.status}`);
+    if (!res.ok) return null;
+    const html = await res.text();
+
+    // The page embeds a big JSON blob. We just regex out every i.pinimg.com
+    // /originals/.../*.{jpg,png,gif,webp} URL — the originals path is the
+    // full-resolution variant. Dedupe to handle the same URL appearing in
+    // both og:image and the JSON blob.
+    const re = /https:\/\/i\.pinimg\.com\/originals\/[^"\\\s]+\.(?:jpe?g|png|gif|webp)/gi;
+    const matches = html.match(re) || [];
+    const unique = Array.from(new Set(matches));
+    if (unique.length > 0) return unique;
+
+    // Fallback to og:image (lower resolution but always present)
+    const og = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
+    if (og && og[1]) return [og[1]];
+    return null;
+  } catch (e: any) {
+    console.warn(`[auto:pinterest] extractor threw:`, e?.message);
+    return null;
+  }
+}
+
+// Run an "image-only" path: download N image URLs into workDir and return
+// the resulting filenames so the existing streamSingle/streamZip code can
+// take over. Returns [] on total failure.
+async function downloadImagesToWorkDir(urls: string[], workDir: string, platform: string): Promise<string[]> {
+  const downloaded: string[] = [];
+  for (let i = 0; i < urls.length; i++) {
+    const base = join(workDir, String(i + 1).padStart(2, "0"));
+    try {
+      const { ext } = await fetchImageToFile(urls[i], base);
+      downloaded.push(`${String(i + 1).padStart(2, "0")}${ext}`);
+    } catch (e: any) {
+      console.warn(`[auto:${platform}] image ${i + 1} fetch failed:`, e?.message);
+    }
+  }
+  return downloaded;
+}
+
 export async function GET(request: NextRequest) {
   const ip = getClientIp(request);
   const limit = rateLimit(ip);
@@ -132,7 +268,30 @@ async function handleDownload(url: string): Promise<Response> {
     ];
 
     const { code, stderr } = await runYtDlp(args);
+
+    // If yt-dlp failed AND this looks like an image-only post, fall back to
+    // platform-specific direct extractors. yt-dlp's "Unsupported URL" and
+    // "No video formats" errors are the canonical signals an image post
+    // tripped the video-centric extractor; we silently retry with the
+    // image path before bailing.
     if (code !== 0) {
+      const looksImageOnly = /unsupported url|no video formats/i.test(stderr);
+      if (looksImageOnly) {
+        let imageUrls: string[] | null = null;
+        if (platform === "reddit") imageUrls = await extractRedditImageUrls(url);
+        else if (platform === "pinterest") imageUrls = await extractPinterestImageUrls(url);
+
+        if (imageUrls && imageUrls.length > 0) {
+          console.log(`[auto:${platform}] direct extractor got ${imageUrls.length} image(s)`);
+          const downloaded = await downloadImagesToWorkDir(imageUrls, workDir, platform);
+          if (downloaded.length === 1) {
+            return streamSingle(join(workDir, downloaded[0]), downloaded[0], platform, "image", cleanup);
+          }
+          if (downloaded.length > 1) {
+            return streamZip(workDir, downloaded, platform, "album", cleanup);
+          }
+        }
+      }
       console.warn(`[auto:${platform}] yt-dlp failed:`, stderr.slice(0, 400));
       cleanup();
       const friendly = /private|login|account|not.*available|requires.*authentication/i.test(stderr)
