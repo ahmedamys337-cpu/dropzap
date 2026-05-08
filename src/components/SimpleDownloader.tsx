@@ -111,7 +111,7 @@ export default function SimpleDownloader({
   }, []);
 
   const start = () => {
-    if (!validate(url)) {
+    if (!url || !validate(url)) {
       toast({
         title: "Invalid URL",
         description: `Please enter a valid ${platform} URL.`,

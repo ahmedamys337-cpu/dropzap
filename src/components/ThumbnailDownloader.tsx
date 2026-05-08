@@ -28,7 +28,7 @@ export default function ThumbnailDownloader() {
   const { toast } = useToast();
 
   const fetchThumbnails = async () => {
-    if (!isValidYouTubeUrl(url)) {
+    if (!url || !isValidYouTubeUrl(url)) {
       toast({
         title: "Invalid URL",
         description: "Please paste a valid YouTube URL.",
@@ -82,36 +82,53 @@ export default function ThumbnailDownloader() {
 
   return (
     <div className="space-y-5">
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <Input
-            placeholder="Paste YouTube URL here..."
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && fetchThumbnails()}
-            className="h-12 pr-20 bg-white/5 border-white/10 backdrop-blur-sm"
-            aria-label="YouTube URL"
-          />
-          <div className="absolute right-1 top-1/2 -translate-y-1/2 flex gap-1">
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={paste} aria-label="Paste">
-              <Clipboard className="h-3.5 w-3.5" />
+      {/* URL field on its own row — matches the layout of the other tools
+          so the page reads consistently and gives the input room to breathe. */}
+      <div className="relative">
+        <Input
+          placeholder="Paste YouTube URL here..."
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && !loading && fetchThumbnails()}
+          disabled={loading}
+          className="h-14 text-base pr-20 bg-white/5 border-white/10 backdrop-blur-sm transition-shadow focus-visible:ring-orange-500"
+          aria-label="YouTube URL"
+        />
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
+          <Button variant="ghost" size="icon" className="h-9 w-9" onClick={paste} disabled={loading} aria-label="Paste">
+            <Clipboard className="h-4 w-4" />
+          </Button>
+          {url && (
+            <Button variant="ghost" size="icon" className="h-9 w-9" onClick={reset} disabled={loading} aria-label="Clear">
+              <X className="h-4 w-4" />
             </Button>
-            {url && (
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={reset} aria-label="Clear">
-                <X className="h-3.5 w-3.5" />
-              </Button>
-            )}
-          </div>
+          )}
         </div>
-        <Button
-          onClick={fetchThumbnails}
-          disabled={loading || !url}
-          className="h-12 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold shadow-md shadow-orange-500/20 transition-all hover:scale-[1.02]"
-        >
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
-          <span className="ml-2">Get Thumbnails</span>
-        </Button>
       </div>
+
+      {/* Output-format pills */}
+      <div className="flex flex-wrap gap-2">
+        <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold bg-orange-500/10 text-orange-700 dark:text-orange-300">
+          <span aria-hidden="true">🖼️</span> Output: JPG
+        </span>
+        <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold bg-orange-500/10 text-orange-700 dark:text-orange-300">
+          <span aria-hidden="true">✨</span> All Sizes (up to 4K)
+        </span>
+      </div>
+
+      {/* Get Thumbnails button — stays clickable on empty URL so the hover
+          gradient/lift is always visible; fetchThumbnails() validates. */}
+      <Button
+        onClick={fetchThumbnails}
+        disabled={loading}
+        className="w-full h-14 text-lg font-bold bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-400 hover:to-red-400 text-white shadow-lg shadow-orange-500/30 disabled:opacity-60 transition-all duration-200 hover:scale-[1.02] hover:shadow-xl active:scale-[0.99]"
+      >
+        {loading ? (
+          <><Loader2 className="h-5 w-5 mr-2 animate-spin" />Processing...</>
+        ) : (
+          <><ImageIcon className="h-5 w-5 mr-2" />Get Thumbnails</>
+        )}
+      </Button>
 
       {loading && (
         <div className="space-y-4">

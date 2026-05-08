@@ -104,7 +104,7 @@ export default function YoutubeDownloader({
   }, []);
 
   const startDownload = () => {
-    if (!isValidYouTubeUrl(url)) {
+    if (!url || !isValidYouTubeUrl(url)) {
       toast({
         title: "Invalid URL",
         description: "Paste a YouTube video, Shorts, or youtu.be link.",
@@ -237,7 +237,7 @@ export default function YoutubeDownloader({
           onChange={(e) => setUrl(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && !isLoading && startDownload()}
           disabled={isLoading}
-          className="h-14 text-base pr-20 bg-white/5 border-white/10 backdrop-blur-sm"
+          className="h-14 text-base pr-20 bg-white/5 border-white/10 backdrop-blur-sm transition-shadow focus-visible:ring-red-500"
           aria-label="YouTube URL"
         />
         <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
@@ -266,11 +266,27 @@ export default function YoutubeDownloader({
         </div>
       </div>
 
-      {/* Single large Download button */}
+      {/* Output-format pills mirroring the Instagram/Facebook treatment so
+          users see exactly what file the YouTube tool delivers. */}
+      <div className="flex flex-wrap gap-2">
+        <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold bg-red-500/10 text-red-700 dark:text-red-300">
+          <span aria-hidden="true">🎬</span> Output: MP4 HD
+        </span>
+        <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold bg-red-500/10 text-red-700 dark:text-red-300">
+          <span aria-hidden="true">🎵</span> Audio: MP3
+        </span>
+        <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold bg-red-500/10 text-red-700 dark:text-red-300">
+          <span aria-hidden="true">📺</span> Up to 8K
+        </span>
+      </div>
+
+      {/* Single large Download button. Intentionally NOT disabled on empty
+          URL so the gradient + lift hover state stays visible at all
+          times — startDownload() handles invalid input via toast. */}
       <Button
         onClick={startDownload}
-        disabled={!url || isLoading}
-        className="w-full h-14 text-lg font-bold bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white shadow-lg shadow-red-600/30 disabled:opacity-60 transition-all hover:scale-[1.01] active:scale-[0.99]"
+        disabled={isLoading}
+        className="w-full h-14 text-lg font-bold bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500 text-white shadow-lg shadow-red-600/30 disabled:opacity-60 transition-all duration-200 hover:scale-[1.02] hover:shadow-xl active:scale-[0.99]"
       >
         {isLoading ? (
           <>

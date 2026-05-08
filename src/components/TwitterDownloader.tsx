@@ -24,7 +24,14 @@ export default function TwitterDownloader({
       mediaTypeLabel="Video / Image"
       placeholder="Paste Twitter / X post URL here..."
       validate={isValidTwitterUrl}
-      buttonClassName="bg-gradient-to-r from-sky-500 to-black hover:from-sky-600 hover:to-zinc-900 shadow-sky-500/30"
+      buttonClassName="bg-gradient-to-r from-sky-500 to-zinc-900 hover:from-sky-400 hover:to-black shadow-sky-500/30"
+      inputFocusRingClassName="focus-visible:ring-sky-500"
+      badges={[
+        { icon: "🎬", label: "Video → MP4" },
+        { icon: "🖼️", label: "Image → JPG" },
+        { icon: "📦", label: "Gallery → ZIP" },
+      ]}
+      badgeClassName="bg-sky-500/10 text-sky-700 dark:text-sky-300"
       help="Auto-detects videos and images. Works on twitter.com and x.com URLs."
       onDownload={onDownload}
       endpoint="/api/auto"
