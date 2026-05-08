@@ -233,56 +233,91 @@ async function fetchInstagramImageUrls(postUrl: string): Promise<string[] | null
 // for public photos. We fetch that, regex out og:image, done.
 // =============================================================================
 async function fetchFacebookImageUrl(postUrl: string): Promise<string | null> {
+  // Extract fbid (the photo ID) from any URL shape FB uses.
+  let fbid: string | null = null;
   try {
-    let fbid: string | null = null;
-    let mbasicUrl = "";
-    try {
-      const u = new URL(postUrl);
-      fbid = u.searchParams.get("fbid");
-      // Path-style: /<user>/photos/<set>/<id>/  → id is the trailing numeric segment
-      if (!fbid) {
-        const m = u.pathname.match(/\/photos\/[^\/]+\/(\d+)/);
-        if (m) fbid = m[1];
-      }
-    } catch {}
-
-    if (fbid) {
-      mbasicUrl = `https://mbasic.facebook.com/photo.php?fbid=${fbid}`;
-    } else {
-      // Last-ditch: rewrite host to mbasic and hope the path resolves
-      mbasicUrl = postUrl.replace(/(www|m|web)\.facebook\.com/i, "mbasic.facebook.com");
+    const u = new URL(postUrl);
+    fbid = u.searchParams.get("fbid");
+    if (!fbid) {
+      const m = u.pathname.match(/\/photos\/[^\/]+\/(\d+)/);
+      if (m) fbid = m[1];
     }
+  } catch {}
 
-    const cookieHeader = getCookieHeader("mbasic.facebook.com")
-      || getCookieHeader("www.facebook.com")
-      || getCookieHeader("facebook.com");
-    const res = await fetch(mbasicUrl, {
-      headers: {
-        // mbasic requires a non-modern UA or it returns the JS-only "upgrade your browser" stub
-        "User-Agent": "Mozilla/5.0 (Linux; Android 4.4; Nexus 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.93 Mobile Safari/537.36",
-        "Accept": "text/html,*/*",
-        ...(cookieHeader ? { Cookie: cookieHeader } : {}),
-      },
-      redirect: "follow",
-    });
-    console.log(`[photos:facebook] mbasic ${mbasicUrl} -> ${res.status}`);
-    if (!res.ok) return null;
-    const html = await res.text();
-
-    // mbasic embeds the full-resolution image in an <a href="...scontent..."> wrapping
-    // the <img>. Try that first (it's the "View full size" link), then fall back to
-    // og:image, then to any scontent.*.fbcdn.net image URL in the HTML.
-    const fullSize = html.match(/href="(https:\/\/[^"]*scontent[^"]*\.(?:jpe?g|png|webp)[^"]*)"/i);
-    if (fullSize) return fullSize[1].replace(/&amp;/g, "&");
-    const og = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
-    if (og) return og[1].replace(/&amp;/g, "&");
-    const any = html.match(/https:\/\/scontent[^"'\\\s]+\.(?:jpe?g|png|webp)/i);
-    if (any) return any[0];
-    return null;
-  } catch (e: any) {
-    console.warn(`[photos:facebook] extractor threw:`, e?.message);
-    return null;
+  // Try multiple mirrors in order. mbasic is the "no-JS legacy" variant
+  // that's most permissive for anonymous viewers, but it sometimes 302s
+  // to a login wall. m.facebook.com (mobile) is occasionally more
+  // generous, especially when sent FB cookies. We try both.
+  const candidates: string[] = [];
+  if (fbid) {
+    candidates.push(`https://mbasic.facebook.com/photo.php?fbid=${fbid}`);
+    candidates.push(`https://m.facebook.com/photo.php?fbid=${fbid}`);
   }
+  candidates.push(postUrl.replace(/(www|m|web)\.facebook\.com/i, "mbasic.facebook.com"));
+
+  const cookieHeader =
+    getCookieHeader("mbasic.facebook.com") ||
+    getCookieHeader("m.facebook.com") ||
+    getCookieHeader("www.facebook.com") ||
+    getCookieHeader("facebook.com") ||
+    getCookieHeader(".facebook.com");
+
+  // Reject FB logos and other static assets that aren't actual photos.
+  // Real FB photos always live on scontent*.fbcdn.net (CDN). FB chrome
+  // assets (logo, navigation icons) live on static.xx.fbcdn.net. The
+  // login-wall og:image is the FB logo on static, so this filter is what
+  // distinguishes "got the photo" from "got bounced to login".
+  const isRealPhoto = (u: string) => /^https:\/\/(?:scontent|external)[^/]*\.fbcdn\.net\//i.test(u);
+
+  for (const tryUrl of candidates) {
+    try {
+      const res = await fetch(tryUrl, {
+        headers: {
+          // Old Android Chrome UA: mbasic gives full HTML for this; modern UAs
+          // get redirected to the JS-heavy m.facebook.com which we can't parse.
+          "User-Agent": "Mozilla/5.0 (Linux; Android 4.4; Nexus 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.93 Mobile Safari/537.36",
+          "Accept": "text/html,*/*",
+          ...(cookieHeader ? { Cookie: cookieHeader } : {}),
+        },
+        redirect: "follow",
+      });
+      console.log(`[photos:facebook] ${tryUrl} -> ${res.status} (final: ${res.url})`);
+      // If FB redirected us to a login/checkpoint URL, this mirror won't work.
+      if (/\/(login|checkpoint|recover)/i.test(res.url)) {
+        console.log(`[photos:facebook] hit login wall, trying next mirror`);
+        continue;
+      }
+      if (!res.ok) continue;
+      const html = await res.text();
+
+      // Skip if HTML is a login form (sometimes the URL looks fine but body
+      // is the login wall served as 200).
+      if (/Log in to Facebook|You must log in/i.test(html) && !/scontent[^/]*\.fbcdn\.net/i.test(html)) {
+        console.log(`[photos:facebook] login-wall body detected`);
+        continue;
+      }
+
+      // Preference order: explicit "View full size" anchor → og:image → any
+      // scontent URL anywhere in HTML. Each result is gated by isRealPhoto
+      // so we never return the FB logo.
+      const anchor = html.match(/href="(https:\/\/[^"]*scontent[^"]*\.(?:jpe?g|png|webp)[^"]*)"/i);
+      if (anchor && isRealPhoto(anchor[1])) {
+        return anchor[1].replace(/&amp;/g, "&");
+      }
+      const og = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
+      if (og && isRealPhoto(og[1])) {
+        return og[1].replace(/&amp;/g, "&");
+      }
+      const anyMatch = html.match(/https:\/\/scontent[^"'\\\s]+\.(?:jpe?g|png|webp)[^"'\\\s]*/i);
+      if (anyMatch) {
+        return anyMatch[0].replace(/&amp;/g, "&");
+      }
+      console.log(`[photos:facebook] no scontent URL in HTML (size=${html.length})`);
+    } catch (e: any) {
+      console.warn(`[photos:facebook] fetch ${tryUrl} threw:`, e?.message);
+    }
+  }
+  return null;
 }
 
 async function fetchToFile(url: string, dest: string): Promise<{ ext: string }> {
