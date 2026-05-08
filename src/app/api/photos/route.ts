@@ -241,6 +241,70 @@ type FbPhotoResult =
   | { url: string; loginWalled?: false }
   | { url: null; loginWalled: boolean };
 
+// Pull all photo fbids from an FB album set page. FB photo URLs of the form
+// /photo/?fbid=X&set=a.Y only render the SINGLE photo with that fbid — the
+// other album photos are loaded dynamically. To grab the full album we hit
+// the album listing URL (/media/set/?set=a.Y) and harvest every fbid from
+// the resulting HTML.
+//
+// Cap at 30 photos to keep latency / disk usage sane and avoid abuse.
+async function fetchFacebookAlbumFbids(
+  setParam: string,
+  cookieHeader: string,
+): Promise<string[]> {
+  const ANDROID_UA =
+    "Mozilla/5.0 (Linux; Android 4.4; Nexus 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.93 Mobile Safari/537.36";
+  const DESKTOP_UA =
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
+
+  // mbasic gives clean static HTML with explicit photo.php?fbid=N links —
+  // ideal for regex harvesting when it's not login-walled. Fall through to
+  // www if mbasic walls us.
+  const mirrors: { url: string; ua: string }[] = [
+    { url: `https://mbasic.facebook.com/media/set/?set=${encodeURIComponent(setParam)}`, ua: ANDROID_UA },
+    { url: `https://m.facebook.com/media/set/?set=${encodeURIComponent(setParam)}`, ua: ANDROID_UA },
+    { url: `https://www.facebook.com/media/set/?set=${encodeURIComponent(setParam)}`, ua: DESKTOP_UA },
+  ];
+
+  for (const m of mirrors) {
+    try {
+      const res = await fetch(m.url, {
+        headers: {
+          "User-Agent": m.ua,
+          "Accept": "text/html,application/xhtml+xml,*/*",
+          "Accept-Language": "en-US,en;q=0.9",
+          ...(cookieHeader ? { Cookie: cookieHeader } : {}),
+        },
+        redirect: "follow",
+      });
+      console.log(`[photos:facebook] album ${m.url} -> ${res.status} (final: ${res.url})`);
+      if (/\/(login|checkpoint|recover)/i.test(res.url) || !res.ok) continue;
+      const html = await res.text();
+      if (/Log in to Facebook|You must log in/i.test(html) && !/photo\.php\?fbid=/i.test(html)) continue;
+
+      // Collect every fbid value referenced on the page. mbasic uses
+      // photo.php?fbid=N; www uses /photo/?fbid=N and JSON "fbid":"N".
+      const ids = new Set<string>();
+      for (const mm of html.matchAll(/(?:photo\.php\?fbid=|\/photo\/\?fbid=|"fbid":")(\d{6,})/gi)) {
+        ids.add(mm[1]);
+      }
+      // Also `pcb.<id>` style permalinks sometimes appear
+      for (const mm of html.matchAll(/\/photos\/[^"'\/\s]+\/(\d{6,})\//gi)) {
+        ids.add(mm[1]);
+      }
+      const arr = Array.from(ids);
+      if (arr.length > 0) {
+        console.log(`[photos:facebook] album extracted ${arr.length} fbid(s) from ${m.url}`);
+        return arr.slice(0, 30);
+      }
+      console.log(`[photos:facebook] album page had 0 fbids (size=${html.length})`);
+    } catch (e: any) {
+      console.warn(`[photos:facebook] album fetch ${m.url} threw:`, e?.message);
+    }
+  }
+  return [];
+}
+
 async function fetchFacebookImageUrl(postUrl: string): Promise<FbPhotoResult> {
   // Extract fbid (the photo ID) from any URL shape FB uses.
   let fbid: string | null = null;
@@ -512,17 +576,94 @@ async function handleDownload(url: string): Promise<Response> {
     // indicating every mirror hit a login wall — the latter is a
     // deployment problem, not a "post is private" problem.
     if (platform === "facebook") {
-      const fbResult = await fetchFacebookImageUrl(url);
-      if (fbResult.url) {
-        console.log(`[photos:facebook] extractor got 1 image`);
-        const base = join(workDir, "01");
-        try {
-          const { ext } = await fetchToFile(fbResult.url, base);
-          return streamSingleImage(join(workDir, `01${ext}`), `01${ext}`, platform, cleanup);
-        } catch (e: any) {
-          console.warn(`[photos:facebook] image fetch failed:`, e?.message);
+      // Detect album: FB photo URLs of shape /photo/?fbid=X&set=a.Y are
+      // single-photo viewers inside an album. To download the WHOLE album
+      // we expand the set= param into the full list of fbids.
+      let setParam: string | null = null;
+      let originalFbid: string | null = null;
+      try {
+        const u = new URL(url);
+        setParam = u.searchParams.get("set");
+        originalFbid = u.searchParams.get("fbid");
+        if (!originalFbid) {
+          const mm = u.pathname.match(/\/photos\/[^\/]+\/(\d+)/);
+          if (mm) originalFbid = mm[1];
         }
-      } else if (fbResult.loginWalled) {
+      } catch {}
+
+      // Cookie header used by both album expansion and single-photo extractor.
+      const fbCookieHeader =
+        getCookieHeader("www.facebook.com") ||
+        getCookieHeader("facebook.com") ||
+        getCookieHeader(".facebook.com") ||
+        getCookieHeader("mbasic.facebook.com") ||
+        getCookieHeader("m.facebook.com");
+
+      // Build the list of fbids to resolve. If we have a set= and a real
+      // album expansion succeeds, use that (deduped, with the original
+      // fbid first so the user gets their primary photo even if album
+      // listing missed it). Otherwise just the single fbid.
+      let fbids: string[] = [];
+      if (setParam && /^a\./.test(setParam)) {
+        const albumIds = await fetchFacebookAlbumFbids(setParam, fbCookieHeader);
+        if (albumIds.length > 0) {
+          const dedup = new Set<string>();
+          if (originalFbid) dedup.add(originalFbid);
+          for (const id of albumIds) dedup.add(id);
+          fbids = Array.from(dedup);
+          console.log(`[photos:facebook] album → resolving ${fbids.length} photo(s)`);
+        }
+      }
+      if (fbids.length === 0 && originalFbid) fbids = [originalFbid];
+
+      // Resolve each fbid to a CDN image URL via the existing per-photo
+      // extractor. Track login walls across all resolves: if EVERY one
+      // walled, surface the actionable 403 error. If SOME succeeded, ship
+      // what we have.
+      const resolvedUrls: string[] = [];
+      let anySuccess = false;
+      let allWalled = true;
+      for (const id of fbids) {
+        const photoUrl = `https://www.facebook.com/photo/?fbid=${id}`;
+        const r = await fetchFacebookImageUrl(photoUrl);
+        if (r.url) {
+          resolvedUrls.push(r.url);
+          anySuccess = true;
+          allWalled = false;
+        } else if (!r.loginWalled) {
+          allWalled = false;
+        }
+      }
+
+      if (anySuccess) {
+        // Dedupe by the photo's underlying numeric ID (the segment before
+        // _n.jpg in an scontent URL) so equivalent variants don't double-up.
+        const seen = new Set<string>();
+        const unique: string[] = [];
+        for (const u of resolvedUrls) {
+          const key = (u.match(/\/(\d{6,})_[^\/]+_[no]\.(jpe?g|png|webp)/i)?.[1]) || u;
+          if (!seen.has(key)) { seen.add(key); unique.push(u); }
+        }
+        console.log(`[photos:facebook] resolved ${resolvedUrls.length} URL(s), ${unique.length} unique`);
+
+        const downloaded: string[] = [];
+        for (let i = 0; i < unique.length; i++) {
+          const base = join(workDir, String(i + 1).padStart(2, "0"));
+          try {
+            const { ext } = await fetchToFile(unique[i], base);
+            downloaded.push(`${String(i + 1).padStart(2, "0")}${ext}`);
+          } catch (e: any) {
+            console.warn(`[photos:facebook] image ${i + 1} fetch failed:`, e?.message);
+          }
+        }
+        if (downloaded.length === 1) {
+          return streamSingleImage(join(workDir, downloaded[0]), downloaded[0], platform, cleanup);
+        }
+        if (downloaded.length > 1) {
+          return streamZip(workDir, downloaded, platform, cleanup);
+        }
+        // Fall through if every image fetch failed.
+      } else if (fbids.length > 0 && allWalled) {
         // Every mirror redirected to /login. yt-dlp will fail the same
         // way (it already tried and emitted "Unsupported URL: .../login/").
         // Skip the yt-dlp round-trip and surface a useful error so the
