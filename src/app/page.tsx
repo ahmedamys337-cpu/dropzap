@@ -177,7 +177,7 @@ export default function Home() {
                 <TabsContent value="thumbnail" className="mt-0">
                   <div className="glass rounded-2xl p-6 space-y-4 border-l-4 border-l-orange-500 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-orange-500/30">
                     <div className="flex items-center gap-3 pb-2 border-b border-orange-500/20">
-                      <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-lg shadow-orange-500/30">
+                      <div className="shrink-0 h-10 w-10 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-lg shadow-orange-500/30">
                         <ImageIcon className="h-5 w-5 text-white" />
                       </div>
                       <div>
@@ -194,7 +194,7 @@ export default function Home() {
                 <TabsContent value="instagram" className="mt-0">
                   <div className="glass rounded-2xl p-6 space-y-4 border-l-4 border-l-pink-600 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-pink-600/30">
                     <div className="flex items-center gap-3 pb-2 border-b border-pink-600/20">
-                      <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500 flex items-center justify-center shadow-lg shadow-pink-600/30">
+                      <div className="shrink-0 h-10 w-10 rounded-lg bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500 flex items-center justify-center shadow-lg shadow-pink-600/30">
                         <Instagram className="h-5 w-5 text-white" />
                       </div>
                       <div>
@@ -211,7 +211,7 @@ export default function Home() {
                 <TabsContent value="twitter" className="mt-0">
                   <div className="glass rounded-2xl p-6 space-y-4 border-l-4 border-l-sky-500 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-sky-500/30">
                     <div className="flex items-center gap-3 pb-2 border-b border-sky-500/20">
-                      <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-sky-500 to-zinc-900 flex items-center justify-center shadow-lg shadow-sky-500/30 border border-white/20">
+                      <div className="shrink-0 h-10 w-10 rounded-lg bg-gradient-to-br from-sky-500 to-zinc-900 flex items-center justify-center shadow-lg shadow-sky-500/30 border border-white/20">
                         <Twitter className="h-5 w-5 text-white" />
                       </div>
                       <div>
@@ -228,7 +228,7 @@ export default function Home() {
                 <TabsContent value="tiktok" className="mt-0">
                   <div className="glass rounded-2xl p-6 space-y-4 border-l-4 border-l-pink-500 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-pink-500/30">
                     <div className="flex items-center gap-3 pb-2 border-b border-pink-500/20">
-                      <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-cyan-500 to-pink-500 flex items-center justify-center shadow-lg shadow-pink-500/30">
+                      <div className="shrink-0 h-10 w-10 rounded-lg bg-gradient-to-br from-cyan-500 to-pink-500 flex items-center justify-center shadow-lg shadow-pink-500/30">
                         <Music2 className="h-5 w-5 text-white" />
                       </div>
                       <div>
@@ -245,7 +245,7 @@ export default function Home() {
                 <TabsContent value="reddit" className="mt-0">
                   <div className="glass rounded-2xl p-6 space-y-4 border-l-4 border-l-orange-600 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-orange-600/30">
                     <div className="flex items-center gap-3 pb-2 border-b border-orange-600/20">
-                      <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-orange-600 to-red-600 flex items-center justify-center shadow-lg shadow-orange-600/30">
+                      <div className="shrink-0 h-10 w-10 rounded-lg bg-gradient-to-br from-orange-600 to-red-600 flex items-center justify-center shadow-lg shadow-orange-600/30">
                         <MessageSquare className="h-5 w-5 text-white" />
                       </div>
                       <div>
@@ -262,7 +262,7 @@ export default function Home() {
                 <TabsContent value="facebook" className="mt-0">
                   <div className="glass rounded-2xl p-6 space-y-4 border-l-4 border-l-blue-600 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-600/30">
                     <div className="flex items-center gap-3 pb-2 border-b border-blue-600/20">
-                      <div className="h-10 w-10 rounded-lg bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/30">
+                      <div className="shrink-0 h-10 w-10 rounded-lg bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/30">
                         <Facebook className="h-5 w-5 text-white" />
                       </div>
                       <div>
@@ -279,7 +279,7 @@ export default function Home() {
                 <TabsContent value="pinterest" className="mt-0">
                   <div className="glass rounded-2xl p-6 space-y-4 border-l-4 border-l-rose-500 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-rose-500/30">
                     <div className="flex items-center gap-3 pb-2 border-b border-rose-500/20">
-                      <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-red-600 to-rose-600 flex items-center justify-center shadow-lg shadow-red-600/30">
+                      <div className="shrink-0 h-10 w-10 rounded-lg bg-gradient-to-br from-red-600 to-rose-600 flex items-center justify-center shadow-lg shadow-red-600/30">
                         <ImageIcon className="h-5 w-5 text-white" />
                       </div>
                       <div>
@@ -296,7 +296,7 @@ export default function Home() {
                 <TabsContent value="threads" className="mt-0">
                   <div className="glass rounded-2xl p-6 space-y-4 border-l-4 border-l-zinc-700 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/40">
                     <div className="flex items-center gap-3 pb-2 border-b border-zinc-500/20">
-                      <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-zinc-800 to-zinc-900 flex items-center justify-center shadow-lg shadow-black/40 border border-white/10">
+                      <div className="shrink-0 h-10 w-10 rounded-lg bg-gradient-to-br from-zinc-800 to-zinc-900 flex items-center justify-center shadow-lg shadow-black/40 border border-white/10">
                         <AtSign className="h-5 w-5 text-white" />
                       </div>
                       <div>
@@ -314,7 +314,7 @@ export default function Home() {
                 <TabsContent value="mp3" className="mt-0">
                   <div className="glass rounded-2xl p-6 space-y-4 border-l-4 border-l-emerald-600 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-600/30">
                     <div className="flex items-center gap-3 pb-2 border-b border-emerald-600/20">
-                      <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-emerald-600 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-600/30">
+                      <div className="shrink-0 h-10 w-10 rounded-lg bg-gradient-to-br from-emerald-600 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-600/30">
                         <FileAudio className="h-5 w-5 text-white" />
                       </div>
                       <div>

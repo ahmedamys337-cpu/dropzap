@@ -68,8 +68,15 @@ export default function DownloaderSection({
       ].join(" ")}
     >
       <header className="flex items-center gap-3 pb-2 border-b border-border/40">
+        {/*
+          `shrink-0` is critical: without it, flex children with
+          long titles (e.g. "Facebook Video & Reel Downloader")
+          force this 40x40 chip to compress horizontally on narrow
+          mobile widths, producing a stretched vertical pill
+          instead of a square icon.
+        */}
         <div
-          className={`h-10 w-10 rounded-lg flex items-center justify-center shadow-md text-white transition-transform duration-300 group-hover:scale-110 ${iconBgClassName}`}
+          className={`shrink-0 h-10 w-10 rounded-lg flex items-center justify-center shadow-md text-white transition-transform duration-300 group-hover:scale-110 ${iconBgClassName}`}
         >
           {icon}
         </div>
