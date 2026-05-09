@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { blogPosts } from "@/lib/blog-data";
+import { blogQuickAnswers } from "@/lib/blog-quick-answers";
 import AdBanner from "@/components/AdBanner";
 import Breadcrumbs from "@/components/Breadcrumbs";
-import { Zap, ArrowLeft } from "lucide-react";
+import { Zap, ArrowLeft, CheckCircle2 } from "lucide-react";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital";
 
@@ -51,22 +52,32 @@ export default function BlogPostPage({ params }: Props) {
   // construct the array conditionally rather than emitting empty
   // schemas (Google flags empty FAQPage / HowTo as errors).
   const url = `${SITE_URL}/blog/${post.slug}`;
+  const quickAnswer = blogQuickAnswers[post.slug];
   const graph: Record<string, unknown>[] = [
     {
       "@type": "Article",
       headline: post.title,
       description: post.description,
+      // `abstract` is the field LLMs (and Google's AI Overviews) most
+      // reliably extract for citation snippets. We feed the same
+      // text rendered as the visible TL;DR to keep on-page content
+      // and structured data in lockstep.
+      ...(quickAnswer ? { abstract: quickAnswer } : {}),
       url,
       datePublished: post.date,
       dateModified: post.dateModified ?? post.date,
+      // Person-typed author satisfies Google's E-E-A-T expectation
+      // for Helpful Content ranking. The Organization is retained
+      // separately as the publisher (different schema role).
       author: {
-        "@type": "Organization",
-        name: "DropZap",
-        url: SITE_URL,
+        "@type": "Person",
+        name: "DropZap Editorial Team",
+        url: `${SITE_URL}/about`,
       },
       publisher: {
         "@type": "Organization",
         name: "DropZap",
+        url: SITE_URL,
         logo: {
           "@type": "ImageObject",
           url: `${SITE_URL}/icon-512.png`,
@@ -74,6 +85,7 @@ export default function BlogPostPage({ params }: Props) {
       },
       mainEntityOfPage: { "@type": "WebPage", "@id": url },
       image: `${SITE_URL}/opengraph-image`,
+      keywords: post.keywords?.join(", "),
     },
     {
       "@type": "BreadcrumbList",
@@ -166,9 +178,46 @@ export default function BlogPostPage({ params }: Props) {
           </time>
         </div>
 
-        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-6">
+        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-4">
           {post.title}
         </h1>
+
+        {/* Author byline + last-reviewed date. E-E-A-T signals
+           Google's Helpful Content algorithm explicitly rewards.
+           Visible 'Last reviewed' date also signals freshness to
+           both crawlers and end users. */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground mb-6">
+          <span className="inline-flex items-center gap-1">
+            By <a href="/about" className="font-semibold text-foreground hover:underline">DropZap Editorial Team</a>
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+            Last reviewed{" "}
+            <time dateTime={post.dateModified ?? post.date} className="font-medium text-foreground">
+              {new Date(post.dateModified ?? post.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+            </time>
+          </span>
+        </div>
+
+        {/* TL;DR / answer-first callout. Renders the same text we
+           feed to Article.abstract in JSON-LD, so on-page content
+           and structured data agree. LLMs typically extract the
+           first 1-2 declarative sentences as the citation snippet,
+           so this block is the highest-leverage AI-visibility
+           element on the page. */}
+        {quickAnswer && (
+          <aside
+            className="mb-8 rounded-2xl border-l-4 border-purple-500 bg-purple-500/10 p-5"
+            aria-label="Quick answer"
+          >
+            <div className="text-[11px] font-bold uppercase tracking-wider text-purple-400 mb-2">
+              TL;DR — Quick Answer
+            </div>
+            <p className="text-sm sm:text-base text-foreground leading-relaxed">
+              {quickAnswer}
+            </p>
+          </aside>
+        )}
 
         <AdBanner slot="top" />
 
