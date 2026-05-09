@@ -3,6 +3,7 @@ import { blogPosts } from "@/lib/blog-data";
 import { programmaticPages } from "@/lib/programmatic-seo";
 import { alternativePages } from "@/lib/alternatives-data";
 import { listAllDevicePages } from "@/lib/device-pages-data";
+import { howToPages } from "@/lib/how-to-pages-data";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital";
@@ -65,6 +66,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified,
       changeFrequency: "monthly" as const,
       priority: 0.5,
+    })),
+    // How-To long-tail guide pages — high priority because each
+    // targets a specific low-competition query with strong intent.
+    {
+      url: `${baseUrl}/how-to`,
+      lastModified,
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    },
+    ...howToPages.map((p) => ({
+      url: `${baseUrl}/how-to/${p.slug}`,
+      lastModified: new Date(p.dateModified),
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
     })),
     {
       url: `${baseUrl}/about`,
