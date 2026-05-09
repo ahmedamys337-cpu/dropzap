@@ -1,6 +1,11 @@
 import { ImageResponse } from "next/og";
 
-export const runtime = "edge";
+// Render is a Node.js host (standalone output); the Edge runtime is only
+// supported on Vercel and Cloudflare Workers. Setting `runtime = "edge"`
+// here used to make GET /opengraph-image return 5xx in production — Google
+// flagged it as "Server error (5xx)" in Search Console. Use the default
+// Node runtime instead, which `ImageResponse` supports identically.
+export const runtime = "nodejs";
 export const alt = "DropZap — Free Media Downloader";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";

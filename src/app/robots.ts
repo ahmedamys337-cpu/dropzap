@@ -8,17 +8,24 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/api/"],
+        // /api/   → server endpoints, never user-facing pages.
+        // /*?url= → the schema.org SearchAction template URL
+        //          (`/?url={search_term_string}`) was being crawled
+        //          literally, producing the "Alternative page with
+        //          proper canonical tag" warning in GSC. The placeholder
+        //          is meant to be expanded by Google's sitelinks search
+        //          box, not crawled directly.
+        disallow: ["/api/", "/*?url="],
       },
       {
         userAgent: "Googlebot",
         allow: "/",
-        disallow: ["/api/"],
+        disallow: ["/api/", "/*?url="],
       },
       {
         userAgent: "Bingbot",
         allow: "/",
-        disallow: ["/api/"],
+        disallow: ["/api/", "/*?url="],
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
