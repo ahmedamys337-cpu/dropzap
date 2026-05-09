@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Zap, Shield, Globe, Heart } from "lucide-react";
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital";
+
 export const metadata: Metadata = {
+  alternates: { canonical: `${SITE_URL}/about` },
   title: "About DropZap — Free Online Video Downloader",
   description:
     "Learn about DropZap, the free, fast, and privacy-friendly online video downloader for YouTube, Instagram, TikTok, Twitter/X, Facebook, and Reddit. No signup, no watermark, 100% browser-based.",

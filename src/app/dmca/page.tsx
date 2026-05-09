@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital";
+
 export const metadata: Metadata = {
+  alternates: { canonical: `${SITE_URL}/dmca` },
   title: "DMCA / Copyright Policy",
   description:
     "DropZap DMCA copyright takedown policy. Submit DMCA notices and counter-notices for content you believe infringes copyright.",

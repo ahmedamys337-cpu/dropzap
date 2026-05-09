@@ -43,11 +43,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly" as const,
       priority: 0.9,
     })),
+    // MP3 converter — dedicated page for the high-volume "video to mp3"
+    // query family. Tool already exists; the dedicated URL gives Google
+    // a clean target instead of the homepage tab.
+    {
+      url: `${baseUrl}/mp3-converter`,
+      lastModified,
+      changeFrequency: "weekly" as const,
+      priority: 0.85,
+    },
     {
       url: `${baseUrl}/blog`,
       lastModified,
       changeFrequency: "weekly",
-      priority: 0.7,
+      priority: 0.75,
     },
     ...blogEntries,
     // Alternative-to-X comparison pages (high-intent comparison queries)

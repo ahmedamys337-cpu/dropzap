@@ -35,80 +35,13 @@ export interface BlogPost {
   related?: string[];
 }
 
+// Note: the legacy `tiktok-download-without-watermark` (Apr 14) and
+// `instagram-reels-downloader-guide` (Apr 13) posts were removed
+// in favor of the longer, better May-9 versions
+// (`how-to-download-tiktok-without-watermark` and
+// `how-to-download-instagram-reels-on-iphone`). Both old slugs are
+// 301-redirected in next.config.js to preserve link equity.
 export const blogPosts: BlogPost[] = [
-  {
-    slug: "tiktok-download-without-watermark",
-    title: "How to Download TikTok Videos Without Watermark (2026)",
-    description: "Remove TikTok watermark and download videos in HD. Works on iPhone, Android & PC. Free TikTok saver with no logo overlay.",
-    date: "2026-04-14",
-    keywords: ["tiktok download without watermark", "remove tiktok watermark", "tiktok no watermark download"],
-    category: "TikTok",
-    readTime: "6 min read",
-    content: `<p>TikTok videos come with a watermark showing the creator's username and the TikTok logo. While this is fine for sharing within TikTok, you might want a clean version for personal use, presentations, or saving to your camera roll. Here's how to download TikTok videos without the watermark.</p>
-
-<h2>Why Remove the TikTok Watermark?</h2>
-<p>There are several reasons people want watermark-free TikTok videos: saving content for personal offline viewing, creating presentations or mood boards, backing up your own content, or having a clean version for your camera roll.</p>
-
-<h2>Using DropZap to Download Without Watermark</h2>
-<p><a href="/tiktok-downloader">DropZap's TikTok downloader</a> automatically removes the TikTok watermark during download. The process is simple:</p>
-<ol>
-<li>Open TikTok and find the video you want to save</li>
-<li>Tap the Share button and select "Copy Link"</li>
-<li>Open DropZap in your browser and paste the link</li>
-<li>Click Download — the video saves without watermark</li>
-</ol>
-
-<h2>Does This Work on iPhone?</h2>
-<p>Yes! DropZap works perfectly in Safari on iPhone. After downloading, the video saves to your Files app. You can then save it to your camera roll by tapping Share > Save Video.</p>
-
-<h2>Quality of Downloaded Videos</h2>
-<p>DropZap downloads TikTok videos at their original uploaded quality, which is typically 1080x1920 (Full HD vertical). There is no quality loss during the watermark removal process because DropZap fetches the original source video before the watermark is applied.</p>
-
-<h2>Can I Download TikTok Slideshows?</h2>
-<p>Yes. TikTok slideshows (photo carousels) can be downloaded as video files with the original music or sound included.</p>
-
-<h2>Important Notes</h2>
-<ul>
-<li>Only public TikTok videos can be downloaded — private videos are not accessible</li>
-<li>Always respect content creators' rights — downloading is for personal use only</li>
-<li>If a video has been removed from TikTok, it cannot be downloaded</li>
-<li>DropZap does not require any TikTok login credentials</li>
-</ul>`,
-  },
-  {
-    slug: "instagram-reels-downloader-guide",
-    title: "How to Download Instagram Reels — Save IG Reels to Camera Roll",
-    description: "Download Instagram Reels to your phone or computer. Free Instagram Reel saver that works on iPhone, Android. No login, no app needed.",
-    date: "2026-04-13",
-    keywords: ["download instagram reels", "instagram reels downloader", "save instagram reels to camera roll"],
-    category: "Instagram",
-    readTime: "6 min read",
-    content: `<p>Instagram Reels have become one of the most popular short-form video formats. But Instagram doesn't offer a built-in option to download other people's Reels. Here's how to save any public Instagram Reel to your device.</p>
-
-<h2>Step-by-Step: Download Instagram Reels</h2>
-<ol>
-<li>Open Instagram and find the Reel you want to download</li>
-<li>Tap the three dots (···) or the Share button</li>
-<li>Select "Copy Link"</li>
-<li>Open <a href="/instagram-downloader">DropZap's Instagram Downloader</a> in your browser</li>
-<li>Paste the link and click Download</li>
-</ol>
-
-<h2>Downloading Reels on iPhone</h2>
-<p>On iPhone, the process works seamlessly through Safari. After downloading, the Reel saves to your Files app. To move it to your camera roll, open the file, tap the Share icon, and select "Save Video."</p>
-
-<h2>Downloading Reels on Android</h2>
-<p>On Android, use Chrome to open DropZap. The downloaded Reel goes directly to your Downloads folder and typically appears in your gallery app automatically.</p>
-
-<h2>What About Instagram Stories?</h2>
-<p>Instagram Stories are a different format that disappears after 24 hours. Currently, DropZap focuses on Reels and video posts. Story download support is planned for a future update.</p>
-
-<h2>Video Quality</h2>
-<p>Instagram Reels are downloaded at their original uploaded quality. Most Reels are 1080x1920 resolution (Full HD vertical). The audio track is always included.</p>
-
-<h2>Privacy and Safety</h2>
-<p>DropZap never asks for your Instagram login. We only access publicly available content. Private account Reels cannot be downloaded by any external tool. Always respect creators' rights and use downloads for personal purposes only.</p>`,
-  },
   {
     slug: "twitter-video-downloader-guide",
     title: "How to Download Twitter/X Videos — Save Tweets as MP4",
@@ -595,7 +528,7 @@ export const blogPosts: BlogPost[] = [
     title: "How to Download Instagram Reels on iPhone in 2026 (Without Any App)",
     description:
       "Save Instagram Reels to your iPhone Camera Roll without any app. Step-by-step guide using Safari and DropZap. No login, no watermark, free.",
-    date: "2026-05-09",
+    date: "2026-04-10",
     dateModified: "2026-05-09",
     keywords: [
       "how to download instagram reels on iphone",
@@ -706,7 +639,7 @@ export const blogPosts: BlogPost[] = [
     title: "How to Download TikTok Videos Without Watermark in 2026 (Free)",
     description:
       "Download TikTok videos without the watermark for free. Step-by-step guide using DropZap on iPhone, Android, and PC. No app, no login, no logo overlay.",
-    date: "2026-05-09",
+    date: "2026-04-16",
     dateModified: "2026-05-09",
     keywords: [
       "how to download tiktok without watermark",
@@ -823,7 +756,7 @@ export const blogPosts: BlogPost[] = [
     title: "Why Reddit Videos Have No Sound When Downloaded (And How to Fix It)",
     description:
       "Reddit videos often download silent because Reddit stores audio and video as separate streams. Here's why it happens and how DropZap fixes it automatically.",
-    date: "2026-05-09",
+    date: "2026-04-07",
     dateModified: "2026-05-09",
     keywords: [
       "reddit video no sound download",
@@ -945,7 +878,7 @@ export const blogPosts: BlogPost[] = [
     title: "Best SnapTik Alternatives in 2026 — Faster, No Ads, No Fake Buttons",
     description:
       "SnapTik down or covered in popups? Here are the best SnapTik alternatives for downloading TikTok without watermark, with DropZap as the cleanest pick.",
-    date: "2026-05-09",
+    date: "2026-04-28",
     dateModified: "2026-05-09",
     keywords: [
       "snaptik alternative",
@@ -1091,7 +1024,7 @@ export const blogPosts: BlogPost[] = [
     title: "SnapInsta Not Working? 5 Best Alternatives to Download Instagram Reels",
     description:
       "SnapInsta down or stuck loading? Here are the 5 best SnapInsta alternatives for downloading Instagram Reels, photos, and carousels — DropZap leads the pack.",
-    date: "2026-05-09",
+    date: "2026-04-25",
     dateModified: "2026-05-09",
     keywords: [
       "snapinsta alternative",
@@ -1221,7 +1154,7 @@ export const blogPosts: BlogPost[] = [
     title: "How to Download All Photos from an Instagram Carousel (Full Guide 2026)",
     description:
       "Download every slide of an Instagram carousel in one click as a ZIP file. Step-by-step guide for iPhone, Android, and PC. No login, no slide-by-slide.",
-    date: "2026-05-09",
+    date: "2026-04-19",
     dateModified: "2026-05-09",
     keywords: [
       "download instagram carousel",
@@ -1360,7 +1293,7 @@ export const blogPosts: BlogPost[] = [
     title: "How to Save TikToks to iPhone Camera Roll Without Watermark (2026)",
     description:
       "Save any TikTok directly to your iPhone Camera Roll without the watermark. Two methods: DropZap web tool and iOS Shortcuts. No app, no login.",
-    date: "2026-05-09",
+    date: "2026-04-04",
     dateModified: "2026-05-09",
     keywords: [
       "save tiktok to camera roll",
@@ -1481,7 +1414,7 @@ export const blogPosts: BlogPost[] = [
     title: "7 Best TikTok Downloaders Without Watermark in 2026 (Tested & Ranked)",
     description:
       "We tested 7 free TikTok downloaders for speed, watermark removal, ad density, and reliability. DropZap leads on every metric. Full comparison table inside.",
-    date: "2026-05-09",
+    date: "2026-04-01",
     dateModified: "2026-05-09",
     keywords: [
       "best tiktok downloader no watermark",
@@ -1610,7 +1543,7 @@ export const blogPosts: BlogPost[] = [
     title: "Best ssstik Alternatives in 2026 — Faster, No Captcha, No Banner Ads",
     description:
       "ssstik down or showing captchas? Here are the best ssstik alternatives for downloading TikTok without watermark, ranked. DropZap takes the top spot.",
-    date: "2026-05-09",
+    date: "2026-04-22",
     dateModified: "2026-05-09",
     keywords: [
       "ssstik alternative",
@@ -1742,7 +1675,7 @@ export const blogPosts: BlogPost[] = [
     title: "How to Download Twitter / X Videos in 2026 (Full HD, Free, No Login)",
     description:
       "Save any Twitter / X video as MP4 in full HD without logging in. Step-by-step guide for iPhone, Android, and PC. Works on videos, GIFs, and threads.",
-    date: "2026-05-09",
+    date: "2026-03-28",
     dateModified: "2026-05-09",
     keywords: [
       "how to download twitter videos",
@@ -1853,7 +1786,7 @@ export const blogPosts: BlogPost[] = [
     title: "How to Download Facebook Videos, Reels, and Albums in 2026",
     description:
       "Download any public Facebook video, Reel, or photo album as HD MP4 or ZIP. Step-by-step guide for iPhone, Android, and PC. No login, no app, free.",
-    date: "2026-05-09",
+    date: "2026-03-24",
     dateModified: "2026-05-09",
     keywords: [
       "how to download facebook video",
@@ -1982,7 +1915,7 @@ export const blogPosts: BlogPost[] = [
     title: "How to Download Pinterest Videos and Images in 2026 (Original Quality)",
     description:
       "Save any Pinterest pin as MP4 (videos) or JPG (images) at original resolution. Step-by-step for iPhone, Android, PC. No login, no Pinterest app needed.",
-    date: "2026-05-09",
+    date: "2026-03-20",
     dateModified: "2026-05-09",
     keywords: [
       "how to download pinterest video",

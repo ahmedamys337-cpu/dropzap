@@ -5,7 +5,11 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/toaster";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 
-const inter = Inter({ subsets: ["latin"] });
+// `display: "swap"` eliminates FOIT (Flash of Invisible Text) — text
+// renders immediately with the system fallback while Inter loads, then
+// swaps in. Critical for LCP because next/font self-hosts the file
+// but the swap timing is what Google's CWV measures.
+const inter = Inter({ subsets: ["latin"], display: "swap" });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital";
 const SITE_NAME = "DropZap";
@@ -371,8 +375,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* Google Fonts preconnect removed — next/font self-hosts Inter,
+           so there is no runtime fetch to fonts.googleapis.com. Keeping
+           the preconnects would force an unused DNS+TLS handshake. */}
         <link rel="dns-prefetch" href="https://i.ytimg.com" />
         <link rel="dns-prefetch" href="https://img.youtube.com" />
         {process.env.NEXT_PUBLIC_ADSENSE_CLIENT && (

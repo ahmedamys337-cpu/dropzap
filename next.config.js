@@ -57,6 +57,19 @@ const nextConfig = {
       { source: '/blog/youtube-to-mp3-converter-guide', destination: '/blog', permanent: true },
       { source: '/blog/download-youtube-shorts', destination: '/blog', permanent: true },
       { source: '/blog/4k-video-downloader-free', destination: '/blog', permanent: true },
+      // 2 duplicate posts merged into the longer May-9 versions. Both
+      // old slugs are 301'd to the new canonical post so any backlinks
+      // or GSC-indexed entries flow PageRank into the surviving page.
+      {
+        source: '/blog/tiktok-download-without-watermark',
+        destination: '/blog/how-to-download-tiktok-without-watermark',
+        permanent: true,
+      },
+      {
+        source: '/blog/instagram-reels-downloader-guide',
+        destination: '/blog/how-to-download-instagram-reels-on-iphone',
+        permanent: true,
+      },
     ];
   },
   async headers() {

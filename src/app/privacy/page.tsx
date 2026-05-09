@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital";
+
 export const metadata: Metadata = {
+  alternates: { canonical: `${SITE_URL}/privacy` },
   title: "Privacy Policy",
   description: "DropZap privacy policy. We do not collect personal data, store videos, or track users.",
   robots: { index: true, follow: true },

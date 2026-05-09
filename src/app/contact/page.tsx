@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Mail, MessageCircle, Bug, Briefcase } from "lucide-react";
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital";
+
 export const metadata: Metadata = {
+  alternates: { canonical: `${SITE_URL}/contact` },
   title: "Contact DropZap — Support & Feedback",
   description:
     "Get in touch with the DropZap team. Send us bug reports, feature requests, business inquiries, or DMCA notices.",

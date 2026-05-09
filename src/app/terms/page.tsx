@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital";
+
 export const metadata: Metadata = {
+  alternates: { canonical: `${SITE_URL}/terms` },
   title: "Terms of Service",
   description: "DropZap terms of service. For personal use only. Respect copyright and content creators' rights.",
   robots: { index: true, follow: true },

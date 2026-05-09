@@ -38,7 +38,7 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen gradient-bg animate-gradient">
+    <main role="main" className="min-h-screen gradient-bg animate-gradient">
       {/* Header */}
       <header className="sticky top-0 z-50 w-full glass-strong">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -62,10 +62,11 @@ export default function Home() {
       {/* Hero / SEO H1 */}
       <section className="max-w-6xl mx-auto px-4 pt-10 pb-4 text-center">
         <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight">
+          <span className="text-foreground">Free </span>
           <span className="bg-gradient-to-r from-blue-500 via-purple-600 to-pink-500 bg-clip-text text-transparent">
-            DropZap
+            Instagram, TikTok &amp; Social Media
           </span>
-          <span className="text-foreground"> — Free Online Media Downloader</span>
+          <span className="text-foreground"> Video Downloader</span>
         </h1>
         <p className="mt-3 text-base sm:text-lg text-muted-foreground max-w-3xl mx-auto">
           Download <strong>Instagram Reels</strong>, <strong>TikTok</strong>, <strong>Facebook</strong>,{" "}
@@ -77,10 +78,10 @@ export default function Home() {
         <TrustBar />
       </section>
 
-      {/* === AD ZONE: Top Banner === */}
-      <div className="max-w-6xl mx-auto px-4 pt-2">
-        <AdBanner slot="top" />
-      </div>
+      {/* Top ad zone REMOVED in May 2026. An ad placed above the
+         primary tool (between H1 and tabs) is exactly the "ads above
+         primary content" pattern Google's Page Layout algorithm
+         penalizes. Sidebar + bottom slots remain. */}
 
       {/* Main Content */}
       <div className="max-w-6xl mx-auto px-4 py-8">
@@ -506,6 +507,9 @@ export default function Home() {
               <a href="/twitter-video-downloader" className="hover:text-foreground transition-colors">Twitter Downloader</a>
               <a href="/facebook-video-downloader" className="hover:text-foreground transition-colors">Facebook Downloader</a>
               <a href="/reddit-video-downloader" className="hover:text-foreground transition-colors">Reddit Downloader</a>
+              <a href="/mp3-converter" className="hover:text-foreground transition-colors">MP3 Converter</a>
+              <a href="/how-to" className="hover:text-foreground transition-colors">How-To</a>
+              <a href="/glossary" className="hover:text-foreground transition-colors">Glossary</a>
               <a href="/blog" className="hover:text-foreground transition-colors">Blog</a>
               <a href="/about" className="hover:text-foreground transition-colors">About</a>
               <a href="/contact" className="hover:text-foreground transition-colors">Contact</a>
