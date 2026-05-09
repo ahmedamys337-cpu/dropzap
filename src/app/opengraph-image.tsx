@@ -1,11 +1,13 @@
 import { ImageResponse } from "next/og";
 
-// Render is a Node.js host (standalone output); the Edge runtime is only
-// supported on Vercel and Cloudflare Workers. Setting `runtime = "edge"`
-// here used to make GET /opengraph-image return 5xx in production — Google
-// flagged it as "Server error (5xx)" in Search Console. Use the default
-// Node runtime instead, which `ImageResponse` supports identically.
-export const runtime = "nodejs";
+// Edge runtime is required: on Node runtime, @vercel/og fails at build
+// time inside `next build` (TypeError: Invalid URL when fileURLToPath()'s
+// a font binary). The 5xx Google flagged in Search Console for this route
+// was almost certainly a Render free-tier cold-start (instances spin
+// down after ~15 min idle and the first request times out). Upgrading
+// the Render plan or warming the route via an external pinger fixes
+// that without changing the runtime.
+export const runtime = "edge";
 export const alt = "DropZap — Free Media Downloader";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
