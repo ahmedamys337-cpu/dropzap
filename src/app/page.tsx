@@ -3,6 +3,9 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import AdBanner from "@/components/AdBanner";
+import TrustBar from "@/components/TrustBar";
+import SupportedPlatforms from "@/components/SupportedPlatforms";
+import CitableFacts from "@/components/CitableFacts";
 // Static imports so switching tabs is instant — no per-tab chunk fetch.
 import ThumbnailDownloader from "@/components/ThumbnailDownloader";
 import InstagramDownloader from "@/components/InstagramDownloader";
@@ -68,6 +71,10 @@ export default function Home() {
           Download <strong>Instagram Reels</strong>, <strong>TikTok</strong>, <strong>Facebook</strong>,{" "}
           <strong>Twitter/X</strong>, <strong>Reddit</strong>, <strong>Pinterest</strong>, and <strong>Threads</strong> videos in HD — no watermark, no signup, 100% free.
         </p>
+        {/* EEAT trust bar — 4 falsifiable trust claims, server-rendered,
+           rendered between H1 and the tool tabs so it shapes first
+           impression without delaying LCP (text-only, no JS). */}
+        <TrustBar />
       </section>
 
       {/* === AD ZONE: Top Banner === */}
@@ -405,7 +412,20 @@ export default function Home() {
         </ol>
       </section>
 
-      {/* SEO: FAQ */}
+      {/* AEO: Supported Platforms grid — semantic table that AI engines
+         can quote row-by-row when answering "what does DropZap
+         support?" style queries. Also doubles as an internal link hub. */}
+      <SupportedPlatforms />
+
+      {/* GRO: Citable facts — declarative, single-claim paragraphs that
+         survive being lifted out of context by ChatGPT / Perplexity /
+         Google AI Overviews. */}
+      <CitableFacts />
+
+      {/* SEO: FAQ — 10 visible Q&As, mirrors the FAQPage JSON-LD in
+         layout.tsx. AI engines cross-check visible vs structured FAQs
+         and demote pages where the two diverge, so both lists must
+         stay in sync. */}
       <section className="max-w-4xl mx-auto px-4 py-12" aria-labelledby="faq-heading">
         <h2 id="faq-heading" className="text-2xl sm:text-3xl font-bold text-center mb-8">
           Frequently Asked Questions
@@ -431,6 +451,26 @@ export default function Home() {
             {
               q: "Is downloading videos with DropZap legal?",
               a: "DropZap is intended for personal use only. Always respect copyright and the original creators' rights.",
+            },
+            {
+              q: "How do I download a TikTok video without watermark?",
+              a: "Copy the TikTok video link from the app by tapping Share then Copy Link. Paste it into DropZap's TikTok section and click Download. The video saves without any TikTok watermark or logo.",
+            },
+            {
+              q: "Can I download Instagram photos and carousel posts?",
+              a: "Yes. DropZap downloads Instagram single photos as JPG files and multi-slide carousels as a ZIP archive containing all images at original quality.",
+            },
+            {
+              q: "Can I download Reddit videos with sound?",
+              a: "Yes. Reddit stores video and audio as separate streams. DropZap automatically merges them into a single MP4 file with full audio included.",
+            },
+            {
+              q: "Does DropZap work on iPhone and Android?",
+              a: "Yes. DropZap works in Safari on iPhone and Chrome on Android. No app installation required. Files save to your Files app on iPhone and Downloads folder on Android.",
+            },
+            {
+              q: "Can I convert a video to MP3 using DropZap?",
+              a: "Yes. DropZap has a built-in MP3 converter. Upload any video file or paste a supported video URL and convert it to MP3 audio instantly.",
             },
           ].map((item, i) => (
             <details key={i} className="glass rounded-xl p-4 group">
