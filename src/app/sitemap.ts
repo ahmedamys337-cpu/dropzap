@@ -4,6 +4,9 @@ import { programmaticPages } from "@/lib/programmatic-seo";
 import { alternativePages } from "@/lib/alternatives-data";
 import { listAllDevicePages } from "@/lib/device-pages-data";
 import { howToPages } from "@/lib/how-to-pages-data";
+import { glossaryEntries } from "@/lib/glossary-data";
+import { mobilePages } from "@/lib/mobile-pages-data";
+import { yearPages } from "@/lib/year-pages-data";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital";
@@ -80,6 +83,37 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date(p.dateModified),
       changeFrequency: "monthly" as const,
       priority: 0.7,
+    })),
+    // Glossary — informational definitions. Lower commercial priority
+    // than the how-to pages but high LLM-citation value.
+    {
+      url: `${baseUrl}/glossary`,
+      lastModified,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    },
+    ...glossaryEntries.map((e) => ({
+      url: `${baseUrl}/glossary/${e.slug}`,
+      lastModified: new Date(e.dateModified),
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    })),
+    // Mobile-specific commercial landing pages — high priority,
+    // matched to the "video downloader iphone/android" head queries.
+    ...mobilePages.map((m) => ({
+      url: `${baseUrl}/${m.slug}`,
+      lastModified: new Date(m.dateModified),
+      changeFrequency: "weekly" as const,
+      priority: 0.9,
+    })),
+    // Year-specific "best of" listicles — high freshness signal,
+    // strong commercial intent. Bumped to weekly because we expect
+    // to refresh rankings/dateModified throughout the year.
+    ...yearPages.map((y) => ({
+      url: `${baseUrl}/${y.slug}`,
+      lastModified: new Date(y.dateModified),
+      changeFrequency: "weekly" as const,
+      priority: 0.9,
     })),
     {
       url: `${baseUrl}/about`,
