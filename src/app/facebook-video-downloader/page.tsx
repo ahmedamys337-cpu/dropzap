@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { platforms, SITE_URL, SITE_NAME } from "@/lib/seo-data";
+import { buildArticle, buildBreadcrumbList } from "@/lib/schemas";
 import PlatformPageClient from "@/components/PlatformPageClient";
 
 const p = platforms.facebook;
@@ -66,6 +67,8 @@ const jsonLd = {
         acceptedAnswer: { "@type": "Answer", text: f.a },
       })),
     },
+    buildArticle(p),
+    buildBreadcrumbList(p.name, p.slug),
   ],
 };
 

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { platforms, SITE_URL, SITE_NAME } from "@/lib/seo-data";
+import { buildArticle, buildBreadcrumbList } from "@/lib/schemas";
 import PlatformPageClient from "@/components/PlatformPageClient";
 
 const p = platforms.tiktok;
@@ -66,6 +67,11 @@ const jsonLd = {
         acceptedAnswer: { "@type": "Answer", text: f.a },
       })),
     },
+    // Article + BreadcrumbList — give the page Rich Result eligibility
+    // (article carousels, breadcrumb display in SERPs) and provide a
+    // dated, authored entity for AI engines to cite.
+    buildArticle(p),
+    buildBreadcrumbList(p.name, p.slug),
   ],
 };
 

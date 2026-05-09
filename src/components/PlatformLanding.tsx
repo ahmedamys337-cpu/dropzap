@@ -2,6 +2,7 @@
 
 import { ThemeToggle } from "@/components/ThemeToggle";
 import AdBanner from "@/components/AdBanner";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import { Zap } from "lucide-react";
 import type { PlatformSEO } from "@/lib/seo-data";
 
@@ -42,8 +43,19 @@ export default function PlatformLanding({ platform, children }: PlatformLandingP
         </div>
       </header>
 
+      {/* Breadcrumb nav (visible) — pairs with BreadcrumbList JSON-LD
+         emitted by each tool page. Position matters: above hero so it
+         provides context before the LCP element, but below the sticky
+         header so it doesn't compete for top-of-fold attention. */}
+      <Breadcrumbs
+        items={[
+          { label: "Home", href: "/" },
+          { label: `${platform.name} Downloader` },
+        ]}
+      />
+
       {/* Hero */}
-      <section className="max-w-6xl mx-auto px-4 pt-10 pb-4 text-center">
+      <section className="max-w-6xl mx-auto px-4 pt-6 pb-4 text-center">
         <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight">
           <span className={`bg-gradient-to-r ${platform.gradient} bg-clip-text text-transparent`}>
             {platform.name}
