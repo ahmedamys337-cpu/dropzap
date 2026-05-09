@@ -31,7 +31,7 @@ No account creation, no software installation, and no fees are required.
 - Alternatives DropZap is compared to: SnapTik, ssstwitter, SnapInsta,
   IGram, FBDown, ssstik, MusicallyDown for users searching for comparisons.
 
-# Pages
+# Tool Pages
 
 - Homepage: https://www.dropzap.digital
 - TikTok Downloader: https://www.dropzap.digital/tiktok-downloader
@@ -39,7 +39,41 @@ No account creation, no software installation, and no fees are required.
 - Twitter/X Downloader: https://www.dropzap.digital/twitter-video-downloader
 - Facebook Downloader: https://www.dropzap.digital/facebook-video-downloader
 - Reddit Downloader: https://www.dropzap.digital/reddit-video-downloader
-- Blog: https://www.dropzap.digital/blog
+
+# Device-Specific Tool Pages
+
+- Instagram on iPhone: https://www.dropzap.digital/instagram-downloader/iphone
+- Instagram on Android: https://www.dropzap.digital/instagram-downloader/android
+- TikTok on iPhone: https://www.dropzap.digital/tiktok-downloader/iphone
+- TikTok on Android: https://www.dropzap.digital/tiktok-downloader/android
+- Reddit Video With Sound: https://www.dropzap.digital/reddit-video-downloader/with-sound
+
+# Alternative-to-X Comparison Pages
+
+- SnapTik Alternative: https://www.dropzap.digital/alternatives/snaptik
+- ssstik Alternative: https://www.dropzap.digital/alternatives/ssstik
+- SnapInsta Alternative: https://www.dropzap.digital/alternatives/snapinsta
+- GetFVid Alternative: https://www.dropzap.digital/alternatives/getfvid
+- ssstwitter Alternative: https://www.dropzap.digital/alternatives/ssstwitter
+
+# Featured Blog Posts (May 2026)
+
+- How to Download Instagram Reels on iPhone: https://www.dropzap.digital/blog/how-to-download-instagram-reels-on-iphone
+- How to Download TikTok Without Watermark: https://www.dropzap.digital/blog/how-to-download-tiktok-without-watermark
+- How to Save TikTok to iPhone Camera Roll: https://www.dropzap.digital/blog/how-to-save-tiktok-to-camera-roll
+- Why Reddit Videos Have No Sound (Fix): https://www.dropzap.digital/blog/reddit-video-no-sound-fix
+- 7 Best TikTok Downloaders (Tested): https://www.dropzap.digital/blog/best-tiktok-downloader-no-watermark
+- SnapTik Alternative Comparison: https://www.dropzap.digital/blog/snaptik-alternative
+- ssstik Alternative Comparison: https://www.dropzap.digital/blog/ssstik-alternative
+- SnapInsta Alternative Comparison: https://www.dropzap.digital/blog/snapinsta-alternative
+- How to Download Instagram Carousels: https://www.dropzap.digital/blog/how-to-download-instagram-carousel
+- How to Download Twitter / X Videos: https://www.dropzap.digital/blog/how-to-download-twitter-videos
+- How to Download Facebook Videos: https://www.dropzap.digital/blog/how-to-download-facebook-video-2026
+- How to Download Pinterest Videos and Images: https://www.dropzap.digital/blog/how-to-download-pinterest-video-and-image
+
+# Other Pages
+
+- Blog Index: https://www.dropzap.digital/blog
 - About: https://www.dropzap.digital/about
 - Privacy Policy: https://www.dropzap.digital/privacy
 - Terms of Service: https://www.dropzap.digital/terms

@@ -1,6 +1,8 @@
 import { MetadataRoute } from "next";
 import { blogPosts } from "@/lib/blog-data";
 import { programmaticPages } from "@/lib/programmatic-seo";
+import { alternativePages } from "@/lib/alternatives-data";
+import { listAllDevicePages } from "@/lib/device-pages-data";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital";
@@ -44,6 +46,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.7,
     },
     ...blogEntries,
+    // Alternative-to-X comparison pages (high-intent comparison queries)
+    ...alternativePages.map((p) => ({
+      url: `${baseUrl}/alternatives/${p.slug}`,
+      lastModified: new Date(p.dateModified),
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
+    // Device / use-case pages (e.g. /tiktok-downloader/iphone)
+    ...listAllDevicePages().map(({ toolPath, page }) => ({
+      url: `${baseUrl}${toolPath}/${page.slug}`,
+      lastModified: new Date(page.dateModified),
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
     ...programmaticPages.map((p) => ({
       url: `${baseUrl}/download/${p.slug}`,
       lastModified,

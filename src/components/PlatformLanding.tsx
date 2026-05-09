@@ -11,6 +11,41 @@ interface PlatformLandingProps {
   children: React.ReactNode; // The download tool component
 }
 
+// Per-platform internal-link cards. Each tool page surfaces related
+// device variants (e.g. /tiktok-downloader/iphone), the matching
+// "alternatives/<x>" comparison page, and 1-2 deep blog posts.
+// Centralized here so the link graph stays consistent across tools.
+type RelatedLink = { label: string; href: string; kind: "device" | "alt" | "blog" };
+const RELATED_LINKS: Record<string, RelatedLink[]> = {
+  "tiktok-downloader": [
+    { label: "TikTok on iPhone — full guide", href: "/tiktok-downloader/iphone", kind: "device" },
+    { label: "TikTok on Android — full guide", href: "/tiktok-downloader/android", kind: "device" },
+    { label: "SnapTik alternative comparison", href: "/alternatives/snaptik", kind: "alt" },
+    { label: "ssstik alternative comparison", href: "/alternatives/ssstik", kind: "alt" },
+    { label: "How to download TikTok without watermark", href: "/blog/how-to-download-tiktok-without-watermark", kind: "blog" },
+    { label: "7 best TikTok downloaders (tested)", href: "/blog/best-tiktok-downloader-no-watermark", kind: "blog" },
+  ],
+  "instagram-downloader": [
+    { label: "Instagram on iPhone — full guide", href: "/instagram-downloader/iphone", kind: "device" },
+    { label: "Instagram on Android — full guide", href: "/instagram-downloader/android", kind: "device" },
+    { label: "SnapInsta alternative comparison", href: "/alternatives/snapinsta", kind: "alt" },
+    { label: "How to download Reels on iPhone", href: "/blog/how-to-download-instagram-reels-on-iphone", kind: "blog" },
+    { label: "How to download Instagram carousels", href: "/blog/how-to-download-instagram-carousel", kind: "blog" },
+  ],
+  "reddit-video-downloader": [
+    { label: "Reddit downloader with sound", href: "/reddit-video-downloader/with-sound", kind: "device" },
+    { label: "Why Reddit videos download silent (fix)", href: "/blog/reddit-video-no-sound-fix", kind: "blog" },
+  ],
+  "facebook-video-downloader": [
+    { label: "GetFVid alternative comparison", href: "/alternatives/getfvid", kind: "alt" },
+    { label: "How to download Facebook videos & albums", href: "/blog/how-to-download-facebook-video-2026", kind: "blog" },
+  ],
+  "twitter-video-downloader": [
+    { label: "ssstwitter alternative comparison", href: "/alternatives/ssstwitter", kind: "alt" },
+    { label: "How to download Twitter / X videos", href: "/blog/how-to-download-twitter-videos", kind: "blog" },
+  ],
+};
+
 export default function PlatformLanding({ platform, children }: PlatformLandingProps) {
   return (
     <main className="min-h-screen gradient-bg animate-gradient">
@@ -208,6 +243,37 @@ export default function PlatformLanding({ platform, children }: PlatformLandingP
           ))}
         </div>
       </section>
+
+      {/* Related guides (device variants + alternatives + deep blog posts).
+         These are the highest-PageRank internal links on the tool page —
+         they push topical relevance to long-tail and comparison queries
+         without diluting the canonical tool page itself. */}
+      {RELATED_LINKS[platform.slug] && RELATED_LINKS[platform.slug].length > 0 && (
+        <section className="max-w-6xl mx-auto px-4 py-10" aria-labelledby="related-heading">
+          <h2 id="related-heading" className="text-2xl sm:text-3xl font-bold text-center mb-8">
+            Related Guides &amp; Comparisons
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {RELATED_LINKS[platform.slug].map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                className="glass rounded-xl p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-foreground/10"
+              >
+                <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+                  {link.kind === "device" && "Device guide"}
+                  {link.kind === "alt" && "Alternative to"}
+                  {link.kind === "blog" && "Tutorial"}
+                </div>
+                <p className="font-semibold leading-snug">{link.label}</p>
+                <p className={`mt-3 text-sm font-medium bg-gradient-to-r ${platform.gradient} bg-clip-text text-transparent`}>
+                  Read more →
+                </p>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Cross-links to other platforms */}
       <section className="max-w-6xl mx-auto px-4 py-10">
