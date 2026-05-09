@@ -92,10 +92,19 @@ export default function PlatformLanding({ platform, children }: PlatformLandingP
       {/* Hero */}
       <section className="max-w-6xl mx-auto px-4 pt-6 pb-4 text-center">
         <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight">
-          <span className={`bg-gradient-to-r ${platform.gradient} bg-clip-text text-transparent`}>
+          {/*
+            `bg-clip-text text-transparent` paints the gradient as the
+            text fill. `pr-2` adds extra horizontal painting room so
+            italic/round-edge glyphs at the right of the word (e.g.
+            the trailing "t" in "Reddit") don't get cropped by the
+            text's own bounding box.
+          */}
+          <span
+            className={`inline-block pr-2 bg-gradient-to-r ${platform.gradient} bg-clip-text text-transparent`}
+          >
             {platform.name}
           </span>
-          <span className="text-foreground"> Downloader — Free & Fast</span>
+          <span className="text-foreground">Downloader — Free &amp; Fast</span>
         </h1>
         <p className="mt-3 text-base sm:text-lg text-muted-foreground max-w-3xl mx-auto">
           {platform.description}
@@ -107,8 +116,16 @@ export default function PlatformLanding({ platform, children }: PlatformLandingP
         <AdBanner slot="top" />
       </div>
 
-      {/* Download Tool */}
-      <section className="max-w-3xl mx-auto px-4 py-8">
+      {/*
+        Download tool — widened from max-w-3xl to max-w-5xl so
+        platforms with side-by-side dual-mode cards (Instagram
+        "Reels & Videos / Photos & Carousels", Facebook
+        "Videos / Photo Albums") get full breathing room and don't
+        truncate the paste-link inputs. Single-card platforms
+        (TikTok, Reddit, Twitter) just get a more generous tool
+        surface that matches the homepage's spacious feel.
+      */}
+      <section className="max-w-5xl mx-auto px-4 py-8">
         <div className="glass rounded-2xl p-6 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-2xl hover:shadow-foreground/10">
           {children}
         </div>

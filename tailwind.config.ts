@@ -7,6 +7,35 @@ const config: Config = {
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+  // Tailwind JIT only generates classes that appear as static
+  // strings in source. Platform gradient strings live in
+  // `src/lib/seo-data.ts` and are interpolated via
+  // `${platform.gradient}` into `bg-gradient-to-r ...`. JIT cannot
+  // see these so the resulting `from-blue-600`, `to-blue-700`,
+  // `from-gray-800`, `to-black`, etc. were getting purged — making
+  // the H1 platform name invisible (text-transparent + missing
+  // gradient = transparent text). Safelist every gradient stop
+  // referenced from dynamic data so the classes survive purging.
+  safelist: [
+    // Gradient direction utilities (already static elsewhere but
+    // listed defensively).
+    "bg-gradient-to-r",
+    "bg-gradient-to-br",
+    // Per-platform gradient stops (must mirror seo-data.ts).
+    "from-red-600",
+    "to-red-700",
+    "from-cyan-500",
+    "to-pink-500",
+    "from-purple-600",
+    "via-pink-600",
+    "to-orange-500",
+    "from-gray-800",
+    "to-black",
+    "from-blue-600",
+    "to-blue-700",
+    "from-orange-500",
+    "to-orange-600",
+  ],
   theme: {
     extend: {
       colors: {

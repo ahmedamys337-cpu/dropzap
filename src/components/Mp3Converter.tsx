@@ -66,9 +66,25 @@ export default function Mp3Converter() {
 
   return (
     <div className="space-y-6">
+      {/*
+        Upload card — uses theme-aware tokens (`border-foreground/...`,
+        `bg-foreground/...`) instead of hard-coded white so the card
+        is visible in both light and dark mode. Adds a meaningful
+        hover state (border + bg darken, icon lifts, shadow grows)
+        so users get clear feedback that the card is interactive.
+      */}
       <div
-        className="border-2 border-dashed border-white/20 rounded-xl p-8 text-center cursor-pointer hover:border-white/40 transition-colors bg-white/5 backdrop-blur-sm"
+        role="button"
+        tabIndex={0}
+        aria-label="Upload a video file to convert to MP3"
+        className="group relative border-2 border-dashed border-foreground/25 rounded-2xl p-10 text-center cursor-pointer bg-foreground/[0.03] hover:bg-foreground/[0.06] hover:border-emerald-500/60 hover:shadow-xl hover:shadow-emerald-500/10 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 transition-all duration-300"
         onClick={() => inputRef.current?.click()}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            inputRef.current?.click();
+          }
+        }}
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => {
           e.preventDefault();
@@ -84,9 +100,11 @@ export default function Mp3Converter() {
           className="hidden"
         />
         {file ? (
-          <div className="space-y-2">
-            <FileAudio className="h-12 w-12 mx-auto text-primary" />
-            <p className="font-medium">{file.name}</p>
+          <div className="space-y-3">
+            <div className="mx-auto w-16 h-16 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center">
+              <FileAudio className="h-8 w-8 text-emerald-500" />
+            </div>
+            <p className="font-semibold text-foreground break-all px-4">{file.name}</p>
             <p className="text-sm text-muted-foreground">
               {(file.size / (1024 * 1024)).toFixed(2)} MB
             </p>
@@ -103,12 +121,29 @@ export default function Mp3Converter() {
             </Button>
           </div>
         ) : (
-          <div className="space-y-2">
-            <Upload className="h-12 w-12 mx-auto text-muted-foreground" />
-            <p className="font-medium">Drop a video file here or click to browse</p>
-            <p className="text-sm text-muted-foreground">
-              Supports MP4, MKV, AVI, MOV, WebM, FLV, WMV (max {MAX_SIZE_MB}MB)
+          <div className="space-y-3">
+            <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-blue-500 flex items-center justify-center shadow-lg shadow-emerald-500/30 group-hover:scale-110 transition-transform duration-300">
+              <Upload className="h-8 w-8 text-white" />
+            </div>
+            <p className="font-bold text-foreground text-lg">
+              Drop a video file here or click to browse
             </p>
+            <p className="text-sm text-muted-foreground">
+              Supports MP4, MKV, AVI, MOV, WebM, FLV, WMV
+              <span className="mx-1.5 text-foreground/30">•</span>
+              max {MAX_SIZE_MB} MB
+            </p>
+            <Button
+              type="button"
+              size="lg"
+              className="mt-2 bg-gradient-to-r from-emerald-500 to-blue-500 hover:from-emerald-600 hover:to-blue-600 text-white font-semibold shadow-lg shadow-emerald-500/25"
+              onClick={(e) => {
+                e.stopPropagation();
+                inputRef.current?.click();
+              }}
+            >
+              <Upload className="h-4 w-4 mr-2" /> Choose Video File
+            </Button>
           </div>
         )}
       </div>
