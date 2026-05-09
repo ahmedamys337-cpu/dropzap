@@ -11,7 +11,11 @@ export function ThemeToggle() {
     <Button
       variant="ghost"
       size="icon"
-      aria-label="Toggle theme"
+      // Dynamic aria-label so screen readers announce what the click
+      // will do, not just the toggle's identity. aria-pressed maps to
+      // the toggle pattern (WAI-ARIA 1.2 button role with toggle state).
+      aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+      aria-pressed={theme === "dark"}
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
       className="group relative rounded-full cursor-pointer backdrop-blur-sm bg-white/10 hover:bg-gradient-to-br hover:from-blue-500/20 hover:via-purple-600/20 hover:to-pink-500/20 border border-white/10 hover:border-purple-400/40 shadow-sm hover:shadow-purple-500/30 transition-all duration-200 ease-out hover:scale-110 active:scale-95"
     >

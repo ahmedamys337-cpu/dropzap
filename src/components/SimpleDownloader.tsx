@@ -180,6 +180,15 @@ export default function SimpleDownloader({
           onChange={(e) => setUrl(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && !isBusy && !isDone && start()}
           disabled={isBusy}
+          // a11y: visible <Input> has only a placeholder (which screen
+          // readers may or may not announce depending on assistive
+          // tech), so an explicit aria-label guarantees the field's
+          // purpose is announced. Maps to the Lighthouse audit
+          // "form-field-multiple-labels" / "label" rule.
+          aria-label={`Paste ${platform} URL here`}
+          inputMode="url"
+          autoComplete="off"
+          spellCheck={false}
           className={`h-14 text-base pr-20 bg-white/5 border-white/10 backdrop-blur-sm transition-shadow ${inputFocusRingClassName ?? ""}`}
         />
         <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
@@ -189,8 +198,10 @@ export default function SimpleDownloader({
             className="h-9 w-9"
             onClick={paste}
             disabled={isBusy}
+            aria-label="Paste URL from clipboard"
+            title="Paste from clipboard"
           >
-            <Clipboard className="h-4 w-4" />
+            <Clipboard className="h-4 w-4" aria-hidden="true" />
           </Button>
           {url && (
             <Button
@@ -199,8 +210,10 @@ export default function SimpleDownloader({
               className="h-9 w-9"
               onClick={clearUrl}
               disabled={isBusy}
+              aria-label="Clear URL"
+              title="Clear"
             >
-              <X className="h-4 w-4" />
+              <X className="h-4 w-4" aria-hidden="true" />
             </Button>
           )}
         </div>
@@ -229,6 +242,10 @@ export default function SimpleDownloader({
         // pasted anything. validate() handles empty/invalid URLs and
         // surfaces a toast so the click isn't silently ignored.
         disabled={isBusy || isDone}
+        // Per-platform descriptive label so screen readers announce
+        // "Download Instagram Reel" / "Download TikTok video without
+        // watermark" rather than the generic word "Download".
+        aria-label={`Download ${platform} ${mediaTypeLabel}`}
         className={
           isDone
             ? "w-full h-14 text-lg font-bold bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-600/30 transition-all"

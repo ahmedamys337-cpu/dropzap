@@ -49,6 +49,14 @@ const nextConfig = {
       // would require middleware — for static SEO removal a coarse
       // redirect is correct.
       { source: '/download/youtube-:rest*', destination: '/', permanent: true },
+      // 4 blog posts deleted in May 2026 because their CTAs all linked
+      // to /youtube-downloader (which 308s to /). Their old slugs may
+      // still be in GSC's index — redirecting to /blog preserves link
+      // equity instead of returning a soft-404 stream.
+      { source: '/blog/how-to-download-youtube-videos-2026', destination: '/blog', permanent: true },
+      { source: '/blog/youtube-to-mp3-converter-guide', destination: '/blog', permanent: true },
+      { source: '/blog/download-youtube-shorts', destination: '/blog', permanent: true },
+      { source: '/blog/4k-video-downloader-free', destination: '/blog', permanent: true },
     ];
   },
   async headers() {

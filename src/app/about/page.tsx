@@ -42,12 +42,14 @@ export default function AboutPage() {
             What DropZap Does
           </h2>
           <p>
-            DropZap supports downloads from <strong>YouTube</strong>,{" "}
-            <strong>Instagram</strong> (Reels, Posts, Stories),{" "}
-            <strong>TikTok</strong>, <strong>Twitter / X</strong>,{" "}
-            <strong>Facebook</strong>, and <strong>Reddit</strong>. You can save videos
-            in HD, extract audio as MP3, grab thumbnails, or download in bulk —
-            all directly from your browser, with no software to install.
+            DropZap supports downloads from{" "}
+            <strong>Instagram</strong> (Reels, Posts, Photos, Carousels),{" "}
+            <strong>TikTok</strong> (no watermark), <strong>Twitter / X</strong>{" "}
+            (videos and GIFs), <strong>Facebook</strong> (videos, Reels, Albums),{" "}
+            <strong>Reddit</strong> (with audio merged), <strong>Pinterest</strong>,{" "}
+            and <strong>Threads</strong>. You can save videos in HD, extract audio
+            as MP3, grab YouTube thumbnails, or download in bulk — all directly
+            from your browser, with no software to install.
           </p>
         </section>
 
@@ -100,6 +102,53 @@ export default function AboutPage() {
             stream the file directly to your device. Nothing is stored, indexed, or
             retransmitted by DropZap. This keeps the service fast, private, and
             respectful of content creators&apos; rights.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-semibold text-foreground mb-3">
+            Technology
+          </h2>
+          <p>
+            DropZap is built on a few open-source pillars rather than reinventing
+            them:
+          </p>
+          <ul className="list-disc pl-6 mt-3 space-y-2">
+            <li>
+              <strong className="text-foreground">yt-dlp</strong> — the trusted
+              open-source media extractor that powers our backend. yt-dlp is
+              actively maintained by a large community and supports thousands of
+              sites; we ship updates the same week it patches platform changes.
+            </li>
+            <li>
+              <strong className="text-foreground">FFmpeg</strong> — used for
+              audio/video stream merging (e.g. combining Reddit's separate video
+              and audio tracks into a single MP4) and MP3 conversion.
+            </li>
+            <li>
+              <strong className="text-foreground">Next.js</strong> — the React
+              framework that renders every page server-side for fast first paint
+              and proper SEO indexing.
+            </li>
+            <li>
+              <strong className="text-foreground">HTTPS-only delivery</strong>{" "}
+              — every byte between you and DropZap is TLS-encrypted, including
+              the actual media stream.
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-semibold text-foreground mb-3">
+            Privacy Commitment
+          </h2>
+          <p>
+            We do not store any files or download history on our servers.
+            DropZap holds no user accounts, no email lists, and no per-user
+            tracking IDs. The only data we keep are anonymized request counts
+            for rate-limiting and ad-revenue reconciliation. We never sell,
+            share, or rent visitor data, and we never ask for credentials to
+            any platform you download from.
           </p>
         </section>
 
