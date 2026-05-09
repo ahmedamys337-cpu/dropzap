@@ -134,8 +134,19 @@ const jsonLd = {
       "@id": `${SITE_URL}/#website`,
       url: SITE_URL,
       name: SITE_NAME,
-      alternateName: SITE_TAGLINE,
+      // Multiple alternateName values seed Google's Knowledge Graph
+      // with the brand variants we actually want to rank for. The
+      // single-word "DropZap" SERP collides with an iOS puzzle game
+      // entity, so we explicitly register the disambiguating brand
+      // forms users actually type when looking for the downloader.
+      alternateName: [
+        SITE_TAGLINE,
+        "DropZap Downloader",
+        "DropZap Media Downloader",
+        "DropZap.digital",
+      ],
       description: SITE_DESCRIPTION,
+      inLanguage: "en-US",
       publisher: { "@id": `${SITE_URL}/#organization` },
       potentialAction: {
         "@type": "SearchAction",
@@ -147,6 +158,19 @@ const jsonLd = {
       "@type": "Organization",
       "@id": `${SITE_URL}/#organization`,
       name: SITE_NAME,
+      // Same disambiguation strategy on the Organization node, plus
+      // an explicit `disambiguatingDescription` that tells Google
+      // we are NOT the iOS puzzle game by Amir Michail. This is the
+      // single highest-leverage Knowledge Graph signal for a brand
+      // that collides with a pre-existing entity.
+      alternateName: [
+        "DropZap Downloader",
+        "DropZap Media Downloader",
+        "DropZap.digital",
+      ],
+      disambiguatingDescription:
+        "DropZap is a free web-based media downloader for Instagram, TikTok, Facebook, Twitter/X, Reddit, Pinterest, and Threads. Not affiliated with the DropZap iOS puzzle game by Amir Michail.",
+      description: SITE_DESCRIPTION,
       url: SITE_URL,
       logo: {
         "@type": "ImageObject",
@@ -154,6 +178,35 @@ const jsonLd = {
         width: 512,
         height: 512,
       },
+      // sameAs is the strongest Knowledge Graph signal we have for
+      // brand entity establishment. Each verified social profile
+      // creates a graph edge Google's KG ingestion respects. List
+      // every external profile we control \u2014 even empty ones \u2014
+      // so the entity has multiple anchor points.
+      // TODO(user): replace these placeholders with real URLs as
+      // social profiles are created. Each entry must point to a
+      // page that itself links back to dropzap.digital, otherwise
+      // Google won't establish the bidirectional graph edge.
+      sameAs: [
+        "https://twitter.com/dropzap",
+        "https://x.com/dropzap",
+        "https://www.facebook.com/dropzap",
+        "https://www.youtube.com/@dropzap",
+        "https://github.com/dropzap",
+      ],
+      foundingDate: "2026-04-01",
+      slogan: "Free media downloader \u2014 Instagram, TikTok, Facebook, Reddit, and more.",
+      knowsAbout: [
+        "Instagram Reels download",
+        "TikTok video download without watermark",
+        "Reddit video download with audio",
+        "Facebook video and album download",
+        "Twitter/X video download",
+        "Pinterest pin download",
+        "Threads media download",
+        "YouTube thumbnail download",
+        "Video to MP3 conversion",
+      ],
     },
     {
       // WebApplication is a more specific subtype of SoftwareApplication
