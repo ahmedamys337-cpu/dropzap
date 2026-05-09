@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { blogPosts } from "@/lib/blog-data";
 import AdBanner from "@/components/AdBanner";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import { Zap, ArrowLeft } from "lucide-react";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital";
@@ -30,6 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: post.title,
       description: post.description,
       publishedTime: post.date,
+      modifiedTime: post.dateModified ?? post.date,
       images: [{ url: "/opengraph-image", width: 1200, height: 630 }],
     },
     twitter: {
@@ -44,20 +46,73 @@ export default function BlogPostPage({ params }: Props) {
   const post = blogPosts.find((p) => p.slug === params.slug);
   if (!post) notFound();
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    headline: post.title,
-    description: post.description,
-    datePublished: post.date,
-    author: { "@type": "Organization", name: "DropZap" },
-    publisher: {
-      "@type": "Organization",
-      name: "DropZap",
-      logo: { "@type": "ImageObject", url: `${SITE_URL}/icon.svg` },
+  // Build a single @graph that contains every schema this post is
+  // eligible for. Empty/missing fields collapse cleanly because we
+  // construct the array conditionally rather than emitting empty
+  // schemas (Google flags empty FAQPage / HowTo as errors).
+  const url = `${SITE_URL}/blog/${post.slug}`;
+  const graph: Record<string, unknown>[] = [
+    {
+      "@type": "Article",
+      headline: post.title,
+      description: post.description,
+      url,
+      datePublished: post.date,
+      dateModified: post.dateModified ?? post.date,
+      author: {
+        "@type": "Organization",
+        name: "DropZap",
+        url: SITE_URL,
+      },
+      publisher: {
+        "@type": "Organization",
+        name: "DropZap",
+        logo: {
+          "@type": "ImageObject",
+          url: `${SITE_URL}/icon-512.png`,
+        },
+      },
+      mainEntityOfPage: { "@type": "WebPage", "@id": url },
+      image: `${SITE_URL}/opengraph-image`,
     },
-    mainEntityOfPage: `${SITE_URL}/blog/${post.slug}`,
-  };
+    {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+        { "@type": "ListItem", position: 2, name: "Blog", item: `${SITE_URL}/blog` },
+        { "@type": "ListItem", position: 3, name: post.title, item: url },
+      ],
+    },
+  ];
+  if (post.faq && post.faq.length > 0) {
+    graph.push({
+      "@type": "FAQPage",
+      mainEntity: post.faq.map((f) => ({
+        "@type": "Question",
+        name: f.q,
+        acceptedAnswer: { "@type": "Answer", text: f.a },
+      })),
+    });
+  }
+  if (post.howTo && post.howTo.steps.length > 0) {
+    graph.push({
+      "@type": "HowTo",
+      name: post.howTo.name,
+      description: post.howTo.description,
+      step: post.howTo.steps.map((s, i) => ({
+        "@type": "HowToStep",
+        position: i + 1,
+        name: s.name,
+        text: s.text,
+      })),
+    });
+  }
+  const jsonLd = { "@context": "https://schema.org", "@graph": graph };
+
+  // Resolve related-post objects for the "Read next" section.
+  const related = (post.related ?? [])
+    .map((slug) => blogPosts.find((p) => p.slug === slug))
+    .filter(Boolean) as typeof blogPosts;
 
   return (
     <main className="min-h-screen gradient-bg animate-gradient">
@@ -83,7 +138,16 @@ export default function BlogPostPage({ params }: Props) {
         </div>
       </header>
 
-      <article className="max-w-3xl mx-auto px-4 py-10">
+      <Breadcrumbs
+        items={[
+          { label: "Home", href: "/" },
+          { label: "Blog", href: "/blog" },
+          { label: post.title },
+        ]}
+        className="max-w-4xl"
+      />
+
+      <article className="max-w-3xl mx-auto px-4 py-6">
         <Link
           href="/blog"
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
@@ -121,6 +185,28 @@ export default function BlogPostPage({ params }: Props) {
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
 
+        {/* Visible FAQ accordion — mirrors FAQPage JSON-LD so search
+           engines see the same Q&A in the rendered HTML they see in
+           the structured data (cross-validates the schema). */}
+        {post.faq && post.faq.length > 0 && (
+          <section className="mt-12" aria-labelledby="post-faq-heading">
+            <h2 id="post-faq-heading" className="text-2xl font-bold mb-6">
+              Frequently Asked Questions
+            </h2>
+            <div className="space-y-3">
+              {post.faq.map((item, i) => (
+                <details key={i} className="glass rounded-xl p-4 group">
+                  <summary className="font-semibold cursor-pointer list-none flex justify-between items-center text-foreground">
+                    {item.q}
+                    <span className="text-muted-foreground group-open:rotate-180 transition-transform">▾</span>
+                  </summary>
+                  <p className="text-sm text-muted-foreground mt-3 leading-relaxed">{item.a}</p>
+                </details>
+              ))}
+            </div>
+          </section>
+        )}
+
         <div className="mt-10">
           <AdBanner slot="bottom" />
         </div>
@@ -137,6 +223,32 @@ export default function BlogPostPage({ params }: Props) {
             Open DropZap
           </Link>
         </div>
+
+        {/* Read next — internal-link cluster. Strong PageRank flow
+           between thematically related posts is one of the highest-
+           leverage actions for a blog like this. */}
+        {related.length > 0 && (
+          <section className="mt-12" aria-labelledby="related-heading">
+            <h2 id="related-heading" className="text-2xl font-bold mb-6">
+              Read Next
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {related.map((r) => (
+                <Link
+                  key={r.slug}
+                  href={`/blog/${r.slug}`}
+                  className="glass rounded-xl p-5 hover:-translate-y-0.5 transition-transform"
+                >
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-600/20 text-purple-400">
+                    {r.category}
+                  </span>
+                  <h3 className="font-bold mt-2 mb-1 text-foreground">{r.title}</h3>
+                  <p className="text-sm text-muted-foreground line-clamp-2">{r.description}</p>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
       </article>
 
       <footer className="mt-6 py-10 border-t border-border/50">
