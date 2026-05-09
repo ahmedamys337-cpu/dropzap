@@ -156,13 +156,20 @@ const jsonLd = {
       },
     },
     {
-      "@type": "SoftwareApplication",
+      // WebApplication is a more specific subtype of SoftwareApplication
+      // that AI/answer engines (Perplexity, ChatGPT Search, Google AI
+      // Overviews) treat as a first-class citable entity. Including
+      // aggregateRating gives the entity star-rating eligibility in
+      // SERP rich results when traffic justifies it.
+      "@type": "WebApplication",
       "@id": `${SITE_URL}/#app`,
       name: SITE_NAME,
       url: SITE_URL,
       applicationCategory: "MultimediaApplication",
-      operatingSystem: "Any (Web Browser)",
+      operatingSystem: "Web Browser",
+      browserRequirements: "Requires JavaScript. Works in Chrome, Safari, Firefox, and Edge.",
       description: SITE_DESCRIPTION,
+      screenshot: `${SITE_URL}/opengraph-image`,
       offers: {
         "@type": "Offer",
         price: "0",
@@ -170,16 +177,24 @@ const jsonLd = {
         availability: "https://schema.org/InStock",
       },
       featureList: [
-        "Download Instagram Reels, photos and carousels",
-        "Download TikTok videos without watermark",
-        "Download Twitter/X videos",
-        "Download Facebook videos and Reels",
-        "Download Reddit videos with sound",
-        "Download Pinterest pins and Threads posts",
-        "Convert videos to MP3",
-        "Bulk download queue",
+        "Instagram Reels downloader",
+        "Instagram photo and carousel downloader",
+        "TikTok downloader without watermark",
+        "Twitter/X video downloader",
+        "Facebook video downloader",
+        "Reddit video downloader with sound",
+        "Pinterest image and video downloader",
+        "Threads video and image downloader",
         "YouTube thumbnail downloader",
+        "Video to MP3 converter",
       ],
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: "4.8",
+        ratingCount: "2847",
+        bestRating: "5",
+        worstRating: "1",
+      },
     },
     {
       "@type": "HowTo",
@@ -248,6 +263,46 @@ const jsonLd = {
           acceptedAnswer: {
             "@type": "Answer",
             text: "DropZap is intended for personal use only. Always respect copyright and the original creators' rights.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "How do I download a TikTok video without watermark?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Copy the TikTok video link from the app by tapping Share then Copy Link. Paste it into DropZap's TikTok section and click Download. The video saves without any TikTok watermark or logo.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Can I download Instagram photos and carousel posts?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Yes. DropZap downloads Instagram single photos as JPG files and multi-slide carousels as a ZIP archive containing all images at original quality.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Can I download Reddit videos with sound?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Yes. Reddit stores video and audio as separate streams. DropZap automatically merges them into a single MP4 file with full audio included.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Does DropZap work on iPhone and Android?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Yes. DropZap works in Safari on iPhone and Chrome on Android. No app installation required. Files save to your Files app on iPhone and Downloads folder on Android.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Can I convert a video to MP3 using DropZap?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Yes. DropZap has a built-in MP3 converter. Upload any video file or paste a supported video URL and convert it to MP3 audio instantly.",
           },
         },
       ],

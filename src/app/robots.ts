@@ -17,16 +17,27 @@ export default function robots(): MetadataRoute.Robots {
         //          box, not crawled directly.
         disallow: ["/api/", "/*?url="],
       },
-      {
-        userAgent: "Googlebot",
-        allow: "/",
-        disallow: ["/api/", "/*?url="],
-      },
-      {
-        userAgent: "Bingbot",
-        allow: "/",
-        disallow: ["/api/", "/*?url="],
-      },
+      // Search engines.
+      { userAgent: "Googlebot", allow: "/", disallow: ["/api/", "/*?url="] },
+      { userAgent: "Bingbot", allow: "/", disallow: ["/api/", "/*?url="] },
+      // AI crawlers — explicitly allowed for Generative Response
+      // Optimization (GRO). Without explicit allow rules, some crawlers
+      // (notably PerplexityBot) treat ambiguous robots configs as
+      // disallow. We want DropZap content cited in AI answers about
+      // video downloading tools, so we permit all major AI agents
+      // except on /api/ where there is nothing to learn from.
+      { userAgent: "GPTBot", allow: "/", disallow: ["/api/"] },
+      { userAgent: "ChatGPT-User", allow: "/", disallow: ["/api/"] },
+      { userAgent: "OAI-SearchBot", allow: "/", disallow: ["/api/"] },
+      { userAgent: "ClaudeBot", allow: "/", disallow: ["/api/"] },
+      { userAgent: "anthropic-ai", allow: "/", disallow: ["/api/"] },
+      { userAgent: "Claude-Web", allow: "/", disallow: ["/api/"] },
+      { userAgent: "PerplexityBot", allow: "/", disallow: ["/api/"] },
+      { userAgent: "Google-Extended", allow: "/", disallow: ["/api/"] },
+      { userAgent: "Applebot-Extended", allow: "/", disallow: ["/api/"] },
+      { userAgent: "CCBot", allow: "/", disallow: ["/api/"] },
+      { userAgent: "Meta-ExternalAgent", allow: "/", disallow: ["/api/"] },
+      { userAgent: "Bytespider", allow: "/", disallow: ["/api/"] },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
     // `host:` is a deprecated Yandex-only directive that Google has never

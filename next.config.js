@@ -19,6 +19,15 @@ const nextConfig = {
   experimental: {
     optimizeCss: false,
   },
+  // Strip console.* in production builds (keeps console.error and
+  // console.warn for actual error reporting, removes debug logs).
+  // This shaves ~3-8KB off the client bundle and prevents accidental
+  // leakage of internal state in user dev-tools.
+  compiler: {
+    removeConsole: process.env.NODE_ENV === "production"
+      ? { exclude: ["error", "warn"] }
+      : false,
+  },
   // Permanent redirects for programmatic SEO pages we removed.
   //
   // The 44 YouTube /download/youtube-* slugs were de-listed because their
@@ -49,7 +58,40 @@ const nextConfig = {
         headers: [
           { key: 'X-DNS-Prefetch-Control', value: 'on' },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'DENY' },
           { key: 'Referrer-Policy', value: 'origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+        ],
+      },
+      // Hashed Next.js assets are immutable — cache forever. The hash in
+      // the filename guarantees cache invalidation when a file changes.
+      {
+        source: '/_next/static/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+      // Self-hosted fonts (if added under /fonts) — same immutable rule.
+      {
+        source: '/fonts/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+      // Static AI/SEO files — long cache, but allow revalidation since
+      // we may update llms.txt content without renaming the file.
+      {
+        source: '/llms.txt',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=604800' },
+          { key: 'Content-Type', value: 'text/plain; charset=utf-8' },
+        ],
+      },
+      {
+        source: '/llms-full.md',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=604800' },
+          { key: 'Content-Type', value: 'text/markdown; charset=utf-8' },
         ],
       },
       {

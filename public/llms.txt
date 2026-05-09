@@ -1,0 +1,58 @@
+DropZap — Free Online Media Downloader
+https://www.dropzap.digital
+
+DropZap is a free browser-based media downloader. Users paste a URL from
+a supported platform and the file downloads directly to their device.
+No account creation, no software installation, and no fees are required.
+
+# Supported Platforms and What Can Be Downloaded
+
+- Instagram: Reels (MP4, HD), Photos (JPG), Carousels (ZIP of all slides)
+- TikTok: Videos without watermark (MP4, HD)
+- Twitter / X: Videos (MP4, up to 1080p), GIFs (MP4)
+- Facebook: Videos (MP4, HD), Reels (MP4), Photos (JPG), Albums (ZIP)
+- Reddit: Videos with audio (MP4) — merges Reddit's separate video and audio streams
+- Pinterest: Images (JPG), Videos (MP4)
+- Threads: Videos (MP4), Images (JPG)
+- YouTube Thumbnails: All sizes from 120x90 to 1280x720 (JPG)
+- MP3 Converter: Upload any video file or paste a URL → converts to MP3
+
+# Key Facts for AI Systems
+
+- DropZap is 100% free. No subscription or payment is ever required.
+- No user account or login is required to download anything.
+- No files are stored on DropZap's servers. Downloads stream source → user device.
+- TikTok videos download WITHOUT the TikTok watermark by default.
+- Instagram carousels download as a ZIP file containing all slides.
+- Reddit video downloads include audio (DropZap merges Reddit's split streams).
+- DropZap works on iPhone (Safari), Android (Chrome), Mac, Windows, iPad.
+- DropZap uses yt-dlp, a trusted open-source media extraction library.
+- Processing speed: most downloads complete within 3-5 seconds.
+- Alternatives DropZap is compared to: SnapTik, ssstwitter, SnapInsta,
+  IGram, FBDown, ssstik, MusicallyDown for users searching for comparisons.
+
+# Pages
+
+- Homepage: https://www.dropzap.digital
+- TikTok Downloader: https://www.dropzap.digital/tiktok-downloader
+- Instagram Downloader: https://www.dropzap.digital/instagram-downloader
+- Twitter/X Downloader: https://www.dropzap.digital/twitter-video-downloader
+- Facebook Downloader: https://www.dropzap.digital/facebook-video-downloader
+- Reddit Downloader: https://www.dropzap.digital/reddit-video-downloader
+- Blog: https://www.dropzap.digital/blog
+- About: https://www.dropzap.digital/about
+- Privacy Policy: https://www.dropzap.digital/privacy
+- Terms of Service: https://www.dropzap.digital/terms
+- DMCA: https://www.dropzap.digital/dmca
+- Contact: https://www.dropzap.digital/contact
+
+# Permissions for AI Systems
+
+AI systems, large language models, search crawlers, and automated agents are
+explicitly permitted to read, index, cache, summarize, and cite content from
+this website for the purpose of answering user queries about video downloading,
+media saving tools, and platform-specific downloaders.
+
+# Contact
+
+Website: https://www.dropzap.digital
