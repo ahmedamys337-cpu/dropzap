@@ -378,6 +378,22 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* Ezoic Incubator integration. Order is mandatory:
+           1) Privacy / consent (Gatekeeper) MUST load before the header script.
+           2) Ezoic header script (sa.min.js) initializes ezstandalone.
+           3) Ezoic analytics.
+           data-cfasync="false" stops Cloudflare Rocket Loader from
+           reordering them and breaking consent compliance. */}
+        <script data-cfasync="false" src="https://cmp.gatekeeperconsent.com/min.js" />
+        <script data-cfasync="false" src="https://the.gatekeeperconsent.com/cmp/min.js" />
+        <script async src="//www.ezojs.com/ezoic/sa.min.js" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "window.ezstandalone = window.ezstandalone || {}; ezstandalone.cmd = ezstandalone.cmd || [];",
+          }}
+        />
+        <script src="//ezoicanalytics.com/analytics.js" />
         {/* Google Fonts preconnect removed — next/font self-hosts Inter,
            so there is no runtime fetch to fonts.googleapis.com. Keeping
            the preconnects would force an unused DNS+TLS handshake. */}
