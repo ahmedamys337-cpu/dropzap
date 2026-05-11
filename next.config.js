@@ -70,6 +70,16 @@ const nextConfig = {
         destination: '/blog/how-to-download-instagram-reels-on-iphone',
         permanent: true,
       },
+      // Ezoic ads.txt: 302-redirect /ads.txt to Ezoic's managed file so
+      // their daily seller updates flow through automatically. No cron
+      // job needed. While the site is in Incubator review the destination
+      // is empty; once approved it auto-populates and our redirect just
+      // works.
+      {
+        source: '/ads.txt',
+        destination: 'https://srv.adstxtmanager.com/19390/dropzap.digital',
+        permanent: false,
+      },
     ];
   },
   async headers() {
