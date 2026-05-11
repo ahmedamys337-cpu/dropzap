@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/toaster";
@@ -14,8 +15,9 @@ const inter = Inter({ subsets: ["latin"], display: "swap" });
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital";
 const SITE_NAME = "DropZap";
 const SITE_TAGLINE = "Media Downloader";
+// Kept under 155 chars so Google does not rewrite it (SEO audit fix).
 const SITE_DESCRIPTION =
-  "DropZap — the fastest free media downloader. Save Instagram Reels, photos & carousels, TikTok videos, Facebook & Reddit videos, plus Twitter/X and Threads posts in HD without watermarks. No signup, no limits.";
+  "Free downloader for Instagram Reels, TikTok, Facebook, Twitter/X, Reddit, Pinterest & Threads. HD quality. No watermark. No signup.";
 
 export const viewport: Viewport = {
   themeColor: [
@@ -29,11 +31,12 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
+  // Title kept inside the 30–60 char range Google displays in full.
   title: {
-    default: `${SITE_NAME} — Free Instagram, TikTok, Facebook & Twitter Downloader`,
+    default: `${SITE_NAME} — Free Instagram, TikTok & Facebook Downloader`,
     template: `%s | ${SITE_NAME}`,
   },
-  description: "DropZap: free video downloader for Instagram Reels & photos, TikTok, Facebook, Twitter/X, Reddit, Pinterest, and Threads. HD quality, no watermark, no signup required.",
+  description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
   generator: "Next.js",
   authors: [{ name: SITE_NAME, url: SITE_URL }],
@@ -74,7 +77,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: SITE_URL,
     siteName: SITE_NAME,
-    title: `${SITE_NAME} — Free Instagram, TikTok, Facebook & Twitter Video Downloader`,
+    title: `${SITE_NAME} — Free Instagram, TikTok & Facebook Downloader`,
     description: SITE_DESCRIPTION,
     images: [
       {
@@ -380,19 +383,23 @@ export default function RootLayout({
            the preconnects would force an unused DNS+TLS handshake. */}
         <link rel="dns-prefetch" href="https://i.ytimg.com" />
         <link rel="dns-prefetch" href="https://img.youtube.com" />
-        {process.env.NEXT_PUBLIC_ADSENSE_CLIENT && (
-          <script
-            async
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT}`}
-            crossOrigin="anonymous"
-          />
-        )}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
       <body className={inter.className}>
+        {/* AdSense moved out of <head> and switched to next/script with
+           lazyOnload so it no longer counts as a render-blocking
+           resource for LCP. Loads after the page is idle. */}
+        {process.env.NEXT_PUBLIC_ADSENSE_CLIENT && (
+          <Script
+            id="adsense"
+            strategy="lazyOnload"
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT}`}
+            crossOrigin="anonymous"
+          />
+        )}
         <GoogleAnalytics />
         <ThemeProvider
           attribute="class"

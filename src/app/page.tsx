@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import AdBanner from "@/components/AdBanner";
@@ -43,9 +44,17 @@ export default function Home() {
       <header className="sticky top-0 z-50 w-full glass-strong">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <a href="/" className="flex items-center gap-3" aria-label="DropZap home">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 via-purple-600 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-600/30">
-              <Zap className="h-5 w-5 text-white fill-white" />
-            </div>
+            {/* Real <img> with descriptive alt text. Fixes the SEO audit
+               findings "no images detected on homepage" and "Image Alt
+               Text 0/0". `priority` preloads the LCP candidate. */}
+            <Image
+              src="/icon-512.png"
+              alt="DropZap free social media video downloader logo"
+              width="40"
+              height="40"
+              priority
+              className="h-10 w-10 rounded-xl shadow-lg shadow-purple-600/30"
+            />
             <div>
               <span className="text-xl font-extrabold leading-tight bg-gradient-to-r from-blue-500 via-purple-600 to-pink-500 bg-clip-text text-transparent tracking-tight">
                 DropZap
@@ -68,9 +77,13 @@ export default function Home() {
           </span>
           <span className="text-foreground"> Video Downloader</span>
         </h1>
+        {/* Hero copy split into short sentences. The previous one-line
+           paragraph dragged the readability score below 50; breaking it
+           up brings the homepage above the audit threshold. */}
         <p className="mt-3 text-base sm:text-lg text-muted-foreground max-w-3xl mx-auto">
-          Download <strong>Instagram Reels</strong>, <strong>TikTok</strong>, <strong>Facebook</strong>,{" "}
-          <strong>Twitter/X</strong>, <strong>Reddit</strong>, <strong>Pinterest</strong>, and <strong>Threads</strong> videos in HD — no watermark, no signup, 100% free.
+          Save videos in HD from <strong>Instagram</strong>, <strong>TikTok</strong>, <strong>Facebook</strong>, <strong>Twitter/X</strong>, <strong>Reddit</strong>, <strong>Pinterest</strong>, and <strong>Threads</strong>.
+          <br className="hidden sm:block" />
+          No watermark. No signup. 100% free.
         </p>
         {/* EEAT trust bar — 4 falsifiable trust claims, server-rendered,
            rendered between H1 and the tool tabs so it shapes first
