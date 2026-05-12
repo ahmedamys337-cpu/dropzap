@@ -91,20 +91,37 @@ export default function PlatformLanding({ platform, children }: PlatformLandingP
 
       {/* Hero */}
       <section className="max-w-6xl mx-auto px-4 pt-6 pb-4 text-center">
+        {/*
+          Visible H1 mirrors `platform.h1` from seo-data.ts. We split
+          on the first em-dash so the platform-name prefix gets the
+          gradient treatment while the descriptive tail stays in the
+          neutral foreground colour. Falls back to the existing
+          "[Name] Downloader — Free & Fast" pattern if `platform.h1`
+          isn't set or doesn't contain an em-dash.
+
+          `bg-clip-text text-transparent` paints the gradient as the
+          text fill. `pr-2` adds extra horizontal painting room so
+          italic/round-edge glyphs at the right of the word (e.g.
+          the trailing "t" in "Reddit") don't get cropped by the
+          text's own bounding box.
+        */}
         <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight">
-          {/*
-            `bg-clip-text text-transparent` paints the gradient as the
-            text fill. `pr-2` adds extra horizontal painting room so
-            italic/round-edge glyphs at the right of the word (e.g.
-            the trailing "t" in "Reddit") don't get cropped by the
-            text's own bounding box.
-          */}
-          <span
-            className={`inline-block pr-2 bg-gradient-to-r ${platform.gradient} bg-clip-text text-transparent`}
-          >
-            {platform.name}
-          </span>
-          <span className="text-foreground">Downloader — Free &amp; Fast</span>
+          {(() => {
+            const h1 = platform.h1 ?? `${platform.name} Downloader — Free & Fast`;
+            const dashIdx = h1.indexOf("—");
+            const head = dashIdx > 0 ? h1.slice(0, dashIdx).trim() : h1;
+            const tail = dashIdx > 0 ? h1.slice(dashIdx).trim() : "";
+            return (
+              <>
+                <span
+                  className={`inline-block pr-2 bg-gradient-to-r ${platform.gradient} bg-clip-text text-transparent`}
+                >
+                  {head}
+                </span>
+                {tail && <span className="text-foreground"> {tail}</span>}
+              </>
+            );
+          })()}
         </h1>
         <p className="mt-3 text-base sm:text-lg text-muted-foreground max-w-3xl mx-auto">
           {platform.description}

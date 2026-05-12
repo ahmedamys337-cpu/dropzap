@@ -122,6 +122,16 @@ export const metadata: Metadata = {
     shortcut: ["/favicon.ico"],
   },
   manifest: "/manifest.webmanifest",
+  // PWA / Apple Web App meta tags. Lets iOS users "Add to Home Screen"
+  // and launch DropZap as a standalone app with no browser chrome —
+  // a small but real signal Google's mobile-friendliness ranking
+  // factor weighs, and a meaningful return-user retention boost on
+  // mobile (Add-to-Home-Screen users come back ~3x more often).
+  appleWebApp: {
+    capable: true,
+    title: "DropZap",
+    statusBarStyle: "black-translucent",
+  },
   verification: {
     // Set NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION in your Render/host env to activate.
     // Get the code from: https://search.google.com/search-console

@@ -969,7 +969,7 @@ export const blogPosts: BlogPost[] = [
 <p><em>Is DropZap really free with no premium tier?</em> Yes. No subscription, no daily cap, no "premium" upsell.</p>
 <p><em>Does DropZap work on iPhone like SnapTik does?</em> Yes, in any iOS browser. See our <a href="/tiktok-downloader/iphone">iPhone TikTok guide</a>.</p>
 
-<p>For a deeper dive on TikTok-specific watermark removal, see our <a href="/blog/how-to-download-tiktok-without-watermark">TikTok no-watermark guide</a>. For other ssstik-specific complaints, see <a href="/blog/ssstik-alternative">ssstik alternatives</a>.</p>`,
+<p>For a deeper dive on TikTok-specific watermark removal, see our <a href="/blog/how-to-download-tiktok-without-watermark">TikTok no-watermark guide</a>. The dedicated <a href="/download/tiktok-downloader-no-watermark">TikTok no-watermark downloader page</a> also targets this exact use case. For other ssstik-specific complaints, see <a href="/blog/ssstik-alternative">ssstik alternatives</a>.</p>`,
     faq: [
       {
         q: "Why is SnapTik not working today?",
@@ -1100,7 +1100,7 @@ export const blogPosts: BlogPost[] = [
 <h2>What if I have hundreds of Instagram posts to back up?</h2>
 <p>For Instagram archive use cases (backing up your own old posts, for example), DropZap's Bulk Downloader on the homepage accepts multiple URLs at once. Paste your list (one URL per line), tap Download, and DropZap queues them sequentially. The result for a list of 50 carousels is 50 ZIP files, one per post, in your Downloads folder — much faster than re-pasting URLs into SnapInsta one at a time.</p>
 
-<p>For more on Instagram-specific workflows, see our <a href="/blog/how-to-download-instagram-reels-on-iphone">iPhone guide</a> and <a href="/blog/how-to-download-instagram-carousel">carousel guide</a>. For the standalone Instagram tool page, visit <a href="/instagram-downloader">dropzap.digital/instagram-downloader</a>.</p>`,
+<p>For more on Instagram-specific workflows, see our <a href="/blog/how-to-download-instagram-reels-on-iphone">iPhone guide</a> and <a href="/blog/how-to-download-instagram-carousel">carousel guide</a>. For the standalone Instagram tool page, visit <a href="/instagram-downloader">dropzap.digital/instagram-downloader</a>. If Reels are specifically what you came for, the dedicated <a href="/download/instagram-reels-downloader">Instagram Reels downloader page</a> is the most direct landing.</p>`,
     faq: [
       {
         q: "Why does SnapInsta keep going down?",
