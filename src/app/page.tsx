@@ -1,22 +1,60 @@
 "use client";
 
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import AdBanner from "@/components/AdBanner";
 import TrustBar from "@/components/TrustBar";
 import SupportedPlatforms from "@/components/SupportedPlatforms";
 import CitableFacts from "@/components/CitableFacts";
-// Static imports so switching tabs is instant — no per-tab chunk fetch.
-import ThumbnailDownloader from "@/components/ThumbnailDownloader";
+
+// Instagram is the default tab so we keep it as a static import — its
+// code must be in the initial bundle to render on first paint without
+// flashing a skeleton. Every OTHER downloader is code-split via
+// next/dynamic: the chunk only downloads when the user clicks that
+// tab. This cut the homepage's unused-JS budget by ~317 KiB in the
+// May-12 PageSpeed audit.
 import InstagramDownloader from "@/components/InstagramDownloader";
-import TwitterDownloader from "@/components/TwitterDownloader";
-import TikTokDownloader from "@/components/TikTokDownloader";
-import Mp3Converter from "@/components/Mp3Converter";
-import RedditDownloader from "@/components/RedditDownloader";
-import FacebookDownloader from "@/components/FacebookDownloader";
-import PinterestDownloader from "@/components/PinterestDownloader";
-import ThreadsDownloader from "@/components/ThreadsDownloader";
+
+// Inline skeleton matching the downloader card height to keep CLS at 0
+// while the lazy chunk loads. Re-used across all dynamic tabs.
+const TabSkeleton = () => (
+  <div className="h-40 animate-pulse rounded-lg bg-foreground/[0.04]" />
+);
+
+const ThumbnailDownloader = dynamic(
+  () => import("@/components/ThumbnailDownloader"),
+  { loading: TabSkeleton, ssr: false },
+);
+const TwitterDownloader = dynamic(
+  () => import("@/components/TwitterDownloader"),
+  { loading: TabSkeleton, ssr: false },
+);
+const TikTokDownloader = dynamic(
+  () => import("@/components/TikTokDownloader"),
+  { loading: TabSkeleton, ssr: false },
+);
+const Mp3Converter = dynamic(
+  () => import("@/components/Mp3Converter"),
+  { loading: TabSkeleton, ssr: false },
+);
+const RedditDownloader = dynamic(
+  () => import("@/components/RedditDownloader"),
+  { loading: TabSkeleton, ssr: false },
+);
+const FacebookDownloader = dynamic(
+  () => import("@/components/FacebookDownloader"),
+  { loading: TabSkeleton, ssr: false },
+);
+const PinterestDownloader = dynamic(
+  () => import("@/components/PinterestDownloader"),
+  { loading: TabSkeleton, ssr: false },
+);
+const ThreadsDownloader = dynamic(
+  () => import("@/components/ThreadsDownloader"),
+  { loading: TabSkeleton, ssr: false },
+);
 import {
   Zap,
   Image as ImageIcon,

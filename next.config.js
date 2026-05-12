@@ -137,6 +137,16 @@ const nextConfig = {
           { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
         ],
       },
+      // PNG/JPG/WebP/SVG/ICO/manifest in /public — content-addressed by
+      // filename, never re-hashed by Next, so they're safe to cache
+      // aggressively. Fixes the Lighthouse "use efficient cache
+      // lifetimes" finding (~288 KiB of savings on the homepage).
+      {
+        source: '/:file(.*\\.(?:png|jpg|jpeg|webp|gif|svg|ico|webmanifest))',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
     ];
   },
 };
