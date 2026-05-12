@@ -71,9 +71,27 @@ export default function PrivacyPage() {
           </h2>
           <p>
             DropZap is supported by advertising. We use{" "}
-            <strong>Google AdSense</strong> and other third-party ad networks to serve
-            ads. These services may use cookies or similar technologies to show you ads
-            based on your prior visits to our site or other sites.
+            <strong>Ezoic</strong>, <strong>Google AdSense</strong>, and other
+            third-party ad networks to serve ads. These services may use cookies, web
+            beacons, or similar technologies to show you ads based on your prior visits
+            to our site or other sites.
+          </p>
+          <p className="mt-3">
+            Ezoic is a service that helps us optimize the ad experience on our site.
+            Ezoic and its advertising partners (including Google) collect data such as
+            your IP address, browser type, time of visit, and pages viewed in order to
+            serve relevant ads, measure ad performance, and detect fraud. You can review
+            Ezoic&apos;s full privacy policy at{" "}
+            <a
+              href="https://www.ezoic.com/privacy-policy/"
+              className="text-foreground underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              ezoic.com/privacy-policy
+            </a>{" "}
+            and view or change your consent choices at any time via the &quot;Manage
+            Settings&quot; link in the consent banner shown at the bottom of our site.
           </p>
           <p className="mt-3">
             Google&apos;s use of advertising cookies enables it and its partners to
