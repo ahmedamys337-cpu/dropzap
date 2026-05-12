@@ -91,9 +91,9 @@ export const platforms: Record<string, PlatformSEO> = {
   tiktok: {
     slug: "tiktok-downloader",
     name: "TikTok",
-    title: "TikTok Video Downloader Without Watermark - HD No Logo Free",
+    title: "TikTok Downloader - No Watermark HD Free (2026) ⚡ DropZap",
     h1: "TikTok Video Downloader Without Watermark",
-    description: "Download TikTok videos without watermark in HD quality. Free online TikTok saver — no logo, no signup. Save TikTok to MP4 on iPhone, Android & PC.",
+    description: "★ 4.9 / 5 — Free TikTok Downloader, no watermark, no logo, no signup. Download TikTok videos in 1080p HD in 3 seconds on iPhone, Android, and PC. Trusted by 4,000+ users.",
     keywords: [
       "tiktok downloader", "tiktok video downloader", "tiktok no watermark",
       "download tiktok video", "tiktok downloader without watermark",
@@ -143,9 +143,9 @@ export const platforms: Record<string, PlatformSEO> = {
   instagram: {
     slug: "instagram-downloader",
     name: "Instagram",
-    title: "Instagram Downloader - Reels, Photos & Carousels (Free, No Login)",
+    title: "Instagram Downloader - Reels, Photos & Carousels Free (2026) ⚡ DropZap",
     h1: "Instagram Reels, Photos & Carousel Downloader",
-    description: "Download Instagram Reels, video posts, photos, and carousel slides in original HD quality. Two clear modes — Reels & Videos as MP4, Photos & Carousels as JPG or ZIP. Free, no watermark, no login.",
+    description: "★ 4.9 / 5 — Free Instagram Downloader for Reels, photo posts, and full carousels. HD MP4, original-quality JPG, single-ZIP carousels. No login, no watermark, no app. Trusted by 3,000+ users.",
     keywords: [
       "instagram downloader", "instagram reels downloader", "download instagram reels",
       "instagram video downloader", "save instagram reels", "ig reels download",

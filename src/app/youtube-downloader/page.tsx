@@ -13,6 +13,7 @@
 //   • Old backlinks still resolve to a useful destination instead of 404.
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
+import { buildArticle, buildBreadcrumbList } from "@/lib/schemas";
 import { SITE_URL } from "@/lib/seo-data";
 
 export const metadata: Metadata = {
