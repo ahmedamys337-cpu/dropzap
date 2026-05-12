@@ -385,7 +385,7 @@ export default function RootLayout({
            data-cfasync="false" stops Cloudflare Rocket Loader from
            reordering them and breaking consent compliance. */}
         <script data-cfasync="false" src="https://cmp.gatekeeperconsent.com/min.js" />
-        <script data-cfasync="false" src="https://the.gatekeeperconsent.com/cmp/min.js" />
+        <script data-cfasync="false" src="https://the.gatekeeperconsent.com/cmp.min.js" />
         <script async src="//www.ezojs.com/ezoic/sa.min.js" />
         <script
           dangerouslySetInnerHTML={{
