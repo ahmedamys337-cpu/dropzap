@@ -2035,6 +2035,739 @@ export const blogPosts: BlogPost[] = [
       "snapinsta-alternative",
     ],
   },
+
+  // -------- Post 13 ---------------------------------------------------
+  {
+    slug: "how-to-download-youtube-shorts",
+    title: "How to Download YouTube Shorts in 2026 (iPhone, Android, PC)",
+    description:
+      "Save YouTube Shorts as MP4 in full quality without the YouTube app. Step-by-step for iPhone Camera Roll, Android Gallery, and PC. No login, no watermark, free.",
+    date: "2026-05-12",
+    dateModified: "2026-05-12",
+    keywords: [
+      "how to download youtube shorts",
+      "youtube shorts downloader",
+      "save youtube shorts to gallery",
+      "download youtube shorts mp4",
+      "youtube shorts to camera roll",
+    ],
+    category: "Tutorial",
+    readTime: "7 min read",
+    content: `<p>YouTube Shorts hit a billion daily views, but the YouTube app itself has no Save button for them — only a Share menu. To actually save a Short as an MP4 you can replay offline, send to a friend, or re-edit, you need a third-party tool. This guide covers the full workflow on iPhone, Android, and PC using DropZap, plus the Shorts-specific quirks (vertical 9:16 aspect ratio, audio licensing, age-gated videos) that most guides skip.</p>
+
+<h2>Why YouTube doesn't let you save Shorts</h2>
+<p>YouTube's official app has a download feature, but it's limited in three ways that make it useless for most real use cases:</p>
+<ul>
+<li><strong>Saves are in-app only.</strong> "Downloaded" Shorts live inside the YouTube app's Downloads tab, not in your phone's Camera Roll or Gallery. You can't re-share them, edit them, or even play them without YouTube installed and logged in.</li>
+<li><strong>Premium required for most videos.</strong> Without YouTube Premium, the in-app download button is hidden for most Shorts.</li>
+<li><strong>Downloads expire.</strong> In-app saved Shorts expire after 30 days and require a re-connect to YouTube's servers to refresh.</li>
+</ul>
+<p>A real MP4 that lives on your device permanently needs an external downloader.</p>
+
+<h2>Step-by-step: download a YouTube Short with DropZap</h2>
+<ol>
+<li><strong>Copy the Short URL.</strong> In the YouTube app, tap the Share arrow below the Short → Copy Link. URLs look like <code>youtube.com/shorts/abc123...</code>. Regular <code>youtu.be/...</code> short-links also work.</li>
+<li><strong>Open DropZap's YouTube tool.</strong> Go to <a href="/">dropzap.digital</a>. YouTube Shorts paste into the main video field just like regular YouTube videos.</li>
+<li><strong>Pick resolution and Download.</strong> Shorts are typically available in 720p and 1080p vertical (9:16). Tap your preferred quality. The MP4 downloads in 3-5 seconds.</li>
+</ol>
+
+<h2>iPhone: save a Short directly to Camera Roll</h2>
+<p>After the download completes in Safari, the MP4 goes to <em>Files app → On My iPhone → Downloads</em>. To move it to your Camera Roll so it shows up in Photos and AirDrop:</p>
+<ol>
+<li>Open the <strong>Files</strong> app</li>
+<li>Navigate to <em>On My iPhone → Downloads</em></li>
+<li>Long-press the downloaded MP4 → <strong>Share</strong> → <strong>Save Video</strong></li>
+</ol>
+<p>The Short now lives in Photos, playable offline, editable in iMovie, shareable via iMessage or AirDrop. Same flow used by our <a href="/blog/how-to-download-instagram-reels-on-iphone">Instagram Reels iPhone guide</a> — iOS treats both formats identically.</p>
+
+<h2>Android: saves to Gallery automatically</h2>
+<p>On Android, downloads from Chrome auto-appear in <em>Google Photos</em> or <em>Samsung Gallery</em> within a few seconds of completing. No extra move step needed. If you don't see it immediately, pull down to refresh the gallery or check the <em>Downloads</em> folder via your file manager.</p>
+
+<h2>Do Shorts download in full 1080p?</h2>
+<p>Yes, when the uploader posted at that resolution. YouTube stores Shorts in multiple resolutions — usually 480p, 720p, and 1080p. DropZap offers every available resolution; pick 1080p for the best quality. Note that if the uploader recorded on an older device, the source may only be 720p, in which case 1080p won't be listed.</p>
+
+<h2>Does DropZap work on age-restricted Shorts?</h2>
+<p>No. YouTube blocks unauthenticated access to age-restricted videos, which is why DropZap can't fetch them. Same for private and unlisted videos — these require the owner's login token.</p>
+
+<h2>Audio and music rights</h2>
+<p>Shorts often use trending music clips licensed to YouTube. Downloading the MP4 keeps the audio track as it was originally posted, but republishing that audio elsewhere may violate the music licensing terms. For personal offline viewing or editing, downloads are generally within fair-use scope — see our <a href="/blog/is-it-legal-to-download-videos-from-social-media">legal overview</a> for country-specific notes.</p>
+
+<p>For regular long-form YouTube videos, the same DropZap tool works identically. For bulk Shorts archiving from a creator's feed, use the <a href="/blog/bulk-video-downloader-multiple-urls">bulk downloader guide</a>.</p>`,
+    faq: [
+      {
+        q: "Can I download YouTube Shorts without the YouTube app?",
+        a: "Yes. Copy the Short URL from any share button, paste it into dropzap.digital, pick a resolution, and tap Download. No YouTube app, no login, no Premium subscription. Works on iPhone, Android, and PC.",
+      },
+      {
+        q: "Do YouTube Shorts download in 1080p?",
+        a: "Yes, if the uploader posted at 1080p. DropZap offers every available resolution — 480p, 720p, and 1080p are the most common for Shorts. Pick 1080p for the best quality.",
+      },
+      {
+        q: "Will downloaded Shorts have a watermark?",
+        a: "No. DropZap grabs the source MP4 from YouTube's CDN, which doesn't have a YouTube logo burned in. Anything the creator added (text overlays, captions, stickers) will still be there because those are part of the video itself.",
+      },
+      {
+        q: "Can I download age-restricted Shorts?",
+        a: "No. YouTube blocks unauthenticated access to age-restricted videos, which is why DropZap can't fetch them. The only legitimate way is YouTube's own in-app download on a verified account with YouTube Premium.",
+      },
+    ],
+    howTo: {
+      name: "Download a YouTube Short as MP4 with DropZap",
+      description: "Save any public YouTube Short to your device in under 10 seconds with no login and no watermark.",
+      steps: [
+        { name: "Copy the Short URL", text: "In the YouTube app, tap the Share arrow below the Short → Copy Link." },
+        { name: "Open DropZap", text: "Go to dropzap.digital in any browser and paste the URL into the main video field." },
+        { name: "Pick 1080p and Download", text: "Tap 1080p for best quality. The MP4 downloads in 3-5 seconds." },
+      ],
+    },
+    related: [
+      "youtube-thumbnail-download-hd",
+      "how-to-download-youtube-playlist",
+      "video-download-iphone-guide",
+    ],
+  },
+
+  // -------- Post 14 ---------------------------------------------------
+  {
+    slug: "how-to-download-threads-videos",
+    title: "How to Download Threads Videos and Images in 2026 (Free, No Login)",
+    description:
+      "Save videos and images from Meta's Threads as MP4 or JPG. Step-by-step guide for iPhone, Android, and PC. Works on public Threads posts, no login, free.",
+    date: "2026-05-12",
+    dateModified: "2026-05-12",
+    keywords: [
+      "download threads video",
+      "threads video downloader",
+      "save threads post",
+      "meta threads downloader",
+      "threads to mp4",
+    ],
+    category: "Tutorial",
+    readTime: "6 min read",
+    content: `<p>Threads, Meta's Twitter-style text app, hit 200M+ monthly active users in 2025 and now hosts a growing ecosystem of original video content — creators who post there exclusively, threads that go viral, video replies, stitched conversations. Like Twitter/X, Threads has a Share button but no Save button. This guide covers how to download any public Threads video or image as a clean MP4 or JPG on iPhone, Android, and PC using DropZap, plus the Threads-specific quirks to know.</p>
+
+<h2>What Threads content can be downloaded</h2>
+<ul>
+<li><strong>Videos posted directly to Threads.</strong> MP4 download, typically 720p or 1080p vertical.</li>
+<li><strong>Images posted to Threads.</strong> JPG at original resolution (often 1080-2048px on the longer edge).</li>
+<li><strong>Multi-image posts.</strong> Saved as a single ZIP file containing every image.</li>
+<li><strong>Video replies.</strong> Same as top-level video posts — paste the reply URL.</li>
+<li><strong>Quote-reposts with media.</strong> Downloads the media from whichever post you linked.</li>
+</ul>
+
+<h2>Step-by-step: download a Threads post</h2>
+<ol>
+<li><strong>Copy the Threads post URL.</strong> In the Threads app, tap the paper-airplane Share icon below the post → Copy Link. URLs look like <code>threads.net/@username/post/...</code>. From the web, copy directly from your browser's address bar.</li>
+<li><strong>Open DropZap's Threads tool.</strong> Go to <a href="/threads-downloader">dropzap.digital/threads-downloader</a>.</li>
+<li><strong>Paste and Download.</strong> Video posts return MP4, image posts return JPG, multi-image posts return a ZIP. Usually 3-5 seconds end to end.</li>
+</ol>
+
+<h2>iPhone save-to-Camera-Roll flow</h2>
+<p>Threads videos download as MP4 files to <em>Files → On My iPhone → Downloads</em> in Safari. To move to Camera Roll:</p>
+<ol>
+<li>Open <strong>Files</strong> app</li>
+<li>Navigate to <em>On My iPhone → Downloads</em></li>
+<li>Long-press the MP4 → <strong>Share</strong> → <strong>Save Video</strong></li>
+</ol>
+<p>Images work the same way with <em>Save Image</em> instead. For ZIP files (multi-image posts), tap the ZIP once — iOS auto-extracts it to a folder. Then save individual JPGs to Camera Roll using the same Share → Save Image flow.</p>
+
+<h2>Android: files land in Gallery</h2>
+<p>On Android, both videos and images auto-appear in Google Photos / Samsung Gallery. ZIP files save to Downloads; extract via Files by Google or your default file manager, then save the extracted JPGs to Gallery.</p>
+
+<h2>Threads vs Twitter/X — why they need different tools</h2>
+<p>Threads and X look similar on the surface, but Meta and X use completely different backends for media serving. A Twitter video downloader can't read a Threads URL, and vice versa. DropZap supports both from separate tabs because each needs its own URL parser. If you use both platforms, bookmark both the <a href="/twitter-video-downloader">Twitter tool</a> and the <a href="/threads-downloader">Threads tool</a>.</p>
+
+<h2>Private or follower-only Threads accounts</h2>
+<p>No. DropZap — and every other external tool — can only access content from public Threads accounts. If an account is set to followers-only or has a private profile, their posts require authenticated access through Meta's API, which third-party tools don't have.</p>
+
+<h2>Threads-specific quirks</h2>
+<ul>
+<li><strong>URL redirects.</strong> Threads sometimes shortens URLs to <code>threads.net/t/...</code> in share links. Both the short form and the long form work in DropZap.</li>
+<li><strong>Instagram crossposts.</strong> If a creator posted to both Instagram and Threads simultaneously, use the Threads URL for Threads downloads — don't reuse the Instagram URL.</li>
+<li><strong>Image compression.</strong> Threads re-encodes uploaded images at up to ~2048px on the longer edge. That's the maximum any tool can produce.</li>
+</ul>
+
+<h2>No login, no app install, no watermark</h2>
+<p>DropZap never asks for your Threads or Instagram credentials. You only paste the public URL. Any tool that requests your Meta login should be treated as suspicious — there's no legitimate reason a public-content downloader needs authentication.</p>
+
+<p>For the standalone Threads tool, visit <a href="/threads-downloader">dropzap.digital/threads-downloader</a>. For Instagram-specific workflows, see our <a href="/blog/how-to-download-instagram-reels-on-iphone">Instagram iPhone guide</a> or <a href="/blog/how-to-download-instagram-carousel">carousel guide</a>.</p>`,
+    faq: [
+      {
+        q: "Can I download videos from Threads without logging in?",
+        a: "Yes. Copy the Threads post URL and paste it into dropzap.digital/threads-downloader. No Meta login, no Instagram credentials, no app install required. Works on any public Threads post.",
+      },
+      {
+        q: "Does DropZap work on followers-only Threads accounts?",
+        a: "No. Content from followers-only or private accounts requires authenticated access to Meta's API, which third-party tools don't have. Only public posts from public accounts can be downloaded.",
+      },
+      {
+        q: "What's the maximum resolution for Threads downloads?",
+        a: "Videos download at up to 1080p vertical. Images download at up to ~2048px on the longer edge — that's Meta's internal storage cap and the maximum any tool can produce.",
+      },
+      {
+        q: "Can I download multi-image Threads posts as one file?",
+        a: "Yes. Multi-image posts return a single ZIP file containing every image at its stored resolution. No need to save each slide individually like some other tools require.",
+      },
+    ],
+    howTo: {
+      name: "Download a Threads video or image with DropZap",
+      description: "Save any public Threads post as MP4, JPG, or ZIP in 3-5 seconds. No login, no watermark.",
+      steps: [
+        { name: "Copy the Threads URL", text: "In the Threads app, tap Share → Copy Link. Or copy from threads.net in your browser." },
+        { name: "Open DropZap's Threads tool", text: "Go to dropzap.digital/threads-downloader and paste the URL." },
+        { name: "Download the file", text: "Videos return MP4, images return JPG, multi-image posts return ZIP. Tap Download." },
+      ],
+    },
+    related: [
+      "how-to-download-twitter-videos",
+      "how-to-download-instagram-reels-on-iphone",
+    ],
+  },
+
+  // -------- Post 15 ---------------------------------------------------
+  {
+    slug: "how-to-download-videos-on-android-complete-guide",
+    title: "How to Download Videos on Android — Complete 2026 Guide",
+    description:
+      "Save videos from YouTube, TikTok, Instagram, Facebook, Twitter, Reddit, and more to your Android Gallery. Step-by-step for Chrome, Samsung Internet, and Firefox.",
+    date: "2026-05-12",
+    dateModified: "2026-05-12",
+    keywords: [
+      "how to download videos on android",
+      "save videos to android gallery",
+      "android video downloader",
+      "download video chrome android",
+      "video to android gallery",
+    ],
+    category: "Tutorial",
+    readTime: "8 min read",
+    content: `<p>Android makes video saving easier than iPhone does — most files auto-appear in Google Photos or your device's gallery without any extra steps. But the exact workflow depends on which app the video is from (YouTube, TikTok, Instagram, Facebook) and which browser you use (Chrome, Samsung Internet, Firefox). This guide walks through every major platform from one Android-focused perspective, with the file locations, extraction steps, and troubleshooting for Samsung, Pixel, OnePlus, and Xiaomi phones.</p>
+
+<h2>The universal Android flow</h2>
+<ol>
+<li><strong>Copy the video URL</strong> from the source app's share menu.</li>
+<li><strong>Open <a href="/">dropzap.digital</a></strong> in Chrome (or any Android browser).</li>
+<li><strong>Pick the platform tab</strong> — YouTube, TikTok, Instagram, Reddit, etc. — and paste the URL.</li>
+<li><strong>Tap Download.</strong> The MP4 or JPG saves to your Downloads folder and auto-appears in Google Photos within seconds.</li>
+</ol>
+
+<h2>Download YouTube videos on Android</h2>
+<p>In the YouTube app: tap the Share button below the video → tap <em>Copy Link</em>. Paste into DropZap's YouTube field on the homepage. Pick your resolution (1080p is usually available) and tap Download. For Shorts specifically, see our <a href="/blog/how-to-download-youtube-shorts">Shorts guide</a>.</p>
+
+<h2>Download TikTok videos on Android (no watermark)</h2>
+<p>In TikTok: tap the Share arrow on a video → Copy Link. Paste into <a href="/tiktok-downloader">DropZap's TikTok tool</a>. The result is a clean MP4 without the TikTok watermark. Full details: <a href="/blog/how-to-download-tiktok-without-watermark">watermark guide</a>.</p>
+
+<h2>Download Instagram Reels, photos, and carousels on Android</h2>
+<p>In Instagram: tap the three-dot menu on a post → Copy Link. Paste into <a href="/instagram-downloader">DropZap's Instagram tool</a>. Reels return MP4, photos return JPG, carousels return a single ZIP file. For carousels, see our <a href="/blog/how-to-download-instagram-carousel">carousel guide</a>.</p>
+
+<h2>Download Facebook videos and Reels on Android</h2>
+<p>In Facebook: tap the three-dot menu on a video post → Copy link. Paste into <a href="/facebook-video-downloader">DropZap's Facebook tool</a>. Handles regular videos, Reels, and photo albums. Full guide: <a href="/blog/how-to-download-facebook-video-2026">Facebook downloader guide</a>.</p>
+
+<h2>Download Twitter / X videos on Android</h2>
+<p>In X: tap the Share icon on a tweet → Copy link. Paste into <a href="/twitter-video-downloader">DropZap's Twitter tool</a>. Works with public tweets only.</p>
+
+<h2>Download Reddit videos with sound on Android</h2>
+<p>Reddit videos are the most Android-specific annoyance — they often download silent with other tools because Reddit stores video and audio as separate streams. DropZap auto-merges both. Paste the Reddit post URL into the <a href="/reddit-video-downloader">Reddit tool</a> and the MP4 has sound. Full explanation: <a href="/blog/reddit-video-no-sound-fix">Reddit no-sound fix</a>.</p>
+
+<h2>Where Android saves files by default</h2>
+<p>Different browsers save files to different locations:</p>
+<ul>
+<li><strong>Chrome / Firefox / Brave / Samsung Internet:</strong> All save to <code>/Internal Storage/Download/</code></li>
+</ul>
+<p>Google Photos scans the Download folder every few seconds; you usually see the file appear in your gallery within 10 seconds of the download finishing. If it doesn't, pull down to refresh Google Photos.</p>
+
+<h2>Samsung-specific: where videos land in Samsung Gallery</h2>
+<p>Samsung Gallery has a separate "Downloads" album that auto-populates from the <em>/Download/</em> folder. Open Samsung Gallery → Albums → Download. To add it to the main camera roll view, move it to the <em>DCIM</em> folder via My Files — long-press → Move → DCIM → Camera.</p>
+
+<h2>How to extract a ZIP on Android</h2>
+<p>DropZap returns a ZIP for Instagram carousels, Threads multi-image posts, and Facebook albums. To extract:</p>
+<ol>
+<li>Open the <strong>Files by Google</strong> app (or Samsung "My Files")</li>
+<li>Navigate to Downloads</li>
+<li>Tap the ZIP file → tap <strong>Extract</strong> → <strong>Done</strong></li>
+</ol>
+
+<h2>Troubleshooting</h2>
+<ul>
+<li><strong>Download won't start on Chrome:</strong> Chrome sometimes blocks "insecure" downloads. Tap the three-dot menu in the download notification → Keep → Always allow.</li>
+<li><strong>File doesn't appear in Gallery:</strong> Open Files by Google, tap the file once; this triggers Media Store indexing.</li>
+<li><strong>Download stops midway:</strong> Switch from Wi-Fi to mobile data (or vice versa) and retry.</li>
+</ul>
+
+<h2>Does DropZap have an Android app?</h2>
+<p>No — DropZap is a website, and that's deliberate. You don't need an app install, Play Store account, or any permissions. The website works identically in every Android browser. The website workflow is fast enough (3-5 seconds per download) that an app would add no value.</p>`,
+    faq: [
+      {
+        q: "Do I need an app to download videos on Android?",
+        a: "No. DropZap is a website — open it in Chrome, Samsung Internet, Firefox, or any browser, paste the URL, tap Download. No Play Store install, no permissions, no account.",
+      },
+      {
+        q: "Where do downloaded videos go on Android?",
+        a: "To the /Internal Storage/Download/ folder. Google Photos and Samsung Gallery scan this folder automatically, so videos usually appear in your gallery within seconds.",
+      },
+      {
+        q: "Can I download YouTube videos on Android without Premium?",
+        a: "Yes. DropZap works without a YouTube account or Premium subscription. Copy the video URL from YouTube's Share menu, paste into dropzap.digital, pick resolution, download.",
+      },
+      {
+        q: "How do I extract a ZIP file on Android?",
+        a: "Open Files by Google → Downloads → tap the ZIP file → tap Extract. Samsung's My Files app has the same option.",
+      },
+    ],
+    howTo: {
+      name: "Download any video to Android with DropZap",
+      description: "Universal 3-step flow that works for YouTube, TikTok, Instagram, Facebook, Twitter, Reddit, Pinterest, and Threads.",
+      steps: [
+        { name: "Copy the video URL", text: "In the source app, tap Share → Copy Link." },
+        { name: "Open DropZap", text: "Go to dropzap.digital in any Android browser. Pick the tab matching your platform." },
+        { name: "Paste and Download", text: "The MP4 or JPG saves to /Download/ and auto-appears in Google Photos or Samsung Gallery within 10 seconds." },
+      ],
+    },
+    related: [
+      "video-download-iphone-guide",
+      "how-to-download-youtube-shorts",
+      "how-to-download-tiktok-without-watermark",
+    ],
+  },
+
+  // -------- Post 16 ---------------------------------------------------
+  {
+    slug: "how-to-download-facebook-reels",
+    title: "How to Download Facebook Reels in HD (2026 Guide for All Devices)",
+    description:
+      "Save Facebook Reels as MP4 in HD without the Facebook app. Step-by-step for iPhone, Android, and PC. No login, no watermark, no quality loss. Free.",
+    date: "2026-05-12",
+    dateModified: "2026-05-12",
+    keywords: [
+      "download facebook reels",
+      "facebook reels downloader",
+      "save facebook reels to camera roll",
+      "fb reel to mp4",
+      "facebook reels hd",
+    ],
+    category: "Tutorial",
+    readTime: "6 min read",
+    content: `<p>Facebook Reels — Meta's answer to TikTok and Instagram Reels — have grown from a test feature to one of Facebook's main content formats. Creators re-publish their best Instagram Reels to Facebook for a separate audience, and many Facebook-native Reels trend without ever appearing on Instagram. The Facebook app lets you save Reels to the in-app "Saved" list, but not to your actual Camera Roll or Gallery. This guide covers the proper download workflow for iPhone, Android, and PC using DropZap, with a focus on the Reel-specific details most guides skip.</p>
+
+<h2>Facebook Reels vs regular Facebook videos</h2>
+<p>From the URL perspective they're slightly different:</p>
+<ul>
+<li><strong>Regular videos:</strong> <code>facebook.com/watch?v=...</code> or <code>facebook.com/PageName/videos/...</code></li>
+<li><strong>Reels:</strong> <code>facebook.com/reel/...</code></li>
+<li><strong>fb.watch short-links:</strong> Work for both formats; Facebook resolves them to the correct backend.</li>
+</ul>
+<p>DropZap's Facebook tool handles all three URL formats from the same input field.</p>
+
+<h2>Step-by-step: download a Facebook Reel</h2>
+<ol>
+<li><strong>Open the Reel.</strong> In the Facebook app, swipe to the Reel you want. Tap the three-dot menu in the top-right corner of the Reel.</li>
+<li><strong>Tap "Copy link."</strong> The URL goes to your clipboard.</li>
+<li><strong>Open DropZap.</strong> Go to <a href="/facebook-video-downloader">dropzap.digital/facebook-video-downloader</a>.</li>
+<li><strong>Paste and Download.</strong> Tap HD when both options appear. The MP4 downloads in 3-5 seconds in vertical 9:16 aspect ratio.</li>
+</ol>
+
+<h2>iPhone: save Reel directly to Camera Roll</h2>
+<p>In Safari, after download completes:</p>
+<ol>
+<li>Open <strong>Files</strong> app → <em>On My iPhone → Downloads</em></li>
+<li>Long-press the Reel MP4 → <strong>Share</strong> → <strong>Save Video</strong></li>
+</ol>
+<p>The Reel lives in Photos, playable offline, editable in iMovie, shareable via iMessage or AirDrop. Same pattern as our <a href="/blog/how-to-download-instagram-reels-on-iphone">Instagram Reels iPhone guide</a>.</p>
+
+<h2>Android: Reel appears in Gallery automatically</h2>
+<p>On Android, the MP4 lands in <em>/Internal Storage/Download/</em> and auto-appears in Google Photos or Samsung Gallery within seconds. Full Android workflow: <a href="/blog/how-to-download-videos-on-android-complete-guide">Android download guide</a>.</p>
+
+<h2>Does DropZap download Reels in full HD?</h2>
+<p>Yes, when the uploader posted in HD. Facebook stores Reels in multiple resolutions — typically 480p and 720p, occasionally 1080p for larger creators. DropZap offers every available resolution; pick the highest for best quality. Note that Facebook's internal re-encoding is aggressive, so even "HD" Reels are usually 720p rather than true 1080p.</p>
+
+<h2>Audio and music licensing on Reels</h2>
+<p>Facebook Reels often use licensed music clips. DropZap downloads the MP4 exactly as the creator uploaded it, with the audio track intact. For personal offline playback, that's fine. Re-uploading the downloaded Reel to another platform may trigger copyright claims on that platform, since the music licensing is platform-specific. See our <a href="/blog/is-it-legal-to-download-videos-from-social-media">legal overview</a>.</p>
+
+<h2>Reels from private profiles or closed groups</h2>
+<p>Facebook Reels posted to private profiles (friends-only visibility) or inside closed Facebook groups cannot be downloaded by DropZap or any external tool. These require authenticated access through Facebook's API, which third-party tools don't have. Public Reels from Pages and public profiles work normally.</p>
+
+<h2>Common errors</h2>
+<ul>
+<li><strong>"Login required":</strong> Facebook flagged your region / IP. Try replacing <code>facebook.com</code> with <code>m.facebook.com</code> in the URL — mobile URLs often bypass the wall.</li>
+<li><strong>"Content unavailable":</strong> The Reel was deleted, made private, or is geo-blocked. No workaround other than VPN.</li>
+<li><strong>Slow download speed:</strong> Facebook's CDN sometimes throttles based on IP. Retry in 30 seconds or switch networks.</li>
+</ul>
+
+<h2>Bulk-saving Reels from a favorite creator</h2>
+<p>For archiving multiple Reels from one Page, use the <a href="/">bulk downloader</a> on DropZap's homepage. Paste all Reel URLs (one per line) and DropZap queues them sequentially.</p>
+
+<p>For Facebook photo albums, longer videos, and Facebook Live replays, see our main <a href="/blog/how-to-download-facebook-video-2026">Facebook download guide</a>.</p>`,
+    faq: [
+      {
+        q: "Can I download a Facebook Reel without the Facebook app?",
+        a: "Yes. Copy the Reel URL from any share button (including the website, not just the app), paste into dropzap.digital/facebook-video-downloader, tap Download. No Facebook login, no app install, no Meta account needed.",
+      },
+      {
+        q: "Do Facebook Reels download with sound?",
+        a: "Yes. Unlike Reddit videos, Facebook Reels have audio baked into the MP4, so the download includes full sound automatically. If the downloaded Reel is silent, the creator uploaded it muted.",
+      },
+      {
+        q: "What's the max resolution for Reel downloads?",
+        a: "Typically 720p. Facebook re-encodes Reels aggressively, so most are stored at 720p regardless of source quality. Occasional Reels from larger creators are available in 1080p — DropZap offers whichever resolution is highest.",
+      },
+      {
+        q: "Can I download Reels from a private Facebook profile or group?",
+        a: "No. Private profiles, friends-only Reels, and closed-group content require authenticated access to Facebook's API, which external tools can't legitimately have.",
+      },
+    ],
+    howTo: {
+      name: "Download a Facebook Reel with DropZap",
+      description: "Save any public Facebook Reel as HD MP4 in 3-5 seconds. No login, no watermark.",
+      steps: [
+        { name: "Copy the Reel URL", text: "In the Facebook app, tap the three-dot menu on the Reel → Copy link." },
+        { name: "Open DropZap's Facebook tool", text: "Go to dropzap.digital/facebook-video-downloader and paste the URL." },
+        { name: "Pick HD and Download", text: "Tap HD when both SD and HD options are offered. The MP4 downloads in 3-5 seconds." },
+      ],
+    },
+    related: [
+      "how-to-download-facebook-video-2026",
+      "how-to-download-instagram-reels-on-iphone",
+      "how-to-download-videos-on-android-complete-guide",
+    ],
+  },
+
+  // -------- Post 17 ---------------------------------------------------
+  {
+    slug: "tiktok-photo-slideshow-download",
+    title: "How to Download a TikTok Photo Slideshow (Every Image, No Watermark)",
+    description:
+      "Save every photo from a TikTok photo slideshow as individual JPGs or as a single ZIP. Works on iPhone, Android, and PC. No watermark, no login, free.",
+    date: "2026-05-12",
+    dateModified: "2026-05-12",
+    keywords: [
+      "download tiktok photo slideshow",
+      "save tiktok photos",
+      "tiktok slideshow to jpg",
+      "tiktok photo post download",
+      "tiktok image download",
+    ],
+    category: "Tutorial",
+    readTime: "6 min read",
+    content: `<p>TikTok's photo mode (introduced in 2022 and massively expanded since) lets creators post carousel-style image sets that auto-advance with music. These "photo slideshows" are now a huge share of TikTok content, especially for recipe posts, before/after reveals, memes, and aesthetic collections. The TikTok app itself doesn't let you save individual photos from a slideshow — you can only screenshot, which captures the UI overlay. This guide covers the proper download workflow that returns each photo as a clean JPG at original resolution, plus the slideshow-specific details most generic TikTok guides miss.</p>
+
+<h2>Why screenshotting a TikTok slideshow is bad</h2>
+<ul>
+<li><strong>UI gets captured.</strong> Username, caption, like button, and TikTok logo all appear in the screenshot.</li>
+<li><strong>Resolution is your screen, not the photo.</strong> A 1242x2688 iPhone screenshot of a 2160x2700 photo loses detail.</li>
+<li><strong>Aspect ratio changes.</strong> Screenshots crop to your screen size; original aspect ratio is lost.</li>
+<li><strong>Watermark stays.</strong> If the slideshow was saved to TikTok from another platform, the "TikTok" text overlay sometimes appears on screenshots.</li>
+</ul>
+<p>A proper downloader fetches the source JPG files directly, bypassing all of these issues.</p>
+
+<h2>Step-by-step: download a TikTok photo slideshow</h2>
+<ol>
+<li><strong>Open the slideshow in TikTok.</strong> Tap the Share arrow on the right side of the slideshow → <em>Copy Link</em>. The URL looks like <code>vm.tiktok.com/...</code> or <code>tiktok.com/@username/photo/...</code>.</li>
+<li><strong>Open DropZap.</strong> Go to <a href="/tiktok-downloader">dropzap.digital/tiktok-downloader</a>. The same tool handles both video TikToks and photo slideshows.</li>
+<li><strong>Paste and Download.</strong> DropZap detects that the URL is a photo slideshow and returns a single ZIP file containing every image at its original resolution. For a 10-photo slideshow, that's 10 JPGs in one ZIP.</li>
+</ol>
+
+<h2>Extracting the ZIP on iPhone</h2>
+<ol>
+<li>Open the <strong>Files</strong> app → <em>On My iPhone → Downloads</em></li>
+<li>Tap the ZIP file once — iOS auto-extracts it into a folder of the same name</li>
+<li>Tap into the folder to see each JPG</li>
+<li>Long-press any JPG → <strong>Share</strong> → <strong>Save Image</strong> to move to Camera Roll</li>
+<li>To save all at once: tap <strong>Select</strong> top-right → tap each photo → <strong>Share</strong> → <strong>Save 10 Images</strong></li>
+</ol>
+
+<h2>Extracting the ZIP on Android</h2>
+<ol>
+<li>Open <strong>Files by Google</strong> (or Samsung "My Files")</li>
+<li>Navigate to Downloads</li>
+<li>Tap the ZIP → <strong>Extract</strong> → <strong>Done</strong></li>
+</ol>
+
+<h2>Extracting the ZIP on PC and Mac</h2>
+<ul>
+<li><strong>Windows:</strong> Right-click the ZIP → Extract All → Extract.</li>
+<li><strong>Mac:</strong> Double-click the ZIP; macOS auto-extracts.</li>
+</ul>
+
+<h2>Resolution and quality</h2>
+<p>TikTok stores slideshow photos at 1080-2400px on the longer edge. DropZap fetches them at that original resolution — dramatically higher than any screenshot. The exact resolution depends on what the creator uploaded; TikTok caps uploads at 2700x2700 for square photos.</p>
+
+<h2>What about the music / audio from the slideshow?</h2>
+<p>The music clip that plays behind a TikTok slideshow is separate from the photos themselves. DropZap returns the photos as JPGs (image files, no audio). If you specifically want the audio clip, use DropZap's TikTok MP3 extractor — paste the same URL but use the MP3 converter tool. See our <a href="/blog/tiktok-to-mp3-audio-download">TikTok audio guide</a>.</p>
+
+<h2>Slideshows from private accounts</h2>
+<p>No external tool — DropZap or any other — can download content from private TikTok accounts. That requires authenticated access to TikTok's API, which third-party tools don't have. Only public slideshows are downloadable.</p>
+
+<h2>Watermark details</h2>
+<p>Slideshow photos don't have the bouncing @username watermark that TikTok overlays on videos. The photos themselves are clean. If the creator added their @username as a text overlay in the photo during creation, that's burned in. For video TikToks, see our <a href="/blog/how-to-download-tiktok-without-watermark">watermark removal guide</a>.</p>
+
+<p>For standard video TikToks (not slideshows), use the same tool with the same paste-and-download flow. Output is MP4 for videos, ZIP for photo slideshows. For comparison of TikTok download tools, see our <a href="/blog/best-tiktok-downloader-no-watermark">TikTok downloader comparison</a>.</p>`,
+    faq: [
+      {
+        q: "Can I download individual photos from a TikTok slideshow?",
+        a: "Yes. DropZap returns every photo in a slideshow as a single ZIP file. Extract the ZIP to get each photo as a separate JPG at its original resolution (usually 1080-2400px on the longer edge).",
+      },
+      {
+        q: "Why not just screenshot the slideshow?",
+        a: "Screenshots capture TikTok's UI (username, like button, captions) at your screen's resolution, which is lower than the original photo. Using DropZap returns the clean source JPGs with no UI overlay at the creator's original upload resolution.",
+      },
+      {
+        q: "Do slideshow photos have the TikTok watermark?",
+        a: "No. Unlike video TikToks, which have a bouncing @username watermark, photo slideshows don't have a TikTok-added watermark on the photos themselves.",
+      },
+      {
+        q: "What about the background music from the slideshow?",
+        a: "Photos and music are separate. DropZap's photo-slideshow download returns JPGs (no audio). For the music, use DropZap's TikTok MP3 converter with the same URL.",
+      },
+    ],
+    howTo: {
+      name: "Download a TikTok photo slideshow with DropZap",
+      description: "Save every photo from a TikTok slideshow as a ZIP of JPGs at original resolution. No watermark, no screenshots.",
+      steps: [
+        { name: "Copy the slideshow URL", text: "In the TikTok app, tap the Share arrow → Copy Link." },
+        { name: "Open DropZap's TikTok tool", text: "Go to dropzap.digital/tiktok-downloader and paste the URL." },
+        { name: "Download the ZIP and extract", text: "The ZIP contains every photo as a separate JPG. Extract via Files (iPhone), Files by Google (Android), right-click Extract (Windows), or double-click (Mac)." },
+      ],
+    },
+    related: [
+      "how-to-download-tiktok-without-watermark",
+      "tiktok-to-mp3-audio-download",
+      "best-tiktok-downloader-no-watermark",
+    ],
+  },
+
+  // -------- Post 18 ---------------------------------------------------
+  {
+    slug: "how-to-download-youtube-playlist",
+    title: "How to Download a YouTube Playlist in 2026 (Every Video, No Premium)",
+    description:
+      "Download every video from a YouTube playlist as MP4 in bulk. Step-by-step with DropZap's batch tool. No YouTube Premium, no login, works on PC, iPhone, and Android.",
+    date: "2026-05-12",
+    dateModified: "2026-05-12",
+    keywords: [
+      "download youtube playlist",
+      "youtube playlist downloader",
+      "bulk youtube download",
+      "download all videos from youtube playlist",
+      "youtube playlist to mp4",
+    ],
+    category: "Tutorial",
+    readTime: "7 min read",
+    content: `<p>YouTube playlists are everywhere — full album tracks, course lectures, podcast series, curated music collections, DIY tutorials. Saving an entire playlist for offline viewing is one of the most common requests we get. YouTube Premium allows in-app downloads, but they expire after 30 days, are app-locked, and don't work on desktop or in non-YouTube players. This guide covers the proper workflow to download every video in a YouTube playlist as permanent MP4 files using DropZap's bulk downloader.</p>
+
+<h2>What this guide gets you</h2>
+<ul>
+<li><strong>Every video in the playlist</strong> as a standalone MP4 file</li>
+<li><strong>Any resolution</strong> up to 1080p (or 4K when available)</li>
+<li><strong>Audio included</strong> (not muted like some playlist scrapers return)</li>
+<li><strong>Files stored permanently</strong> on your device — no 30-day expiration</li>
+<li><strong>No YouTube Premium</strong> subscription required</li>
+<li><strong>No YouTube account login</strong></li>
+</ul>
+
+<h2>The two-step workflow</h2>
+<p>YouTube playlists are just a list of individual video URLs. The workflow is:</p>
+<ol>
+<li>Extract every video URL from the playlist.</li>
+<li>Paste the list into DropZap's bulk downloader.</li>
+</ol>
+
+<h2>Step 1: extract video URLs from the playlist</h2>
+<p>The cleanest way to get a plain list of URLs:</p>
+<ol>
+<li><strong>Open the playlist</strong> in any browser on PC or Mac. URLs look like <code>youtube.com/playlist?list=PL...</code>.</li>
+<li><strong>Use YouTube's "Share" on each video</strong> if the playlist has 5-10 videos — manual, but fine for small playlists.</li>
+<li><strong>For larger playlists (20+ videos)</strong>, use one of these methods:
+  <ul>
+  <li>Right-click in the playlist panel → View Source → Ctrl+F for <code>watch?v=</code>.</li>
+  <li>Browser extensions like "YouTube Playlist Helper" let you click Copy All URLs in one shot.</li>
+  <li>Use <code>yt-dlp --flat-playlist --print url YOUTUBE_PLAYLIST_URL</code> on a computer with Python — outputs one URL per line.</li>
+  </ul>
+</li>
+</ol>
+<p>Paste the list of URLs into a text file or clipboard — one URL per line.</p>
+
+<h2>Step 2: bulk-download via DropZap</h2>
+<ol>
+<li>Go to <a href="/">dropzap.digital</a>.</li>
+<li>Scroll to the <strong>Bulk Downloader</strong> section.</li>
+<li>Paste your list of URLs into the input field (one per line).</li>
+<li>Click <strong>Download All</strong>. DropZap queues each video and streams each MP4 to your browser's Downloads folder.</li>
+</ol>
+<p>A 20-video playlist typically finishes in under 2 minutes on a fast connection. Each file is named after its video title and saved as a separate MP4.</p>
+
+<h2>Device-specific notes</h2>
+<p><strong>PC / Mac:</strong> Best experience for bulk playlists — you can paste 50+ URLs and walk away. Files land in your browser's Downloads folder.</p>
+<p><strong>iPhone:</strong> Safari handles 10-20 downloads reliably but may throttle beyond that. Files save to Files app → On My iPhone → Downloads. Move to Camera Roll per our <a href="/blog/video-download-iphone-guide">iPhone guide</a>.</p>
+<p><strong>Android:</strong> Chrome handles bulk downloads well; files go to /Download/. See the <a href="/blog/how-to-download-videos-on-android-complete-guide">Android guide</a>.</p>
+
+<h2>Resolution when downloading at scale</h2>
+<p>DropZap's bulk mode defaults to the highest available resolution for each video. Some videos in a playlist may only be in 480p (older uploads), while others are 1080p — you'll get each at its best.</p>
+
+<h2>Audio-only bulk (podcast / music mode)</h2>
+<p>If you want the playlist as audio-only (for a music album, podcast series, or audiobook), use DropZap's MP3 bulk mode instead. Paste the same URL list into the MP3 converter. Each video is converted to MP3 and saved separately. See <a href="/blog/convert-video-to-mp3-online">MP3 conversion guide</a> for details.</p>
+
+<h2>Watch-later playlists and private playlists</h2>
+<p>YouTube's "Watch Later" playlist and any playlist set to Private require login to access — DropZap can't read these because it has no YouTube authentication. Export them to a public or unlisted playlist first, or extract the URLs manually while logged in on your own browser.</p>
+
+<h2>Very large playlists (500+ videos)</h2>
+<p>Technically possible but practically limited by your browser. Most browsers start throttling after ~100 simultaneous downloads. For massive playlists, split into batches of 50-100 URLs.</p>
+
+<h2>Legal and copyright considerations</h2>
+<p>Downloading YouTube videos for personal offline use is generally acceptable under fair-use doctrine in most countries, but redistributing downloaded content violates YouTube's Terms of Service and often copyright law. See our <a href="/blog/is-it-legal-to-download-videos-from-social-media">legal overview</a>.</p>
+
+<p>For individual Shorts (not full playlists), see the <a href="/blog/how-to-download-youtube-shorts">Shorts guide</a>. For thumbnail-only downloads, see the <a href="/blog/youtube-thumbnail-download-hd">thumbnail guide</a>.</p>`,
+    faq: [
+      {
+        q: "Can I download a whole YouTube playlist at once?",
+        a: "Yes. Extract every video URL from the playlist (view-source, a browser extension, or yt-dlp), paste the list into DropZap's bulk downloader, click Download All. Each video saves as a separate MP4.",
+      },
+      {
+        q: "Do I need YouTube Premium?",
+        a: "No. DropZap works without any YouTube account or Premium subscription. Videos save as permanent MP4 files on your device — no 30-day expiration like in-app Premium downloads.",
+      },
+      {
+        q: "Can I download private or Watch-Later playlists?",
+        a: "Not directly. Private playlists require your YouTube login, which DropZap doesn't have. Export the playlist to Public or Unlisted first, or extract the URLs manually.",
+      },
+      {
+        q: "Can I download a playlist as audio only (MP3)?",
+        a: "Yes. Use DropZap's MP3 converter in bulk mode instead of the video downloader. Paste the same URL list — each video is extracted to MP3 and saved as a separate audio file.",
+      },
+    ],
+    howTo: {
+      name: "Download an entire YouTube playlist with DropZap",
+      description: "Save every video in a YouTube playlist as permanent MP4 files in two steps. No Premium, no expiration.",
+      steps: [
+        { name: "Extract every video URL from the playlist", text: "Open the playlist in a browser. View source and copy every URL matching 'watch?v=', or use a browser extension to copy all URLs at once. One URL per line." },
+        { name: "Open DropZap's bulk downloader", text: "Go to dropzap.digital and scroll to the Bulk Downloader section. Paste your list of URLs." },
+        { name: "Click Download All", text: "DropZap queues each video and streams MP4 files to your Downloads folder. A 20-video playlist takes under 2 minutes." },
+      ],
+    },
+    related: [
+      "bulk-video-downloader-multiple-urls",
+      "how-to-download-youtube-shorts",
+      "youtube-thumbnail-download-hd",
+    ],
+  },
+
+  // -------- Post 19 ---------------------------------------------------
+  {
+    slug: "is-it-legal-to-download-videos-from-social-media",
+    title: "Is It Legal to Download Videos from Social Media? (2026 Explainer)",
+    description:
+      "A plain-English overview of the copyright and Terms of Service rules around downloading videos from YouTube, TikTok, Instagram, and other platforms. Personal vs commercial use, country differences, fair use.",
+    date: "2026-05-12",
+    dateModified: "2026-05-12",
+    keywords: [
+      "is it legal to download youtube videos",
+      "copyright social media videos",
+      "legal to download tiktok",
+      "fair use video download",
+      "can i download instagram videos",
+    ],
+    category: "Legal",
+    readTime: "9 min read",
+    content: `<p>Downloading videos from YouTube, TikTok, Instagram, and other social platforms lives in a nuanced area of copyright law and platform Terms of Service. Most guides either overstate the legal risk ("downloading is illegal everywhere") or understate it ("everything is fair use"). The actual answer depends on three things: what you download, what you do with it afterward, and which country's law applies. This is a plain-English overview — not legal advice. For specific situations, consult a lawyer in your jurisdiction.</p>
+
+<h2>The three layers of the question</h2>
+<ol>
+<li><strong>Copyright law.</strong> Governs who owns a video and what they can control. Set by national law; roughly similar across most Berne Convention signatories but with meaningful variations.</li>
+<li><strong>Platform Terms of Service.</strong> Private contracts between you and YouTube, TikTok, Meta, etc. They often prohibit downloading regardless of what copyright law allows. Breaking ToS isn't itself illegal, but can result in account termination.</li>
+<li><strong>Subsequent use.</strong> What you do with a downloaded file determines most of the risk. Saving a TikTok to rewatch offline is practically zero-risk. Re-uploading it to your own YouTube channel to monetize is much higher risk.</li>
+</ol>
+
+<h2>Personal offline use (the most common case)</h2>
+<p>In most jurisdictions — US, EU, UK, Australia, Canada, most of Latin America — downloading a publicly-accessible video to watch it offline for yourself is generally treated as either:</p>
+<ul>
+<li><strong>Explicit personal-use exception.</strong> EU copyright law allows "reproductions on any medium made by a natural person for private use." Most EU states have specific personal-use carve-outs.</li>
+<li><strong>Fair use / fair dealing.</strong> US "fair use" (Section 107 of the Copyright Act) and UK / Canada / Australia "fair dealing" doctrines permit personal non-commercial copying for research, study, review, or private enjoyment in many cases.</li>
+<li><strong>De facto unenforced.</strong> Even where the law is ambiguous, copyright holders almost never pursue end users who download for personal viewing. Enforcement targets uploaders and commercial infringers.</li>
+</ul>
+<p>Bottom line for personal offline use: <strong>very low legal risk</strong>, though it may violate the platform's ToS.</p>
+
+<h2>Re-uploading downloaded content (high-risk zone)</h2>
+<p>Downloading a video and re-uploading it to your own channel, Reels, TikTok, or any other public platform without the creator's permission is clear copyright infringement in every jurisdiction. This is where real legal action occurs:</p>
+<ul>
+<li><strong>YouTube Content ID</strong> automatically detects re-uploads and either demonetizes them, blocks them, or redirects ad revenue to the original creator.</li>
+<li><strong>DMCA takedowns</strong> let rights holders force platforms to remove infringing uploads.</li>
+<li><strong>Statutory damages</strong> in the US can reach $150,000 per willfully infringed work, though practical recovery is usually much lower and targeted at commercial uploaders.</li>
+</ul>
+<p>Exception: "transformative use" under US fair use and similar doctrines may permit re-using parts of a video for commentary, criticism, parody, or review. The four-factor fair use test weighs purpose, nature of the work, amount used, and market effect. This is fact-specific — consult a lawyer if you're relying on it.</p>
+
+<h2>Platform Terms of Service positions</h2>
+<p>Every major platform's ToS explicitly prohibits downloading without permission:</p>
+<ul>
+<li><strong>YouTube:</strong> "You are not allowed to... access, reproduce, download, distribute..." — unless a download button is offered by YouTube itself (Premium offline saves).</li>
+<li><strong>TikTok:</strong> "You shall not... copy, reproduce, distribute, or modify any of the material..." — except TikTok's own in-app Save (with watermark).</li>
+<li><strong>Instagram and Facebook:</strong> "You can't... collect content or information..." — covers scraping and systematic downloading.</li>
+<li><strong>Twitter/X:</strong> "You may not... copy, sell, or otherwise sublicense" — download for personal viewing isn't explicitly prohibited.</li>
+</ul>
+<p>ToS violations typically result in account suspension, not lawsuits. If you don't have an account on the platform you're downloading from, there's no ToS violation (you never agreed to the ToS).</p>
+
+<h2>Downloading your own content</h2>
+<p>This is unambiguously fine. You own the copyright to content you created, so downloading your own TikToks, YouTube videos, or Instagram Reels is legal regardless of platform ToS.</p>
+
+<h2>Downloading public-domain or Creative Commons content</h2>
+<p>Many YouTube videos are licensed under Creative Commons (filterable in YouTube search):</p>
+<ul>
+<li><strong>CC0 / Public Domain:</strong> Use freely for anything.</li>
+<li><strong>CC BY:</strong> Use freely with attribution to the creator.</li>
+<li><strong>CC BY-SA:</strong> Use freely with attribution AND share derivatives under the same license.</li>
+<li><strong>CC BY-NC:</strong> Non-commercial use only, with attribution.</li>
+</ul>
+
+<h2>Country-specific highlights</h2>
+<ul>
+<li><strong>Germany:</strong> Personal-use exception is strong but explicitly excludes "obviously infringing" sources.</li>
+<li><strong>UK:</strong> Personal-use exception was removed in 2015; technically no carve-out exists, but enforcement is minimal.</li>
+<li><strong>US:</strong> Fair use is broad and case-specific. No per-se right to personal copying, but extremely rare enforcement against individuals.</li>
+<li><strong>Japan:</strong> Downloading known-infringing material is explicitly criminalized; legitimate creator uploads are fine for personal use.</li>
+</ul>
+
+<h2>Bottom line: risk-ordered activities</h2>
+<p>From low to high legal risk:</p>
+<ol>
+<li><strong>Download your own content.</strong> Zero risk.</li>
+<li><strong>Download CC-licensed content with attribution.</strong> Zero risk within license terms.</li>
+<li><strong>Download a public video for personal offline viewing.</strong> Very low risk; likely ToS violation but practically unenforced.</li>
+<li><strong>Download to edit for personal practice / private projects.</strong> Low risk.</li>
+<li><strong>Download for transformative fair-use commentary.</strong> Moderate risk; depends on the four-factor analysis.</li>
+<li><strong>Re-upload to your own monetized channel.</strong> High risk; Content ID will catch it and may trigger DMCA.</li>
+<li><strong>Download and sell / commercially distribute.</strong> Very high risk; genuine copyright infringement with real consequences.</li>
+</ol>
+
+<h2>What DropZap does and doesn't do</h2>
+<p>DropZap is a technical tool that retrieves files from publicly accessible URLs. Like a web browser, a screen recorder, or yt-dlp, DropZap doesn't decide what's legal for you to do with the result. Our Terms of Service require you to comply with copyright law and platform ToS in your jurisdiction. We don't store the videos you download, and we don't aggregate or redistribute content.</p>
+
+<p><em>This article provides general information, not legal advice. Copyright law varies by country and changes over time. For specific situations, consult a qualified attorney in your jurisdiction.</em></p>`,
+    faq: [
+      {
+        q: "Is it legal to download a YouTube video for personal use?",
+        a: "In most jurisdictions, downloading a publicly-accessible video for personal offline viewing is treated as either explicit personal-use exception (EU) or fair use / fair dealing (US, UK, Canada, Australia). Legal risk is very low for personal viewing, though it may violate YouTube's ToS — which results in account suspension, not lawsuits.",
+      },
+      {
+        q: "Can I re-upload downloaded videos to my own channel?",
+        a: "No, this is clear copyright infringement in every jurisdiction unless you have explicit permission from the creator or fair-use applies (transformative commentary, criticism, parody). YouTube Content ID detects re-uploads automatically and may demonetize, block, or redirect ad revenue to the original creator.",
+      },
+      {
+        q: "Is downloading TikTok videos legal?",
+        a: "Same answer as YouTube — generally low risk for personal offline viewing, higher risk for re-uploading. TikTok's ToS explicitly prohibits downloading except through their in-app Save feature (which adds the watermark).",
+      },
+      {
+        q: "What about Creative Commons videos?",
+        a: "These can be freely downloaded and reused per the specific CC license. CC0 allows any use. CC BY requires creator attribution. CC BY-SA additionally requires sharing derivatives under the same license. CC BY-NC restricts to non-commercial use. Always check the specific license and credit the creator.",
+      },
+      {
+        q: "Will I get in trouble for using DropZap?",
+        a: "DropZap is a technical tool — like a web browser, a screen recorder, or yt-dlp — that retrieves files from publicly accessible URLs. The legal responsibility for what you do with the downloaded files is yours. For personal offline viewing, real-world legal action against individual end users is extremely rare.",
+      },
+    ],
+    related: [
+      "best-video-downloader-2026",
+      "how-to-download-youtube-playlist",
+      "online-video-downloader-vs-software",
+    ],
+  },
 ];
 
 export const blogCategories = [...new Set(blogPosts.map((p) => p.category))];

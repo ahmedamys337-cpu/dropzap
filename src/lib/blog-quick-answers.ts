@@ -54,4 +54,25 @@ export const blogQuickAnswers: Record<string, string> = {
 
   "how-to-download-pinterest-video-and-image":
     "To download a Pinterest pin: open the pin, tap Share \u2192 Copy link, paste into dropzap.digital/pinterest-downloader, click Download. Static pins return JPG at original resolution (often 1080-2400px, much higher than Pinterest's in-app save). Video pins return MP4. GIF pins return MP4 (Pinterest stores them as MP4 internally). For bulk board archiving, use the bulk downloader on the DropZap homepage.",
+
+  "how-to-download-youtube-shorts":
+    "To download a YouTube Short as MP4 without the YouTube app: tap the Share arrow below the Short \u2192 Copy Link, paste into dropzap.digital, pick 1080p, tap Download. The MP4 saves to Files (iPhone) or Gallery (Android). No YouTube account, no Premium, no watermark. Works on all public Shorts; age-restricted and private videos can't be fetched.",
+
+  "how-to-download-threads-videos":
+    "To download a Meta Threads video or image: tap the paper-airplane Share icon \u2192 Copy Link, paste into dropzap.digital/threads-downloader, click Download. Videos return MP4, single images return JPG, multi-image posts return a single ZIP. Works on every public Threads post in 3-5 seconds. Followers-only and private accounts can't be downloaded by any external tool.",
+
+  "how-to-download-videos-on-android-complete-guide":
+    "On Android, the universal flow is: copy the video URL from the source app's Share menu, open dropzap.digital in Chrome, paste into the matching platform tab, tap Download. Files save to /Internal Storage/Download/ and auto-appear in Google Photos or Samsung Gallery within 10 seconds. No Play Store install, no permissions, works for YouTube, TikTok, Instagram, Facebook, Twitter, Reddit, Pinterest, and Threads.",
+
+  "how-to-download-facebook-reels":
+    "To download a Facebook Reel as HD MP4: tap the three-dot menu on the Reel \u2192 Copy link, paste into dropzap.digital/facebook-video-downloader, pick HD, tap Download. Works with facebook.com/reel/, fb.watch/, and standard video URLs. No Facebook login or app install. Public Reels work; private profiles and closed groups can't be downloaded by any external tool.",
+
+  "tiktok-photo-slideshow-download":
+    "To download every photo from a TikTok photo slideshow: copy the slideshow URL via Share \u2192 Copy Link, paste into dropzap.digital/tiktok-downloader, click Download. The result is a single ZIP containing every photo as a separate JPG at original resolution (1080-2400px). Extract via Files (iPhone), Files by Google (Android), or right-click Extract (Windows). No TikTok watermark on the photos themselves.",
+
+  "how-to-download-youtube-playlist":
+    "To download every video in a YouTube playlist: extract all video URLs from the playlist (browser extension, view-source for watch?v=, or yt-dlp --flat-playlist), paste the list into DropZap's bulk downloader, click Download All. Each video saves as a separate MP4 with audio at the highest available resolution. No YouTube Premium, no 30-day expiration. A 20-video playlist takes under 2 minutes.",
+
+  "is-it-legal-to-download-videos-from-social-media":
+    "Downloading public videos for personal offline viewing is generally low legal risk in most jurisdictions \u2014 covered by personal-use exceptions (EU) or fair use / fair dealing (US, UK, Canada, Australia) \u2014 but typically violates the platform's Terms of Service. Re-uploading downloaded content to your own channel is clear copyright infringement everywhere and is what triggers real legal action (Content ID, DMCA takedowns, statutory damages). Always check Creative Commons licenses if you plan to reuse content.",
 };
