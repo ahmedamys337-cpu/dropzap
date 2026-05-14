@@ -1,8 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, X, Zap } from "lucide-react";
+
+declare global {
+  // The AdSense script pushes ad requests onto this queue. Already
+  // declared in AdBanner; re-declaring here is harmless and keeps this
+  // component self-contained.
+  // eslint-disable-next-line no-var
+  var adsbygoogle: unknown[] | undefined;
+}
 
 interface AdCountdownProps {
   /** How long the ad is shown in seconds (default 3). */
@@ -22,9 +30,17 @@ interface AdCountdownProps {
  * seconds visibly, and then fires `onComplete` so the host can trigger the
  * native browser download. Replaces the previous in-page buffering flow.
  *
- * The ad zone is a styled div right now so the site keeps working while the
- * AdSense application is under review — once approved, swap the inner div for
- * an `<ins class="adsbygoogle">` unit.
+ * Ad fill priority (highest revenue first):
+ *   1. AdSense interstitial unit if both NEXT_PUBLIC_ADSENSE_CLIENT and
+ *      NEXT_PUBLIC_ADSENSE_SLOT_INTERSTITIAL are set.
+ *   2. A-ads unit — preferring a dedicated NEXT_PUBLIC_AADS_SLOT_INTERSTITIAL
+ *      if set, otherwise reusing NEXT_PUBLIC_AADS_SLOT_MIDDLE so this slot
+ *      monetises out-of-the-box once the four standard A-ads slots are wired.
+ *   3. Branded DropZap placeholder (the original behaviour).
+ *
+ * Why this slot matters: users here are highly engaged (waiting for a
+ * download they explicitly initiated), the modal owns the full viewport, and
+ * the impression is virtually guaranteed visible — all three multiply CPM.
  */
 export default function AdCountdown({
   seconds = 3,
@@ -80,21 +96,10 @@ export default function AdCountdown({
           <p className="text-center text-sm font-medium">{message}</p>
         </div>
 
-        {/* === AD ZONE: Interstitial (swap for <ins class="adsbygoogle"> after AdSense approval) === */}
-        <div
-          id="ad-interstitial"
-          className="w-full min-h-[260px] rounded-lg bg-gradient-to-br from-white/[0.03] to-white/10 border border-dashed border-white/20 flex flex-col items-center justify-center gap-3 overflow-hidden relative"
-        >
-          <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-blue-500 via-purple-600 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-600/30">
-            <Zap className="h-7 w-7 text-white fill-white" />
-          </div>
-          <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-            Advertisement
-          </p>
-          <p className="text-sm text-muted-foreground text-center px-6">
-            Your download will start automatically
-          </p>
-        </div>
+        {/* === AD ZONE: Interstitial ============================================
+            Resolved in render order: AdSense → A-ads → branded placeholder.
+            Each branch is mutually exclusive so only one ad renders. */}
+        <InterstitialAd />
         {/* === END AD ZONE === */}
 
         <div className="space-y-2">
@@ -114,5 +119,107 @@ export default function AdCountdown({
         </div>
       </div>
     </div>
+  );
+}
+
+// Shared shell so every fill branch gets the same border, height, and
+// overflow rules. Keeps the modal layout perfectly stable regardless of
+// which ad network ends up filling the slot (or whether the dev
+// placeholder runs).
+function AdShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      id="ad-interstitial"
+      className="w-full min-h-[260px] rounded-lg bg-gradient-to-br from-white/[0.03] to-white/10 border border-dashed border-white/20 flex flex-col items-center justify-center gap-3 overflow-hidden relative"
+    >
+      {children}
+    </div>
+  );
+}
+
+function InterstitialAd() {
+  const adsenseClient = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
+  const adsenseSlot = process.env.NEXT_PUBLIC_ADSENSE_SLOT_INTERSTITIAL;
+  // Prefer a dedicated A-ads interstitial unit, but fall through to the
+  // middle slot so this monetises immediately without requiring a 5th
+  // A-ads unit to be created.
+  const aadsUnit =
+    process.env.NEXT_PUBLIC_AADS_SLOT_INTERSTITIAL ||
+    process.env.NEXT_PUBLIC_AADS_SLOT_MIDDLE;
+
+  const pushedRef = useRef(false);
+
+  useEffect(() => {
+    // AdSense's adsbygoogle queue requires exactly one push() per <ins>.
+    // Pushing twice produces the "already have ads in them" warning and
+    // the second slot stays empty.
+    if (!adsenseClient || !adsenseSlot || pushedRef.current) return;
+    if (typeof window === "undefined") return;
+    try {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+      pushedRef.current = true;
+    } catch {
+      // adsbygoogle.js not loaded yet (lazyOnload strategy in layout).
+      // AdSense's internal queue retries automatically once loaded.
+    }
+  }, [adsenseClient, adsenseSlot]);
+
+  // Branch 1: AdSense. Highest priority because (a) it pays best when
+  // approved, and (b) running both networks in the same slot violates
+  // AdSense's Terms of Service on competitive ad networks.
+  if (adsenseClient && adsenseSlot) {
+    return (
+      <AdShell>
+        <ins
+          className="adsbygoogle"
+          style={{ display: "block", width: "100%", minHeight: 260 }}
+          data-ad-client={adsenseClient}
+          data-ad-slot={adsenseSlot}
+          data-ad-format="auto"
+          data-full-width-responsive="true"
+        />
+      </AdShell>
+    );
+  }
+
+  // Branch 2: A-ads (acceptable variant — no popups / redirects /
+  // autoplay creatives, so it is safe to run alongside a pending
+  // AdSense reapplication).
+  if (aadsUnit) {
+    return (
+      <AdShell>
+        <iframe
+          data-aa={aadsUnit}
+          src={`//acceptable.a-ads.com/${aadsUnit}`}
+          title="Advertisement"
+          style={{
+            border: 0,
+            padding: 0,
+            width: "100%",
+            height: 260,
+            overflow: "hidden",
+            backgroundColor: "transparent",
+          }}
+          referrerPolicy="no-referrer-when-downgrade"
+          loading="lazy"
+        />
+      </AdShell>
+    );
+  }
+
+  // Branch 3: branded placeholder — preserves the original look for
+  // dev/staging builds where no ad networks are wired.
+  return (
+    <AdShell>
+      <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-blue-500 via-purple-600 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-600/30">
+        <Zap className="h-7 w-7 text-white fill-white" />
+      </div>
+      <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+        Advertisement
+      </p>
+      <p className="text-sm text-muted-foreground text-center px-6">
+        Your download will start automatically
+      </p>
+    </AdShell>
   );
 }
