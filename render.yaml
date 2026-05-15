@@ -8,6 +8,18 @@ services:
     dockerfilePath: ./Dockerfile
     healthCheckPath: /api/health
     autoDeploy: true
+    # Skip Docker rebuilds for commits that only touch reports / docs.
+    # The daily SEO outreach workflow commits a digest into seo-reports/
+    # every morning — without this filter each digest commit would burn
+    # ~7 minutes of Render's 500-min/month free build pipeline budget
+    # for zero actual code change. Same logic for top-level *.md files
+    # like the README.
+    buildFilter:
+      ignoredPaths:
+        - "seo-reports/**"
+        - "**/*.md"
+        - ".github/**"
+        - "scripts/seo-outreach/**"
     envVars:
       - key: NODE_ENV
         value: production
