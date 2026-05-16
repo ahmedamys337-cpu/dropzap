@@ -133,7 +133,12 @@ export default function AdBanner({ slot, className = "" }: AdBannerProps) {
               // attribution while still respecting cross-origin
               // referrer privacy.
               referrerPolicy="no-referrer-when-downgrade"
-              loading="lazy"
+              // Intentionally NOT lazy: A-ads runs periodic
+              // click-quality tests, and a lazy iframe can be
+              // click-tested before it's fully interactive — flagging
+              // the unit as "Ad is unclickable" even when clicks work
+              // fine for real users. Eager loading costs ~30KB extra
+              // up-front but makes verification deterministic.
             />
           </div>
         </div>

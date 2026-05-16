@@ -201,7 +201,8 @@ function InterstitialAd() {
             backgroundColor: "transparent",
           }}
           referrerPolicy="no-referrer-when-downgrade"
-          loading="lazy"
+          // Eager-load: see AdBanner.tsx for full rationale (lazy
+          // iframes can fail A-ads' click-quality tests).
         />
       </AdShell>
     );
