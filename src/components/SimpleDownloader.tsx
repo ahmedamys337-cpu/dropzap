@@ -309,7 +309,7 @@ export default function SimpleDownloader({
       {/* Ad runs in parallel with the server's yt-dlp warm-up + stream start. */}
       {isAd && (
         <AdCountdown
-          seconds={3}
+          seconds={5}
           message="Starting your download. Stay on the page."
           onComplete={finishAd}
         />

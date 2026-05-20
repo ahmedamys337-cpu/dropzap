@@ -149,6 +149,86 @@ function extractIgShortcode(url: string): string | null {
   return m ? m[1] : null;
 }
 
+// Web-scraping fallback: fetch the Instagram post page and extract image
+// URLs from embedded JSON blobs. This works even when the private API
+// returns empty items (e.g. expired sessionid) because Instagram's HTML
+// pages still embed post data in __additionalDataLoaded or preloaded
+// GraphQL payloads for logged-out viewers of public posts.
+async function scrapeInstagramPage(postUrl: string, cookieHeader: string): Promise<string[] | null> {
+  const urls: string[] = [];
+  const pageUrls = [
+    postUrl,
+    // Force www in case the user passed a mobile link
+    postUrl.replace(/^https?:\/\/(m|l|www)\.instagram\.com/, "https://www.instagram.com"),
+  ];
+  // Deduplicate
+  const unique = [...new Set(pageUrls)];
+
+  for (const pageUrl of unique) {
+    try {
+      const res = await fetch(pageUrl, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+          "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          "Accept-Language": "en-US,en;q=0.9",
+          ...(cookieHeader ? { Cookie: cookieHeader } : {}),
+        },
+        redirect: "follow",
+      });
+      console.log(`[photos:instagram] scrape ${pageUrl} -> ${res.status}`);
+      if (!res.ok) continue;
+      const html = await res.text();
+
+      // Strategy 1: Look for high-res image URLs in the page's JSON blobs.
+      // Instagram embeds display_url / src in various script payloads.
+      // Pattern: "display_url":"https://scontent..."
+      const displayUrlRe = /"display_url"\s*:\s*"(https?:\\?\/\\?\/[^"]+)"/gi;
+      for (const m of html.matchAll(displayUrlRe)) {
+        const u = m[1].replace(/\\u0026/g, "&").replace(/\\\//g, "/");
+        if (/scontent/i.test(u) && /\.(jpg|jpeg|png|webp)/i.test(u)) {
+          urls.push(u);
+        }
+      }
+
+      // Strategy 2: og:image meta tag (single image posts)
+      if (urls.length === 0) {
+        const ogMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
+        if (ogMatch) {
+          const u = ogMatch[1].replace(/&amp;/g, "&");
+          if (/scontent/i.test(u)) urls.push(u);
+        }
+      }
+
+      // Strategy 3: Look for image_versions2 candidates in embedded JSON
+      const candidatesRe = /"candidates"\s*:\s*\[\s*\{\s*"width"\s*:\s*\d+\s*,\s*"height"\s*:\s*\d+\s*,\s*"url"\s*:\s*"(https?:[^"]+)"/gi;
+      for (const m of html.matchAll(candidatesRe)) {
+        const u = m[1].replace(/\\u0026/g, "&").replace(/\\\//g, "/");
+        if (/scontent/i.test(u) && !urls.includes(u)) urls.push(u);
+      }
+
+      if (urls.length > 0) break;
+    } catch (e: any) {
+      console.warn(`[photos:instagram] scrape ${pageUrl} threw:`, e?.message);
+    }
+  }
+
+  // Deduplicate and prefer the highest resolution (longest URL often has
+  // the most params = CDN transformations; but first display_url match
+  // from the JSON is typically the original)
+  const seen = new Set<string>();
+  const deduped: string[] = [];
+  for (const u of urls) {
+    // Normalize by stripping the CDN edge token (everything after &)
+    // for dedup purposes only
+    const key = u.split("?")[0];
+    if (!seen.has(key)) {
+      seen.add(key);
+      deduped.push(u);
+    }
+  }
+  return deduped.length > 0 ? deduped : null;
+}
+
 async function fetchInstagramImageUrls(postUrl: string): Promise<string[] | null> {
   const shortcode = extractIgShortcode(postUrl);
   if (!shortcode) return null;
@@ -186,8 +266,13 @@ async function fetchInstagramImageUrls(postUrl: string): Promise<string[] | null
       const res = await fetch(apiUrl, { headers, redirect: "follow" });
       console.log(`[photos:instagram] ${apiUrl} -> ${res.status}`);
       if (!res.ok) continue;
-      try { data = await res.json(); } catch { data = null; }
-      if (data) break;
+      let text = "";
+      try { text = await res.text(); } catch { continue; }
+      try { data = JSON.parse(text); } catch { data = null; }
+      if (data && data.items && data.items.length > 0) break;
+      // Log what we actually got when items is missing/empty
+      console.warn(`[photos:instagram] ${apiUrl} returned OK but items empty/missing. Keys: ${data ? Object.keys(data).join(",") : "null"}, status: ${data?.status}, body[:200]: ${text.slice(0, 200)}`);
+      data = null; // reset so next URL is tried
     } catch (e: any) {
       console.warn(`[photos:instagram] fetch ${apiUrl} threw:`, e?.message);
     }
@@ -195,7 +280,13 @@ async function fetchInstagramImageUrls(postUrl: string): Promise<string[] | null
 
   const item = data?.items?.[0];
   if (!item) {
-    console.warn(`[photos:instagram] no items[0] in API response`);
+    console.warn(`[photos:instagram] no items[0] in API response — trying web page scrape fallback`);
+    // Fallback: scrape the Instagram post HTML page for embedded image data
+    const scraped = await scrapeInstagramPage(postUrl, cookieHeader);
+    if (scraped && scraped.length > 0) {
+      console.log(`[photos:instagram] web-scrape fallback got ${scraped.length} image(s)`);
+      return scraped;
+    }
     return null;
   }
 

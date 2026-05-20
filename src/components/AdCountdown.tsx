@@ -13,7 +13,7 @@ declare global {
 }
 
 interface AdCountdownProps {
-  /** How long the ad is shown in seconds (default 3). */
+  /** How long the ad is shown in seconds (default 5). */
   seconds?: number;
   /** Status message displayed above the ad. */
   message?: string;
@@ -43,7 +43,7 @@ interface AdCountdownProps {
  * the impression is virtually guaranteed visible — all three multiply CPM.
  */
 export default function AdCountdown({
-  seconds = 3,
+  seconds = 5,
   message = "Processing the link to download. Stay on the page.",
   onComplete,
   onClose,
