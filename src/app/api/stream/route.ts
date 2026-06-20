@@ -165,7 +165,12 @@ export async function GET(request: NextRequest) {
   const filename = request.nextUrl.searchParams.get("name") || "download.mp4";
   const audio = request.nextUrl.searchParams.get("audio") === "1";
 
-  if (!url) return new Response("URL required", { status: 400 });
+  console.log(`[stream] request audio=${audio} url=${url?.slice(0, 120)}`);
+
+  if (!url) {
+    console.warn("[stream] missing URL");
+    return new Response("URL required", { status: 400 });
+  }
 
   const isYoutube = /youtu(?:\.be|be\.com)/i.test(url);
 
@@ -370,9 +375,11 @@ export async function GET(request: NextRequest) {
     }
 
     const { code, stderr } = await runYtDlp(args);
+    console.log(`[stream] yt-dlp exit=${code} audio=${audio}`);
     if (code !== 0) {
       unlink(expectedFinal).catch(() => {});
       const msg = stderr.split("\n").find((l) => l.includes("ERROR")) || "yt-dlp failed";
+      console.warn(`[stream] yt-dlp error: ${msg}`, stderr.slice(0, 500));
       return new Response("Download failed: " + msg, { status: 500 });
     }
 
