@@ -33,12 +33,17 @@ if (process.env.NEXT_PHASE !== "phase-production-build") {
 // Netscape cookies.txt blob. yt-dlp filters by domain at request time, so
 // it doesn't matter that the file holds cookies for many platforms — only
 // the cookies whose domain matches the URL being downloaded are sent.
-const cookiesEnvSource = process.env.MEDIA_COOKIES
-  ? "MEDIA_COOKIES"
-  : process.env.YOUTUBE_COOKIES
-  ? "YOUTUBE_COOKIES"
-  : null;
-const cookiesEnvValue = process.env.MEDIA_COOKIES || process.env.YOUTUBE_COOKIES;
+//
+// MEDIA_COOKIES_INSTAGRAM can be used to add/override Instagram cookies
+// without touching the shared MEDIA_COOKIES blob.
+const cookiesSources: { name: string; value?: string }[] = [
+  { name: "MEDIA_COOKIES", value: process.env.MEDIA_COOKIES },
+  { name: "MEDIA_COOKIES_INSTAGRAM", value: process.env.MEDIA_COOKIES_INSTAGRAM },
+  { name: "YOUTUBE_COOKIES", value: process.env.YOUTUBE_COOKIES },
+].filter((s) => !!s.value);
+
+const cookiesEnvSource = cookiesSources.map((s) => s.name).join(", ") || null;
+const cookiesEnvValue = cookiesSources.map((s) => s.value).join("\n");
 
 let cookiesFilePath: string | null = null;
 if (cookiesEnvValue && cookiesEnvSource) {
