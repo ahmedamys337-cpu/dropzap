@@ -229,6 +229,48 @@ async function scrapeInstagramPage(postUrl: string, cookieHeader: string): Promi
   return deduped.length > 0 ? deduped : null;
 }
 
+async function fetchInstagramPublicJson(shortcode: string, cookieHeader: string): Promise<string[] | null> {
+  const url = `https://www.instagram.com/p/${shortcode}/?__a=1&__d=dis`;
+  try {
+    const res = await fetch(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept": "application/json",
+        "Accept-Language": "en-US,en;q=0.9",
+        "X-Requested-With": "XMLHttpRequest",
+        ...(cookieHeader ? { Cookie: cookieHeader } : {}),
+      },
+      redirect: "follow",
+    });
+    console.log(`[photos:instagram] public JSON ${url} -> ${res.status}`);
+    if (!res.ok) return null;
+    const text = await res.text();
+    let json: any = null;
+    try { json = JSON.parse(text); } catch { return null; }
+
+    const media = json?.graphql?.shortcode_media || json?.media || json?.items?.[0];
+    if (!media) {
+      console.warn(`[photos:instagram] public JSON no media field. Keys: ${json ? Object.keys(json).join(",") : "null"}`);
+      return null;
+    }
+
+    const urls: string[] = [];
+    const edges = media?.edge_sidecar_to_children?.edges;
+    if (Array.isArray(edges)) {
+      for (const edge of edges) {
+        const node = edge?.node;
+        if (node?.__typename === "GraphImage" && node?.display_url) urls.push(node.display_url);
+        if (node?.__typename === "GraphVideo" && node?.thumbnail_src) urls.push(node.thumbnail_src);
+      }
+    }
+    if (urls.length === 0 && media?.display_url) urls.push(media.display_url);
+    return urls.length > 0 ? urls : null;
+  } catch (e: any) {
+    console.warn(`[photos:instagram] public JSON fetch threw:`, e?.message);
+    return null;
+  }
+}
+
 async function fetchInstagramImageUrls(postUrl: string): Promise<string[] | null> {
   const shortcode = extractIgShortcode(postUrl);
   if (!shortcode) return null;
@@ -280,8 +322,17 @@ async function fetchInstagramImageUrls(postUrl: string): Promise<string[] | null
 
   const item = data?.items?.[0];
   if (!item) {
-    console.warn(`[photos:instagram] no items[0] in API response — trying web page scrape fallback`);
-    // Fallback: scrape the Instagram post HTML page for embedded image data
+    console.warn(`[photos:instagram] no items[0] in API response — trying public JSON endpoint`);
+    // Fallback 1: Instagram's public JSON endpoint with __a=1&__d=dis. This
+    // sometimes works for logged-out viewers when the private API returns empty.
+    const publicJson = await fetchInstagramPublicJson(shortcode, cookieHeader);
+    if (publicJson && publicJson.length > 0) {
+      console.log(`[photos:instagram] public JSON fallback got ${publicJson.length} image(s)`);
+      return publicJson;
+    }
+
+    // Fallback 2: scrape the Instagram post HTML page for embedded image data
+    console.warn(`[photos:instagram] public JSON fallback empty — trying web page scrape fallback`);
     const scraped = await scrapeInstagramPage(postUrl, cookieHeader);
     if (scraped && scraped.length > 0) {
       console.log(`[photos:instagram] web-scrape fallback got ${scraped.length} image(s)`);
@@ -870,6 +921,15 @@ async function handleDownload(url: string): Promise<Response> {
       };
       console.warn(`[photos:${platform}] no images extracted; first-entry summary:`, JSON.stringify(summary));
       cleanup();
+      // Instagram specifically: if we got here, every extraction method failed
+      // (private API, public JSON, web scrape, yt-dlp). The server IP is almost
+      // certainly blocked by Instagram. Surface an actionable message.
+      if (platform === "instagram") {
+        return new Response(
+          "Instagram is blocking this server's IP. For Instagram carousels and photos to work, the server needs fresh Instagram session cookies (sessionid) in the MEDIA_COOKIES/YOUTUBE_COOKIES environment variable, or a residential proxy. Public posts may still work once cookies are configured.",
+          { status: 403 },
+        );
+      }
       return new Response(
         `No images found. If this is a video, use the ${platform === "instagram" ? "Reel" : "Video"} downloader instead.`,
         { status: 422 },
