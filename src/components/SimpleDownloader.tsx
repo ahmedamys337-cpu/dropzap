@@ -131,7 +131,12 @@ export default function SimpleDownloader({
     // consistent with the platform makes the briefly-flashed name correct
     // for both video and photo downloads.
     const name = `${safeFilename(filePrefix, filePrefix)}.${fileExtension}`;
-    const streamUrl = `${endpoint}?url=${encodeURIComponent(url)}&name=${encodeURIComponent(name)}`;
+    // Merge with any query params already on the endpoint (e.g. /api/stream?audio=1)
+    const [basePath, baseQuery] = endpoint.split("?");
+    const params = new URLSearchParams(baseQuery);
+    params.set("url", url);
+    params.set("name", name);
+    const streamUrl = `${basePath}?${params.toString()}`;
     triggerNativeDownload(streamUrl, name);
     onDownload?.(`${platform} ${mediaTypeLabel}`, url, mediaTypeLabel);
 
