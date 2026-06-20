@@ -297,8 +297,12 @@ async function fetchInstagramImageUrls(postUrl: string): Promise<string[] | null
   const slides = Array.isArray(item.carousel_media) && item.carousel_media.length > 0
     ? item.carousel_media
     : [item];
+  let skippedVideo = 0;
   for (const s of slides) {
-    if (Array.isArray(s.video_versions) && s.video_versions.length > 0) continue;
+    if (Array.isArray(s.video_versions) && s.video_versions.length > 0) {
+      skippedVideo++;
+      continue;
+    }
     const candidates = s?.image_versions2?.candidates;
     if (Array.isArray(candidates) && candidates.length > 0) {
       // First candidate is the highest-resolution version
@@ -306,6 +310,7 @@ async function fetchInstagramImageUrls(postUrl: string): Promise<string[] | null
       if (typeof top === "string" && /^https?:\/\//.test(top)) urls.push(top);
     }
   }
+  console.log(`[photos:instagram] API slides=${slides.length} images=${urls.length} skippedVideo=${skippedVideo}`);
   return urls;
 }
 
@@ -847,6 +852,7 @@ async function handleDownload(url: string): Promise<Response> {
     // single-object case too (entries.length === 1 → single photo post).
     const imageUrls: string[] = [];
     for (const e of entries) imageUrls.push(...extractImageUrls(e));
+    console.log(`[photos:${platform}] yt-dlp fallback entries=${entries.length} imageUrls=${imageUrls.length}`);
 
     if (imageUrls.length === 0) {
       // Log a summary of the FIRST entry so we can see what yt-dlp returned

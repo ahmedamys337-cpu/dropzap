@@ -176,13 +176,24 @@ async function extractPinterestImageUrls(pinUrl: string): Promise<string[] | nul
     if (!res.ok) return null;
     const html = await res.text();
 
-    // The page embeds a big JSON blob. We just regex out every i.pinimg.com
-    // /originals/.../*.{jpg,png,gif,webp} URL — the originals path is the
-    // full-resolution variant. Dedupe to handle the same URL appearing in
-    // both og:image and the JSON blob.
-    const re = /https:\/\/i\.pinimg\.com\/originals\/[^"\\\s]+\.(?:jpe?g|png|gif|webp)/gi;
+    // The page embeds a big JSON blob. We regex out every i.pinimg.com image
+    // URL. Pinterest uses several size buckets; /originals/ is full resolution,
+    // but carousel/slide posts often expose /736x/ or /474x/ for every slide
+    // while only the first two originals are present. We capture all sizes
+    // then return the highest-resolution variant for each unique image hash.
+    const re = /https:\/\/i\.pinimg\.com\/(?:originals|736x|474x|236x)\/[^"\\\s]+\.(?:jpe?g|png|gif|webp)/gi;
     const matches = html.match(re) || [];
-    const unique = Array.from(new Set(matches));
+    const byHash = new Map<string, { url: string; size: number }>();
+    for (const u of matches) {
+      // Normalize the path to the image hash so 736x and originals variants
+      // of the same slide dedupe against each other.
+      const hashKey = u.replace(/\/i\.pinimg\.com\/[^/]+\//, "").split("?")[0];
+      const size = u.includes("/originals/") ? 4 : u.includes("/736x/") ? 3 : u.includes("/474x/") ? 2 : 1;
+      const prev = byHash.get(hashKey);
+      if (!prev || size > prev.size) byHash.set(hashKey, { url: u, size });
+    }
+    const unique = Array.from(byHash.values()).map((v) => v.url);
+    console.log(`[auto:pinterest] extracted ${unique.length} unique slide image(s)`);
     if (unique.length > 0) return unique;
 
     // Fallback to og:image (lower resolution but always present)
