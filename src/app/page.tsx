@@ -35,6 +35,10 @@ const TikTokDownloader = dynamic(
   () => import("@/components/TikTokDownloader"),
   { loading: TabSkeleton, ssr: false },
 );
+const TikTokToMp3 = dynamic(
+  () => import("@/components/TikTokToMp3"),
+  { loading: TabSkeleton, ssr: false },
+);
 const Mp3Converter = dynamic(
   () => import("@/components/Mp3Converter"),
   { loading: TabSkeleton, ssr: false },
@@ -177,6 +181,13 @@ export default function Home() {
                 <span>TikTok</span>
               </TabsTrigger>
               <TabsTrigger
+                value="tiktok-mp3"
+                className="lg:flex-1 gap-1.5 px-2.5 py-1.5 text-xs font-medium cursor-pointer rounded-md bg-foreground/[0.06] border border-foreground/15 hover:bg-gradient-to-r hover:from-emerald-500 hover:to-pink-500 hover:text-white hover:border-transparent hover:-translate-y-0.5 hover:scale-105 hover:shadow-lg hover:shadow-pink-500/40 data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-pink-500 data-[state=active]:border-transparent data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-pink-500/30 transition-all duration-300 ease-out"
+              >
+                <FileAudio className="h-3.5 w-3.5" />
+                <span>TikTok to MP3</span>
+              </TabsTrigger>
+              <TabsTrigger
                 value="reddit"
                 className="lg:flex-1 gap-1.5 px-2.5 py-1.5 text-xs font-medium cursor-pointer rounded-md bg-foreground/[0.06] border border-foreground/15 hover:bg-orange-600 hover:text-white hover:border-orange-600 hover:-translate-y-0.5 hover:scale-105 hover:shadow-lg hover:shadow-orange-600/40 data-[state=active]:bg-orange-600 data-[state=active]:border-orange-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-orange-600/30 transition-all duration-300 ease-out"
               >
@@ -209,7 +220,7 @@ export default function Home() {
                 className="lg:flex-1 gap-1.5 px-2.5 py-1.5 text-xs font-medium cursor-pointer rounded-md bg-foreground/[0.06] border border-foreground/15 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 hover:-translate-y-0.5 hover:scale-105 hover:shadow-lg hover:shadow-emerald-600/40 data-[state=active]:bg-emerald-600 data-[state=active]:border-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-emerald-600/30 transition-all duration-300 ease-out"
               >
                 <FileAudio className="h-3.5 w-3.5" />
-                <span>MP3</span>
+                <span>Video to MP3</span>
               </TabsTrigger>
             </TabsList>
           </div>
@@ -290,6 +301,23 @@ export default function Home() {
                       </div>
                     </div>
                     <TikTokDownloader onDownload={handleDownload} />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="tiktok-mp3" className="mt-0">
+                  <div className="glass rounded-2xl p-6 space-y-4 border-l-4 border-l-emerald-500 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/30">
+                    <div className="flex items-center gap-3 pb-2 border-b border-emerald-500/20">
+                      <div className="shrink-0 h-10 w-10 rounded-lg bg-gradient-to-br from-emerald-500 to-pink-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                        <FileAudio className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-bold">TikTok to MP3 Converter</h2>
+                        <p className="text-sm text-muted-foreground">
+                          Convert TikTok videos to MP3 audio
+                        </p>
+                      </div>
+                    </div>
+                    <TikTokToMp3 onDownload={handleDownload} />
                   </div>
                 </TabsContent>
 
@@ -420,6 +448,12 @@ export default function Home() {
             </p>
           </div>
           <div className="glass rounded-xl p-5">
+            <h3 className="font-bold mb-2">TikTok to MP3</h3>
+            <p className="text-sm text-muted-foreground">
+              Convert TikTok videos to MP3 audio instantly — save trending sounds, songs, and voiceovers as high-quality audio files.
+            </p>
+          </div>
+          <div className="glass rounded-xl p-5">
             <h3 className="font-bold mb-2">MP3 Converter</h3>
             <p className="text-sm text-muted-foreground">
               Convert any video file or online video into high-quality MP3 audio for music, podcasts, or learning.
@@ -522,7 +556,7 @@ export default function Home() {
             },
             {
               q: "Can I convert a video to MP3 using DropZap?",
-              a: "Yes. DropZap has a built-in MP3 converter. Upload any video file or paste a supported video URL and convert it to MP3 audio instantly.",
+              a: "Yes. DropZap has a built-in MP3 converter and a dedicated TikTok to MP3 tool. Upload any video file, or paste a TikTok link, and convert it to MP3 audio instantly.",
             },
           ].map((item, i) => (
             <details key={i} className="glass rounded-xl p-4 group">
@@ -554,6 +588,7 @@ export default function Home() {
             </div>
             <nav aria-label="Footer navigation" className="flex flex-wrap gap-5 text-xs text-muted-foreground">
               <a href="/tiktok-downloader" className="hover:text-foreground transition-colors">TikTok Downloader</a>
+              <a href="/tiktok-to-mp3" className="hover:text-foreground transition-colors">TikTok to MP3</a>
               <a href="/instagram-downloader" className="hover:text-foreground transition-colors">Instagram Downloader</a>
               <a href="/twitter-video-downloader" className="hover:text-foreground transition-colors">Twitter Downloader</a>
               <a href="/facebook-video-downloader" className="hover:text-foreground transition-colors">Facebook Downloader</a>

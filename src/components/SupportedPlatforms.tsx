@@ -23,13 +23,14 @@ interface Row {
 const rows: Row[] = [
   { platform: "Instagram", href: "/instagram-downloader", downloads: "Reels (MP4), Photos (JPG), Carousels (ZIP)" },
   { platform: "TikTok", href: "/tiktok-downloader", downloads: "Videos without watermark (MP4)" },
+  { platform: "TikTok to MP3", href: "/tiktok-to-mp3", downloads: "TikTok video audio → MP3" },
   { platform: "Twitter / X", href: "/twitter-video-downloader", downloads: "Videos (MP4), GIFs (MP4)" },
   { platform: "Facebook", href: "/facebook-video-downloader", downloads: "Videos (MP4), Reels (MP4), Photos (JPG), Albums (ZIP)" },
   { platform: "Reddit", href: "/reddit-video-downloader", downloads: "Videos with sound (MP4)" },
   { platform: "Pinterest", downloads: "Images (JPG), Videos (MP4)" },
   { platform: "Threads", downloads: "Videos (MP4), Images (JPG)" },
   { platform: "YouTube Thumbnails", downloads: "All sizes (JPG)" },
-  { platform: "MP3 Converter", downloads: "Any video → MP3" },
+  { platform: "MP3 Converter", href: "/mp3-converter", downloads: "Any video file → MP3" },
 ];
 
 export default function SupportedPlatforms() {

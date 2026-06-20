@@ -17,6 +17,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // engines to crawl the redirect repeatedly and surface "broken" warnings.
   const platformPages = [
     "tiktok-downloader",
+    "tiktok-to-mp3",
     "instagram-downloader",
     "twitter-video-downloader",
     "facebook-video-downloader",

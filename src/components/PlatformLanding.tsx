@@ -25,6 +25,10 @@ const RELATED_LINKS: Record<string, RelatedLink[]> = {
     { label: "How to download TikTok without watermark", href: "/blog/how-to-download-tiktok-without-watermark", kind: "blog" },
     { label: "7 best TikTok downloaders (tested)", href: "/blog/best-tiktok-downloader-no-watermark", kind: "blog" },
   ],
+  "tiktok-to-mp3": [
+    { label: "TikTok Downloader — save videos", href: "/tiktok-downloader", kind: "alt" },
+    { label: "Video to MP3 Converter — upload files", href: "/mp3-converter", kind: "alt" },
+  ],
   "instagram-downloader": [
     { label: "Instagram on iPhone — full guide", href: "/instagram-downloader/iphone", kind: "device" },
     { label: "Instagram on Android — full guide", href: "/instagram-downloader/android", kind: "device" },
@@ -70,6 +74,7 @@ export default function PlatformLanding({ platform, children }: PlatformLandingP
               <a href="/" className="hover:text-foreground transition-colors">Home</a>
               <a href="/youtube-downloader" className="hover:text-foreground transition-colors">YouTube</a>
               <a href="/tiktok-downloader" className="hover:text-foreground transition-colors">TikTok</a>
+              <a href="/tiktok-to-mp3" className="hover:text-foreground transition-colors">TikTok MP3</a>
               <a href="/instagram-downloader" className="hover:text-foreground transition-colors">Instagram</a>
               <a href="/blog" className="hover:text-foreground transition-colors">Blog</a>
             </nav>
@@ -151,7 +156,7 @@ export default function PlatformLanding({ platform, children }: PlatformLandingP
       {/* Intro Content */}
       <section className="max-w-4xl mx-auto px-4 py-8">
         <h2 className="text-2xl font-bold mb-4">
-          {platform.name} Video Downloader Online — Free HD Downloads
+          {platform.introHeading ?? `${platform.name} Video Downloader Online — Free HD Downloads`}
         </h2>
         <p className="text-muted-foreground leading-relaxed mb-4">{platform.content.intro}</p>
         <p className="text-muted-foreground leading-relaxed">{platform.content.whyUs}</p>
@@ -160,7 +165,7 @@ export default function PlatformLanding({ platform, children }: PlatformLandingP
       {/* How To */}
       <section className="max-w-6xl mx-auto px-4 py-10" aria-labelledby="howto-heading">
         <h2 id="howto-heading" className="text-2xl sm:text-3xl font-bold text-center mb-8">
-          How to Download {platform.name} Videos — 3 Easy Steps
+          {platform.howToTitle ?? `How to Download ${platform.name} Videos — 3 Easy Steps`}
         </h2>
         <ol className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
           {platform.howTo.map((step, i) => (
@@ -316,6 +321,7 @@ export default function PlatformLanding({ platform, children }: PlatformLandingP
           {[
             { name: "YouTube", href: "/youtube-downloader", color: "bg-red-600" },
             { name: "TikTok", href: "/tiktok-downloader", color: "bg-gradient-to-r from-cyan-500 to-pink-500" },
+            { name: "TikTok to MP3", href: "/tiktok-to-mp3", color: "bg-gradient-to-r from-emerald-500 to-pink-500" },
             { name: "Instagram", href: "/instagram-downloader", color: "bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500" },
             { name: "Twitter/X", href: "/twitter-video-downloader", color: "bg-black border border-white/20" },
             { name: "Facebook", href: "/facebook-video-downloader", color: "bg-blue-600" },
@@ -354,6 +360,7 @@ export default function PlatformLanding({ platform, children }: PlatformLandingP
               <a href="/" className="hover:text-foreground transition-colors">Home</a>
               <a href="/youtube-downloader" className="hover:text-foreground transition-colors">YouTube</a>
               <a href="/tiktok-downloader" className="hover:text-foreground transition-colors">TikTok</a>
+              <a href="/tiktok-to-mp3" className="hover:text-foreground transition-colors">TikTok to MP3</a>
               <a href="/instagram-downloader" className="hover:text-foreground transition-colors">Instagram</a>
               <a href="/twitter-video-downloader" className="hover:text-foreground transition-colors">Twitter/X</a>
               <a href="/facebook-video-downloader" className="hover:text-foreground transition-colors">Facebook</a>

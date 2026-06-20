@@ -7,6 +7,7 @@ import InstagramDownloader from "@/components/InstagramDownloader";
 import TwitterDownloader from "@/components/TwitterDownloader";
 import FacebookDownloader from "@/components/FacebookDownloader";
 import RedditDownloader from "@/components/RedditDownloader";
+import TikTokToMp3 from "@/components/TikTokToMp3";
 import type { PlatformSEO } from "@/lib/seo-data";
 
 const noop = () => {};
@@ -14,6 +15,7 @@ const noop = () => {};
 const downloaderMap: Record<string, React.ComponentType<any>> = {
   youtube: YoutubeDownloader,
   tiktok: TikTokDownloader,
+  tiktokToMp3: TikTokToMp3,
   instagram: InstagramDownloader,
   twitter: TwitterDownloader,
   facebook: FacebookDownloader,
