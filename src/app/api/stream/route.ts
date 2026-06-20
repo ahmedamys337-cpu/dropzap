@@ -14,9 +14,11 @@ import {
   type PickedFormat,
 } from "@/lib/ytdlp";
 import { resolveViaCobalt, isCobaltConfigured } from "@/lib/cobalt";
+import { getGenericCookiesArgs } from "@/lib/ytdlp";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 // Run yt-dlp to download into a temp file. We deliberately avoid streaming
 // directly to stdout because piping forces fragmented-mp4 output (so the
@@ -315,6 +317,7 @@ export async function GET(request: NextRequest) {
   try {
     const args: string[] = [
       url,
+      ...getGenericCookiesArgs(),
       "-o", tempTemplate,
       "--no-check-certificates",
       "--no-warnings",
