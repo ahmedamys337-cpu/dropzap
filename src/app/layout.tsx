@@ -5,6 +5,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/toaster";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import AdsterraAds from "@/components/AdsterraAds";
 
 // `display: "swap"` eliminates FOIT (Flash of Invisible Text) — text
 // renders immediately with the system fallback while Inter loads, then
@@ -436,6 +437,7 @@ export default function RootLayout({
           {children}
           <Toaster />
         </ThemeProvider>
+        <AdsterraAds />
       </body>
     </html>
   );
