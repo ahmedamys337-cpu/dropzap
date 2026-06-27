@@ -1,7 +1,6 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import Script from "next/script";
 import { useEffect, useRef, useState } from "react";
 
 // Routes where ads should not load. Exact match and sub-routes are blocked.
@@ -59,16 +58,5 @@ export default function AdsterraAds() {
 
   if (!mounted || isLegalPage(pathname)) return null;
 
-  return (
-    <>
-      <div id="container-5bc8ac44c319f4229556e677c20a528d" />
-      <Script
-        async
-        data-cfasync="false"
-        src="https://pl30087663.effectivecpmnetwork.com/5bc8ac44c319f4229556e677c20a528d/invoke.js"
-        strategy="lazyOnload"
-      />
-      <div ref={containerRef} className="adsterra-banners" />
-    </>
-  );
+  return <div ref={containerRef} className="adsterra-banners" />;
 }
