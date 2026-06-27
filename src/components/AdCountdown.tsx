@@ -30,13 +30,10 @@ interface AdCountdownProps {
  * seconds visibly, and then fires `onComplete` so the host can trigger the
  * native browser download. Replaces the previous in-page buffering flow.
  *
- * Ad fill priority (highest revenue first):
+ * Ad fill:
  *   1. AdSense interstitial unit if both NEXT_PUBLIC_ADSENSE_CLIENT and
  *      NEXT_PUBLIC_ADSENSE_SLOT_INTERSTITIAL are set.
- *   2. A-ads unit — preferring a dedicated NEXT_PUBLIC_AADS_SLOT_INTERSTITIAL
- *      if set, otherwise reusing NEXT_PUBLIC_AADS_SLOT_MIDDLE so this slot
- *      monetises out-of-the-box once the four standard A-ads slots are wired.
- *   3. Branded DropZap placeholder (the original behaviour).
+ *   2. Branded DropZap placeholder (the original behaviour).
  *
  * Why this slot matters: users here are highly engaged (waiting for a
  * download they explicitly initiated), the modal owns the full viewport, and
@@ -140,12 +137,6 @@ function AdShell({ children }: { children: React.ReactNode }) {
 function InterstitialAd() {
   const adsenseClient = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
   const adsenseSlot = process.env.NEXT_PUBLIC_ADSENSE_SLOT_INTERSTITIAL;
-  // Prefer a dedicated A-ads interstitial unit, but fall through to the
-  // middle slot so this monetises immediately without requiring a 5th
-  // A-ads unit to be created.
-  const aadsUnit =
-    process.env.NEXT_PUBLIC_AADS_SLOT_INTERSTITIAL ||
-    process.env.NEXT_PUBLIC_AADS_SLOT_MIDDLE;
 
   const pushedRef = useRef(false);
 
@@ -182,33 +173,7 @@ function InterstitialAd() {
     );
   }
 
-  // Branch 2: A-ads (acceptable variant — no popups / redirects /
-  // autoplay creatives, so it is safe to run alongside a pending
-  // AdSense reapplication).
-  if (aadsUnit) {
-    return (
-      <AdShell>
-        <iframe
-          data-aa={aadsUnit}
-          src={`//acceptable.a-ads.com/${aadsUnit}`}
-          title="Advertisement"
-          style={{
-            border: 0,
-            padding: 0,
-            width: "100%",
-            height: 260,
-            overflow: "hidden",
-            backgroundColor: "transparent",
-          }}
-          referrerPolicy="no-referrer-when-downgrade"
-          // Eager-load: see AdBanner.tsx for full rationale (lazy
-          // iframes can fail A-ads' click-quality tests).
-        />
-      </AdShell>
-    );
-  }
-
-  // Branch 3: branded placeholder — preserves the original look for
+  // Branch 2: branded placeholder — preserves the original look for
   // dev/staging builds where no ad networks are wired.
   return (
     <AdShell>

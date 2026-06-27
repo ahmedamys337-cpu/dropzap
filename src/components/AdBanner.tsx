@@ -27,30 +27,6 @@ const SLOT_ENV: Record<string, string | undefined> = {
   sidebar: process.env.NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR,
 };
 
-// A-ads (anonymousads.com) unit IDs per slot. Used as the fallback ad
-// network when AdSense isn't approved/configured. A-ads has zero
-// approval friction (instant signup), pays in BTC, and crucially uses
-// clean iframe banners with no popups or redirects — safe for Core Web
-// Vitals and won't poison a future AdSense reapplication.
-//
-// Setup:
-//   1. Sign up at https://a-ads.com (auto-approved)
-//   2. Create one ad unit per slot:
-//        - top:     728x90 (Leaderboard) or responsive
-//        - middle:  300x250 (Medium Rectangle)
-//        - bottom:  728x90 (Leaderboard) or responsive
-//        - sidebar: 300x250 (Medium Rectangle)
-//   3. Copy each unit's numeric ID (e.g. "2300672") into Render env vars:
-//        NEXT_PUBLIC_AADS_SLOT_TOP, _MIDDLE, _BOTTOM, _SIDEBAR
-//
-// Any slot left unset falls through to the dev placeholder.
-const AADS_ENV: Record<string, string | undefined> = {
-  top: process.env.NEXT_PUBLIC_AADS_SLOT_TOP,
-  middle: process.env.NEXT_PUBLIC_AADS_SLOT_MIDDLE,
-  bottom: process.env.NEXT_PUBLIC_AADS_SLOT_BOTTOM,
-  sidebar: process.env.NEXT_PUBLIC_AADS_SLOT_SIDEBAR,
-};
-
 declare global {
   interface Window {
     adsbygoogle?: unknown[];
@@ -81,70 +57,10 @@ export default function AdBanner({ slot, className = "" }: AdBannerProps) {
     }
   }, [client, adSlot]);
 
-  // Fallback chain when AdSense isn't approved / configured:
-  //   1. If an A-ads unit ID exists for this slot, render the A-ads
-  //      iframe. This is the production path until AdSense is approved.
-  //   2. Otherwise render an empty placeholder so the layout's
-  //      reserved height is preserved (prevents CLS) and dev/staging
-  //      builds have a visible "Advertisement" outline.
+  // When AdSense isn't configured, render an empty placeholder so the
+  // layout's reserved height is preserved (prevents CLS) and dev/staging
+  // builds have a visible "Advertisement" outline.
   if (!client || !adSlot) {
-    const aadsUnit = AADS_ENV[slot];
-
-    if (aadsUnit) {
-      // A-ads "acceptable" async embed: the iframe pulls a
-      // responsively-sized ad that fits the parent container. We size
-      // the wrapper to the same minHeight/maxWidth we reserve for
-      // AdSense, so swapping networks later doesn't shift the page.
-      //
-      // Why /acceptable.a-ads.com/ rather than /ad.a-ads.com/:
-      //   - /acceptable serves only IAB "acceptable ads" creatives
-      //     (no popups, no autoplay video, no malware-y redirects).
-      //   - This is the cleanest variant and the only one safe to run
-      //     alongside an active AdSense reapplication.
-      return (
-        <div
-          className={`flex items-center justify-center mx-auto ${className}`}
-          style={{ maxWidth: size.maxWidth, minHeight: size.minHeight }}
-        >
-          <div
-            style={{
-              width: "100%",
-              maxWidth: size.maxWidth,
-              minHeight: size.minHeight,
-            }}
-          >
-            <iframe
-              data-aa={aadsUnit}
-              src={`//acceptable.a-ads.com/${aadsUnit}`}
-              title="Advertisement"
-              // The iframe inherits 100% of the container so the
-              // reserved area is always filled (no CLS) and the ad
-              // sizes itself to the slot.
-              style={{
-                border: 0,
-                padding: 0,
-                width: "100%",
-                height: size.minHeight,
-                overflow: "hidden",
-                backgroundColor: "transparent",
-              }}
-              // referrerpolicy=no-referrer-when-downgrade is A-ads'
-              // documented recommendation for accurate impression
-              // attribution while still respecting cross-origin
-              // referrer privacy.
-              referrerPolicy="no-referrer-when-downgrade"
-              // Intentionally NOT lazy: A-ads runs periodic
-              // click-quality tests, and a lazy iframe can be
-              // click-tested before it's fully interactive — flagging
-              // the unit as "Ad is unclickable" even when clicks work
-              // fine for real users. Eager loading costs ~30KB extra
-              // up-front but makes verification deterministic.
-            />
-          </div>
-        </div>
-      );
-    }
-
     return (
       <div
         className={`flex items-center justify-center mx-auto ${className}`}
