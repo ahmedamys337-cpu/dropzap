@@ -1,0 +1,185 @@
+DropZap backlink tracker
+========================
+
+Started: 2026-05-16
+Site: https://www.dropzap.digital
+
+
+=== 2026-05-16 (Saturday) — DONE ===
+
+[X] Product Hunt
+    Status: Scheduled for launch Tue May 19, 12:01 AM PT (= 12:01 PM PKT)
+    DA: 91
+    URL: https://www.producthunt.com/posts/dropzap (live Tuesday)
+    Notes: 6 PNG assets uploaded, 5 shoutouts added (Next.js, Tailwind,
+           shadcn/ui, Cursor/Windsurf, Render), first comment written.
+
+[X] Crunchbase
+    Status: Submitted, live within minutes
+    DA: 92  (highest of the week)
+    URL: https://www.crunchbase.com/organization/dropzap (verify after
+         indexing — may take 24-48h)
+    Notes: Industries set to Internet, Software, Web Apps, Video,
+           Social Media, Consumer Internet.
+
+[X] SaaSHub
+    Status: Submitted, pending approval (up to 32 days)
+    DA: 73
+    URL: https://www.saashub.com/dropzap (pending review)
+    Notes: ACTIVE verification status, 6 features filled, competitors
+           added (SnapTik, SnapInsta, SaveFrom, Y2Mate, SSSTik).
+
+[X] F6S
+    Status: Submitted, pending approval (3-7 days)
+    DA: 84
+    URL: https://www.f6s.com/dropzap (pending)
+    Notes: Software listing, free pricing, 5 screenshots uploaded.
+
+[X] IndieHackers — product profile
+    Status: Live
+    DA: 73
+    URL: https://www.indiehackers.com/product/dropzap
+    Notes: Logo + cover + motivation + founder set up.
+
+[X] IndieHackers — launch milestone post
+    Status: Published
+    URL: (paste milestone post URL here once available)
+    Notes: Posts about Tuesday PH launch, asks community for feedback.
+
+[X] StackShare
+    Status: REJECTED — consumer tool, not their category
+    DA: —
+    Notes: They now only accept developer tools / SaaS / tech platforms.
+           Don't retry.
+
+
+=== 2026-05-17 (Sunday) — TODO ===
+
+[ ] Reply to any IndieHackers comments on milestone post
+    (Time: 5-10 min, only if comments came in overnight)
+
+[ ] Send 5 listicle outreach emails
+    (Time: 20-30 min)
+    Process:
+      1. Google: "best video downloader" 2025 OR 2026 -site:youtube.com
+      2. Open top 10 results, find independent bloggers (skip corp sites)
+      3. Find author email or contact form
+      4. Send the outreach template (see below)
+
+[ ] (Optional) AlternativeTo — recheck if signups reopened
+    https://alternativeto.net/account/sign-up
+
+
+=== 2026-05-18 (Monday) — TODO ===
+
+[ ] Pre-write 5 PH FAQ replies in Notes app
+    Common questions:
+      - "How is this different from snaptik?"
+      - "Does it work on private accounts?"
+      - "What about YouTube videos?"
+      - "Is it really free? What's the catch?"
+      - "How do you make money?"
+
+[ ] Schedule launch-day tweets (Twitter/Buffer/Typefully)
+    Tweets needed:
+      - Launch announcement (12:05 AM PT / 12:05 PM PKT)
+      - Mid-morning US (6 AM PT / 6 PM PKT)
+      - Lunchtime US (12 PM PT / 12 AM PKT next day — skip if too late)
+
+[ ] LinkedIn launch post (queued for 9 AM PT / 9 PM PKT Tuesday)
+
+[ ] Send "soft heads up" DMs to 10-20 people in support network
+    Template:
+      "Launching DropZap on Product Hunt Tuesday at noon Pakistan time.
+       Would love your honest feedback if you have 30 seconds. Link will
+       be at producthunt.com/posts/dropzap once live. No pressure!"
+
+    DO NOT say "please upvote me" — PH bans launches that solicit votes.
+
+
+=== 2026-05-19 (Tuesday) — LAUNCH DAY ===
+
+[ ] 11:30 AM PKT — eat lunch, get comfortable, set up for 8h replying
+
+[ ] 11:55 AM PKT — refresh PH dashboard, verify scheduled launch is queued
+
+[ ] 12:01 PM PKT — confirm launch is live on PH homepage,
+                    copy the live URL
+
+[ ] 12:05 PM PKT — tweet #1 with PH link
+
+[ ] 12:10 PM PKT — LinkedIn post
+
+[ ] 12:15 PM PKT — send DMs to support list
+
+[ ] 12:30 PM PKT — post "Show HN" on Hacker News with same link
+
+[ ] 1:00 PM PKT — first wave of PH comment replies
+
+[ ] 12-8 PM PKT — reply to every PH comment within 5 min of posting
+
+[ ] 8 PM PKT  — tweet #2 (peak US morning)
+
+[ ] 11 PM PKT — tweet #3 (peak US lunchtime)
+
+
+=== Live URLs (update after each goes live) ===
+
+- Product Hunt:    https://www.producthunt.com/posts/dropzap
+- Crunchbase:      https://www.crunchbase.com/organization/dropzap
+- F6S:             https://www.f6s.com/dropzap
+- SaaSHub:         https://www.saashub.com/dropzap
+- IndieHackers:    https://www.indiehackers.com/product/dropzap
+
+
+=== Outreach email template (for listicle authors) ===
+
+Subject: Quick suggestion for your "[exact post title]" post
+
+Hi [author name if findable, else "there"],
+
+I just read your roundup of [topic] on [site] — really thorough
+comparison, especially the [specific point they made about X tool].
+
+I built DropZap (https://www.dropzap.digital), a free web-based
+downloader that combines Instagram + TikTok + Facebook + Twitter +
+Reddit + Pinterest + Threads into one tool. No signup, no watermarks,
+works on mobile browsers without an app install.
+
+It might be a useful addition to your list — happy to share whatever
+info you'd find helpful (screenshots, feature breakdown, etc.) if
+you're considering an update.
+
+Either way, great post.
+
+[Your name]
+
+
+=== Broken link outreach template (for Day 6 / next week) ===
+
+Subject: Broken link in your "[post title]" article
+
+Hi [author],
+
+I was reading your [post title] post for [legit reason] and noticed
+the link to [broken tool name] in section [X] is dead — looks like
+they shut down / got blocked.
+
+If you're updating, https://www.dropzap.digital is a free alternative
+that covers the same use case (and adds Instagram, TikTok, etc.).
+No signup, works on mobile.
+
+Either way, just thought you'd want to know about the broken link.
+
+Thanks,
+[Your name]
+
+
+=== Running total ===
+
+Submitted today:    6 directories + 1 community post
+DA-weighted total:  91 + 92 + 73 + 84 + 73 + 73 = 486 (sum of DA values
+                    for backlinks earned in one afternoon)
+Pending review:     SaaSHub (32d), F6S (3-7d)
+Live now:           IndieHackers (product + milestone), Crunchbase
+Live Tue May 19:    Product Hunt

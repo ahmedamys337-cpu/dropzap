@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "favicons": "node scripts/generate-favicons.mjs",
-    "seo:outreach": "node scripts/seo-outreach/index.mjs"
+    "seo:outreach": "node scripts/seo-outreach/index.mjs",
+    "seo:publish": "node scripts/seo-outreach/publish-articles.mjs",
+    "seo:publish:dry": "node scripts/seo-outreach/publish-articles.mjs --dry-run"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.0.5",
