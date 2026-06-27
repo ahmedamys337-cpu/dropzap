@@ -416,17 +416,6 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        {/* AdSense moved out of <head> and switched to next/script with
-           lazyOnload so it no longer counts as a render-blocking
-           resource for LCP. Loads after the page is idle. */}
-        {process.env.NEXT_PUBLIC_ADSENSE_CLIENT && (
-          <Script
-            id="adsense"
-            strategy="lazyOnload"
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT}`}
-            crossOrigin="anonymous"
-          />
-        )}
         <GoogleAnalytics />
         <ThemeProvider
           attribute="class"
