@@ -61,14 +61,6 @@ export default function AdsterraAds() {
 
   return (
     <>
-      <Script
-        src="https://pl30087661.effectivecpmnetwork.com/7e/da/3a/7eda3aedc8736e42270e448f7f5531a6.js"
-        strategy="lazyOnload"
-      />
-      <Script
-        src="https://pl30087662.effectivecpmnetwork.com/65/f9/20/65f920d880821ea5435bf95e085e0b30.js"
-        strategy="lazyOnload"
-      />
       <div id="container-5bc8ac44c319f4229556e677c20a528d" />
       <Script
         async
