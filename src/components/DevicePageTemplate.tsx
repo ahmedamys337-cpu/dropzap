@@ -4,9 +4,15 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 import AdBanner from "@/components/AdBanner";
 import { Zap, ArrowRight } from "lucide-react";
 import type { DevicePage } from "@/lib/device-pages-data";
-import { blogPosts } from "@/lib/blog-data";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital";
+
+interface RelatedPost {
+  slug: string;
+  title: string;
+  description: string;
+  category: string;
+}
 
 // Shared layout for the 5 device-specific landing pages.
 //
@@ -17,8 +23,10 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digita
 
 export default function DevicePageTemplate({
   page,
+  relatedPosts,
 }: {
   page: DevicePage;
+  relatedPosts: RelatedPost[];
 }) {
   const url = `${SITE_URL}${page.toolPath}/${page.slug}`;
 
@@ -72,9 +80,7 @@ export default function DevicePageTemplate({
     ],
   };
 
-  const related = page.relatedBlogPosts
-    .map((slug) => blogPosts.find((p) => p.slug === slug))
-    .filter(Boolean) as typeof blogPosts;
+  const related = relatedPosts;
 
   return (
     <main className="min-h-screen gradient-bg animate-gradient">

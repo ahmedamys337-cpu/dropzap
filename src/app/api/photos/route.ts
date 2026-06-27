@@ -175,7 +175,6 @@ async function scrapeInstagramPage(postUrl: string, cookieHeader: string): Promi
         },
         redirect: "follow",
       });
-      console.log(`[photos:instagram] scrape ${pageUrl} -> ${res.status}`);
       if (!res.ok) continue;
       const html = await res.text();
 
@@ -242,7 +241,6 @@ async function fetchInstagramPublicJson(shortcode: string, cookieHeader: string)
       },
       redirect: "follow",
     });
-    console.log(`[photos:instagram] public JSON ${url} -> ${res.status}`);
     if (!res.ok) return null;
     const text = await res.text();
     let json: any = null;
@@ -286,7 +284,6 @@ async function fetchInstagramImageUrls(postUrl: string): Promise<string[] | null
   const cookieNames = cookieHeader
     ? cookieHeader.split(";").map((p) => p.trim().split("=")[0]).filter(Boolean)
     : [];
-  console.log(`[photos:instagram] shortcode=${shortcode} mediaId=${mediaId} cookieCount=${cookieNames.length} hasSessionId=${cookieNames.includes("sessionid")}`);
 
   // Try both API hosts; sometimes one is blocked while the other works.
   const apiUrls = [
@@ -306,7 +303,6 @@ async function fetchInstagramImageUrls(postUrl: string): Promise<string[] | null
   for (const apiUrl of apiUrls) {
     try {
       const res = await fetch(apiUrl, { headers, redirect: "follow" });
-      console.log(`[photos:instagram] ${apiUrl} -> ${res.status}`);
       if (!res.ok) continue;
       let text = "";
       try { text = await res.text(); } catch { continue; }
@@ -327,7 +323,6 @@ async function fetchInstagramImageUrls(postUrl: string): Promise<string[] | null
     // sometimes works for logged-out viewers when the private API returns empty.
     const publicJson = await fetchInstagramPublicJson(shortcode, cookieHeader);
     if (publicJson && publicJson.length > 0) {
-      console.log(`[photos:instagram] public JSON fallback got ${publicJson.length} image(s)`);
       return publicJson;
     }
 
@@ -335,7 +330,6 @@ async function fetchInstagramImageUrls(postUrl: string): Promise<string[] | null
     console.warn(`[photos:instagram] public JSON fallback empty — trying web page scrape fallback`);
     const scraped = await scrapeInstagramPage(postUrl, cookieHeader);
     if (scraped && scraped.length > 0) {
-      console.log(`[photos:instagram] web-scrape fallback got ${scraped.length} image(s)`);
       return scraped;
     }
     return null;
@@ -361,7 +355,6 @@ async function fetchInstagramImageUrls(postUrl: string): Promise<string[] | null
       if (typeof top === "string" && /^https?:\/\//.test(top)) urls.push(top);
     }
   }
-  console.log(`[photos:instagram] API slides=${slides.length} images=${urls.length} skippedVideo=${skippedVideo}`);
   return urls;
 }
 
@@ -464,13 +457,11 @@ async function fetchFacebookAlbumFbids(
         },
         redirect: "follow",
       });
-      console.log(`[photos:facebook] album:${m.label} ${m.url} -> ${res.status} (final: ${res.url})`);
       if (/\/(login|checkpoint|recover)/i.test(res.url) || !res.ok) continue;
       const html = await res.text();
       if (/Log in to Facebook|You must log in/i.test(html) && !/fbid/i.test(html)) continue;
 
       const ids = harvestFbidsFromHtml(html);
-      console.log(`[photos:facebook] album:${m.label} harvested ${ids.length} fbid(s) (size=${html.length})`);
       for (const id of ids) all.add(id);
 
       // The www viewer reliably exposes every prev/next sibling — once
@@ -508,7 +499,6 @@ async function fetchFacebookImageUrl(postUrl: string): Promise<FbPhotoResult> {
     ? fbCookieHeader.split(";").map((p) => p.trim().split("=")[0]).filter(Boolean)
     : [];
   const hasSession = cookieNames.includes("c_user") && cookieNames.includes("xs");
-  console.log(`[photos:facebook] cookieCount=${cookieNames.length} hasSession=${hasSession}`);
 
   // Each candidate carries its own UA — desktop www.facebook.com needs a
   // modern desktop UA, while mbasic only renders for an old Android UA.
@@ -583,11 +573,9 @@ async function fetchFacebookImageUrl(postUrl: string): Promise<FbPhotoResult> {
         },
         redirect: "follow",
       });
-      console.log(`[photos:facebook] ${c.url} -> ${res.status} (final: ${res.url})`);
 
       // FB redirected us to a login/checkpoint URL → this mirror won't work.
       if (/\/(login|checkpoint|recover)/i.test(res.url)) {
-        console.log(`[photos:facebook] hit login wall, trying next mirror`);
         everWalled = true;
         continue;
       }
@@ -596,7 +584,6 @@ async function fetchFacebookImageUrl(postUrl: string): Promise<FbPhotoResult> {
 
       // Body-level login wall served at the original URL with HTTP 200.
       if (/Log in to Facebook|You must log in/i.test(html) && !/scontent[^/]*\.fbcdn\.net/i.test(html)) {
-        console.log(`[photos:facebook] login-wall body detected`);
         everWalled = true;
         continue;
       }
@@ -651,10 +638,8 @@ async function fetchFacebookImageUrl(postUrl: string): Promise<FbPhotoResult> {
 
       if (ranked.length > 0) {
         const top = ranked[0];
-        console.log(`[photos:facebook] picked ${top.src} score=${top.score} candidates=${ranked.length}`);
         return { url: top.url };
       }
-      console.log(`[photos:facebook] no usable scontent URL in HTML (size=${html.length}, raw=${cands.length})`);
     } catch (e: any) {
       console.warn(`[photos:facebook] fetch ${c.url} threw:`, e?.message);
     }
@@ -725,7 +710,6 @@ async function handleDownload(url: string): Promise<Response> {
     if (platform === "instagram") {
       const igUrls = await fetchInstagramImageUrls(url);
       if (igUrls && igUrls.length > 0) {
-        console.log(`[photos:instagram] private-API got ${igUrls.length} image(s)`);
         const downloaded: string[] = [];
         for (let i = 0; i < igUrls.length; i++) {
           const base = join(workDir, String(i + 1).padStart(2, "0"));
@@ -790,7 +774,6 @@ async function handleDownload(url: string): Promise<Response> {
           if (originalFbid) dedup.add(originalFbid);
           for (const id of albumIds) dedup.add(id);
           fbids = Array.from(dedup);
-          console.log(`[photos:facebook] album → resolving ${fbids.length} photo(s)`);
         }
       }
       if (fbids.length === 0 && originalFbid) fbids = [originalFbid];
@@ -823,7 +806,6 @@ async function handleDownload(url: string): Promise<Response> {
           const key = (u.match(/\/(\d{6,})_[^\/]+_[no]\.(jpe?g|png|webp)/i)?.[1]) || u;
           if (!seen.has(key)) { seen.add(key); unique.push(u); }
         }
-        console.log(`[photos:facebook] resolved ${resolvedUrls.length} URL(s), ${unique.length} unique`);
 
         const downloaded: string[] = [];
         for (let i = 0; i < unique.length; i++) {
@@ -903,7 +885,6 @@ async function handleDownload(url: string): Promise<Response> {
     // single-object case too (entries.length === 1 → single photo post).
     const imageUrls: string[] = [];
     for (const e of entries) imageUrls.push(...extractImageUrls(e));
-    console.log(`[photos:${platform}] yt-dlp fallback entries=${entries.length} imageUrls=${imageUrls.length}`);
 
     if (imageUrls.length === 0) {
       // Log a summary of the FIRST entry so we can see what yt-dlp returned

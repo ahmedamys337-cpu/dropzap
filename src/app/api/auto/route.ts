@@ -127,7 +127,6 @@ async function extractRedditImageUrls(postUrl: string): Promise<string[] | null>
       },
       redirect: "follow",
     });
-    console.log(`[auto:reddit] ${jsonUrl} -> ${res.status}`);
     if (!res.ok) return null;
     const data = await res.json().catch(() => null);
     if (!Array.isArray(data) || !data[0]?.data?.children?.[0]?.data) return null;
@@ -172,7 +171,6 @@ async function extractPinterestImageUrls(pinUrl: string): Promise<string[] | nul
       headers: { "User-Agent": BROWSER_UA, "Accept": "text/html,*/*" },
       redirect: "follow",
     });
-    console.log(`[auto:pinterest] page -> ${res.status}`);
     if (!res.ok) return null;
     const html = await res.text();
 
@@ -193,7 +191,6 @@ async function extractPinterestImageUrls(pinUrl: string): Promise<string[] | nul
       if (!prev || size > prev.size) byHash.set(hashKey, { url: u, size });
     }
     const unique = Array.from(byHash.values()).map((v) => v.url);
-    console.log(`[auto:pinterest] extracted ${unique.length} unique slide image(s)`);
     if (unique.length > 0) return unique;
 
     // Fallback to og:image (lower resolution but always present)
@@ -293,7 +290,6 @@ async function handleDownload(url: string): Promise<Response> {
         else if (platform === "pinterest") imageUrls = await extractPinterestImageUrls(url);
 
         if (imageUrls && imageUrls.length > 0) {
-          console.log(`[auto:${platform}] direct extractor got ${imageUrls.length} image(s)`);
           const downloaded = await downloadImagesToWorkDir(imageUrls, workDir, platform);
           if (downloaded.length === 1) {
             return streamSingle(join(workDir, downloaded[0]), downloaded[0], platform, "image", cleanup);

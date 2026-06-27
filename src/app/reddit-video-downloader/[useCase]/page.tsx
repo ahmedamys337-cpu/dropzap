@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { devicePages, findDevicePage } from "@/lib/device-pages-data";
+import { blogPosts } from "@/lib/blog-data";
 import DevicePageTemplate from "@/components/DevicePageTemplate";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital";
@@ -44,5 +45,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default function RedditUseCasePage({ params }: Props) {
   const page = findDevicePage(PARENT, params.useCase);
   if (!page) notFound();
-  return <DevicePageTemplate page={page} />;
+  const relatedPosts = page.relatedBlogPosts
+    .map((slug) => blogPosts.find((p) => p.slug === slug))
+    .filter(Boolean)
+    .map((p) => ({
+      slug: p!.slug,
+      title: p!.title,
+      description: p!.description,
+      category: p!.category,
+    }));
+  return <DevicePageTemplate page={page} relatedPosts={relatedPosts} />;
 }

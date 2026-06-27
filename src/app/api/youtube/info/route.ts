@@ -41,11 +41,6 @@ export async function POST(request: NextRequest) {
       return isVideo;
     });
 
-    // Helpful diagnostic in Render logs when a video looks format-starved.
-    console.log(
-      `[youtube/info] ${info.id || ""} formats total=${info.formats?.length || 0} video=${rawFormats.length}`
-    );
-
     // Dedupe by height, keeping the variant with the largest filesize so the
     // user gets the best quality at each resolution tier.
     const byHeight = new Map<number, any>();

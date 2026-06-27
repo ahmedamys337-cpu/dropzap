@@ -18,9 +18,8 @@ const execFileAsync = promisify(execFile);
 // the Stage 3 runner image of our Dockerfile). Without this guard the build
 // log fills with a dozen scary-looking ENOENT lines per build.
 if (process.env.NEXT_PHASE !== "phase-production-build") {
-  execFile("yt-dlp", ["--version"], (err, stdout) => {
+  execFile("yt-dlp", ["--version"], (err) => {
     if (err) console.error("[yt-dlp] version check failed:", err.message);
-    else console.log(`[yt-dlp] version: ${stdout.trim()}`);
   });
 }
 
@@ -50,9 +49,6 @@ if (cookiesEnvValue && cookiesEnvSource) {
   try {
     cookiesFilePath = join(tmpdir(), "yt-cookies.txt");
     writeFileSync(cookiesFilePath, cookiesEnvValue, "utf-8");
-    console.log(
-      `[yt-dlp] Cookies written from ${cookiesEnvSource}: ${cookiesEnvValue.length} bytes`,
-    );
   } catch (e) {
     console.error("[yt-dlp] Failed to write cookies file:", e);
     cookiesFilePath = null;
@@ -137,7 +133,6 @@ if (process.env.YOUTUBE_PROXIES) {
       // host:port (no auth) -> http://host:port
       return `http://${line}`;
     });
-  console.log("[yt-dlp] Loaded", proxyList.length, "YouTube proxies");
 }
 
 // Pick a random proxy per request to spread load and avoid bans
@@ -311,7 +306,6 @@ export async function getVideoInfo(url: string): Promise<any> {
         const parsed = JSON.parse(retry.stdout);
         const h = countUniqueHeights(parsed.formats);
         const hd = hasHdFormat(parsed.formats);
-        console.log(`[yt-dlp] ${label}: ${h} heights, HD=${hd}`);
         return { label, data: parsed, heights: h, hasHd: hd };
       } catch (e: any) {
         console.warn(`[yt-dlp] ${label} retry failed:`, e.message?.slice(0, 200));
@@ -327,9 +321,6 @@ export async function getVideoInfo(url: string): Promise<any> {
     // recovery list adds fresh signal instead of repeating failures: when
     // cookies are present the primary chain is mediaconnect→android→
     // tv_embedded, so recovery only adds ios/mweb/tv_simply.
-    console.log(
-      `[yt-dlp] Primary thin (${countUniqueHeights(data.formats)} heights); racing alt-clients`
-    );
     const altClients = cookiesFilePath
       ? ["ios", "mweb", "tv_simply"]
       : ["ios", "mweb", "mediaconnect", "tv_simply"];
@@ -353,7 +344,6 @@ export async function getVideoInfo(url: string): Promise<any> {
       const currentH = countUniqueHeights(data.formats);
       const currentHd = hasHdFormat(data.formats);
       if (best.heights > currentH || (best.hasHd && !currentHd)) {
-        console.log(`[yt-dlp] Adopted ${best.label} (${best.heights}h, HD=${best.hasHd})`);
         data = best.data;
       }
     }
@@ -368,7 +358,6 @@ export async function getVideoInfo(url: string): Promise<any> {
       (countUniqueHeights(data.formats) < 2 || !hasHdFormat(data.formats))
     ) {
       try {
-        console.log(`[yt-dlp] Falling back to Piped/Invidious for ${url}`);
         const pipedData = await getYoutubeInfoViaPiped(url);
         const pipedHeights = countUniqueHeights(pipedData.formats);
         const pipedHasHd = hasHdFormat(pipedData.formats);
@@ -376,9 +365,6 @@ export async function getVideoInfo(url: string): Promise<any> {
           pipedHeights > countUniqueHeights(data.formats) ||
           (pipedHasHd && !hasHdFormat(data.formats))
         ) {
-          console.log(
-            `[piped] Succeeded: ${pipedHeights} heights, HD=${pipedHasHd}`
-          );
           data = pipedData;
         }
       } catch (e: any) {

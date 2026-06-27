@@ -221,7 +221,6 @@ export async function getYoutubeInfoViaPiped(url: string): Promise<any> {
     try {
       const data = await fetchFromInstance(instance, videoId);
       instanceHealth.set(instance, { lastSuccess: Date.now(), failures: 0 });
-      console.log(`[piped] ${instance} succeeded for ${videoId}`);
       return transformToYtdlpShape(data, videoId);
     } catch (e: any) {
       const h = instanceHealth.get(instance) || { lastSuccess: 0, failures: 0 };
@@ -234,7 +233,6 @@ export async function getYoutubeInfoViaPiped(url: string): Promise<any> {
   for (const instance of INVIDIOUS_INSTANCES) {
     try {
       const data = await fetchFromInvidious(instance, videoId);
-      console.log(`[invidious] ${instance} succeeded for ${videoId}`);
       return data;
     } catch (e: any) {
       console.warn(`[invidious] ${instance} failed:`, e.message);

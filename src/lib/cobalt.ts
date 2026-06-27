@@ -143,7 +143,6 @@ export async function resolveViaCobalt(
 
     if (r.status === "tunnel" || r.status === "redirect") {
       const ok = r as CobaltSuccess;
-      console.log(`[cobalt] ${instance} -> ${r.status} (${ok.filename || "no name"})`);
       return { url: ok.url, filename: ok.filename };
     }
 

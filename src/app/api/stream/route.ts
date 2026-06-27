@@ -109,7 +109,6 @@ function runFfmpegStream(
 
   const t0 = Date.now();
   const tag = audioOnly ? "audio" : "video";
-  console.log(`[ffmpeg-stream:${tag}] spawn (proxy=${proxyUrl ? "yes" : "no"})`);
   const proc = spawn("ffmpeg", args, { stdio: ["ignore", "pipe", "pipe"] });
   let stderr = "";
   let bytesOut = 0;
@@ -118,9 +117,6 @@ function runFfmpegStream(
   proc.on("close", (code) => {
     const dt = Date.now() - t0;
     const ttfb = firstByteAt ? firstByteAt - t0 : -1;
-    console.log(
-      `[ffmpeg-stream:${tag}] exit=${code} total=${dt}ms ttfb=${ttfb}ms bytes=${bytesOut}`
-    );
     if (code !== 0) console.warn(`[ffmpeg-stream:${tag}] stderr:`, stderr.slice(0, 500));
   });
 
@@ -129,7 +125,6 @@ function runFfmpegStream(
       proc.stdout!.on("data", (c: Buffer) => {
         if (!firstByteAt) {
           firstByteAt = Date.now();
-          console.log(`[ffmpeg-stream:${tag}] first byte at ${firstByteAt - t0}ms`);
         }
         bytesOut += c.length;
         try { controller.enqueue(new Uint8Array(c)); } catch {}
@@ -142,7 +137,6 @@ function runFfmpegStream(
       });
     },
     cancel() {
-      console.log(`[ffmpeg-stream:${tag}] client cancelled at ${Date.now() - t0}ms`);
       try { proc.kill("SIGKILL"); } catch {}
     },
   });
@@ -165,7 +159,6 @@ export async function GET(request: NextRequest) {
   const filename = request.nextUrl.searchParams.get("name") || "download.mp4";
   const audio = request.nextUrl.searchParams.get("audio") === "1";
 
-  console.log(`[stream] request audio=${audio} url=${url?.slice(0, 120)}`);
 
   if (!url) {
     console.warn("[stream] missing URL");
@@ -243,7 +236,6 @@ export async function GET(request: NextRequest) {
       });
 
       if (r) {
-        console.log(`[stream] cobalt resolved in ${Date.now() - t0}ms -> ${r.url.slice(0, 80)}…`);
         // 302 redirect the browser straight to cobalt. The Content-Disposition
         // header on cobalt's response already triggers a download; the
         // attachment_filename query param ensures our preferred name wins.
@@ -375,7 +367,6 @@ export async function GET(request: NextRequest) {
     }
 
     const { code, stderr } = await runYtDlp(args);
-    console.log(`[stream] yt-dlp exit=${code} audio=${audio}`);
     if (code !== 0) {
       unlink(expectedFinal).catch(() => {});
       const msg = stderr.split("\n").find((l) => l.includes("ERROR")) || "yt-dlp failed";
