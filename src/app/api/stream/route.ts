@@ -28,14 +28,18 @@ export const maxDuration = 60;
 // file lets ffmpeg produce a regular, seekable mp4 with a proper moov atom
 // that plays everywhere AND lets us return a real Content-Length so the
 // browser's download UI shows percentage / total size.
-function runYtDlp(args: string[]): Promise<{ code: number; stderr: string }> {
+function runYtDlp(args: string[], timeoutMs = 90000): Promise<{ code: number; stderr: string }> {
   return new Promise((resolve) => {
     const proc = spawn("yt-dlp", args, { stdio: ["ignore", "pipe", "pipe"] });
     let stderr = "";
+    const timer = setTimeout(() => {
+      try { proc.kill("SIGKILL"); } catch {}
+      resolve({ code: 1, stderr: stderr + "\n[timeout] yt-dlp process timed out" });
+    }, timeoutMs);
     proc.stderr?.on("data", (c: Buffer) => { stderr += c.toString(); });
     proc.stdout?.on("data", () => {});
-    proc.on("close", (code) => resolve({ code: code ?? 1, stderr }));
-    proc.on("error", () => resolve({ code: 1, stderr }));
+    proc.on("close", (code) => { clearTimeout(timer); resolve({ code: code ?? 1, stderr }); });
+    proc.on("error", () => { clearTimeout(timer); resolve({ code: 1, stderr }); });
   });
 }
 

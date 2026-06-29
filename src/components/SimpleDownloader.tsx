@@ -4,9 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { triggerNativeDownload, safeFilename } from "@/lib/download";
+import { safeFilename } from "@/lib/download";
 import AdCountdown from "@/components/AdCountdown";
-import { Download, Loader2, Clipboard, X, CheckCircle2 } from "lucide-react";
+import { Download, Loader2, Clipboard, X, CheckCircle2, AlertCircle } from "lucide-react";
 
 /**
  * Single-button downloader used by every "non-YouTube" platform (TikTok,
@@ -14,17 +14,14 @@ import { Download, Loader2, Clipboard, X, CheckCircle2 } from "lucide-react";
  *
  * Flow:
  *   1. User pastes a URL and clicks the platform-coloured Download button.
- *   2. The 5-second ad overlay opens AND we kick off /api/stream by writing
- *      its URL to an invisible <a download> element (the request begins as
- *      soon as the browser starts the download, which the click triggers
- *      immediately so server-side yt-dlp warm-up runs in parallel with the
- *      ad timer rather than after it).
- *   3. When the ad timer finishes the overlay closes and the page shows a
- *      "Your video is downloaded!" confirmation. The button text flips to
- *      "Downloaded ✓" for a few seconds.
- *
- * The /api/stream endpoint already requests yt-dlp's best-quality format,
- * so callers do NOT need to expose a quality picker.
+ *   2. The 5-second ad overlay opens AND a fetch() to /api/stream starts
+ *      in the background (server-side yt-dlp warm-up runs in parallel).
+ *   3. When the fetch completes the response blob is turned into a local
+ *      object-URL and a native download is triggered automatically.
+ *   4. If the server returns an error (e.g. private post, IP block) the
+ *      banner shows the actual error text instead of a browser "site
+ *      unavailable" message — the user knows exactly what went wrong and
+ *      can retry.
  */
 interface SimpleDownloaderProps {
   /** Friendly platform name used in toast/history (e.g. "TikTok"). */
@@ -95,20 +92,41 @@ export default function SimpleDownloader({
   const [url, setUrl] = useState("");
   // Phase machine:
   //   idle        → user can paste a URL and click Download.
-  //   ad          → 5s ad overlay is up; native download has already fired so
-  //                 the server is warming yt-dlp in parallel.
-  //   downloading → ad finished, but we keep showing a spinner for 4 more
-  //                 seconds to mask the 3–5s gap between ad-close and the
-  //                 file actually appearing in the browser's download bar.
-  //   downloaded  → success state. PERSISTENT: stays until the URL is cleared
-  //                 or the page is refreshed.
-  const [phase, setPhase] = useState<"idle" | "ad" | "downloading" | "downloaded">("idle");
-  const downloadingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  //   ad          → 5s ad overlay is up; fetch() to the API is running in
+  //                 parallel so server-side yt-dlp warms up during the ad.
+  //   downloading → ad finished but the server fetch is still running.
+  //   downloaded  → blob received, object-URL clicked, success banner shown.
+  //   error       → server returned non-200 or network failed; banner shows
+  //                 the actual error. Button is re-enabled for retry.
+  const [phase, setPhase] = useState<"idle" | "ad" | "downloading" | "downloaded" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const { toast } = useToast();
 
+  const adDoneRef = useRef(false);
+  const fetchDoneRef = useRef(false);
+  const fetchBlobRef = useRef<{ blob: Blob; name: string } | null>(null);
+  const fetchErrRef = useRef<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
   useEffect(() => () => {
-    if (downloadingTimer.current) clearTimeout(downloadingTimer.current);
+    abortRef.current?.abort();
   }, []);
+
+  const doDownload = (blob: Blob, name: string) => {
+    const objectUrl = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = objectUrl;
+    a.download = name;
+    a.rel = "noopener";
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      try { document.body.removeChild(a); } catch {}
+      URL.revokeObjectURL(objectUrl);
+    }, 1000);
+    setPhase("downloaded");
+  };
 
   const start = () => {
     if (!url || !validate(url)) {
@@ -120,43 +138,69 @@ export default function SimpleDownloader({
       return;
     }
 
-    // Fire the native download IMMEDIATELY so the server starts working
-    // (yt-dlp warm-up, format selection, transcoding) while the user watches
-    // the 3-second ad. By the time the ad closes the file is usually already
-    // streaming into the browser's download bar.
-    //
-    // The filename here is just the BROWSER FALLBACK shown in the download
-    // bar before the response arrives; the server always overrides via its
-    // Content-Disposition header (e.g. "instagram-photos.zip"). Keeping it
-    // consistent with the platform makes the briefly-flashed name correct
-    // for both video and photo downloads.
     const name = `${safeFilename(filePrefix, filePrefix)}.${fileExtension}`;
-    // Merge with any query params already on the endpoint (e.g. /api/stream?audio=1)
     const [basePath, baseQuery] = endpoint.split("?");
-    const params = new URLSearchParams(baseQuery);
+    const params = new URLSearchParams(baseQuery || "");
     params.set("url", url);
     params.set("name", name);
     const streamUrl = `${basePath}?${params.toString()}`;
-    triggerNativeDownload(streamUrl, name);
+
+    adDoneRef.current = false;
+    fetchDoneRef.current = false;
+    fetchBlobRef.current = null;
+    fetchErrRef.current = null;
+
+    setErrorMsg(null);
+    setPhase("ad");
     onDownload?.(`${platform} ${mediaTypeLabel}`, url, mediaTypeLabel);
 
-    setPhase("ad");
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    fetch(streamUrl, { signal: controller.signal })
+      .then(async (res) => {
+        if (!res.ok) {
+          const text = await res.text().catch(() => `Server error (${res.status})`);
+          const msg = text?.trim() || `Download failed (${res.status})`;
+          fetchErrRef.current = msg;
+          fetchDoneRef.current = true;
+          if (adDoneRef.current) {
+            setErrorMsg(msg);
+            setPhase("error");
+          }
+          return;
+        }
+        const blob = await res.blob();
+        fetchBlobRef.current = { blob, name };
+        fetchDoneRef.current = true;
+        if (adDoneRef.current) {
+          doDownload(blob, name);
+        }
+      })
+      .catch((err: any) => {
+        if (err?.name === "AbortError") return;
+        const msg = "Network error. Check your connection and try again.";
+        fetchErrRef.current = msg;
+        fetchDoneRef.current = true;
+        if (adDoneRef.current) {
+          setErrorMsg(msg);
+          setPhase("error");
+        }
+      });
   };
 
   const finishAd = () => {
-    // Ad ended → enter the explicit "Downloading…" stage for 4s before
-    // claiming "Downloaded". This covers the typical server-side latency so
-    // by the time the success state appears, the file genuinely is in the
-    // browser's download bar.
-    setPhase("downloading");
-    if (downloadingTimer.current) clearTimeout(downloadingTimer.current);
-    // Server downloads the file to a temp path, then streams it with a real
-    // Content-Length so the browser shows accurate progress. 5s is a safe
-    // cap for IG/TikTok-class clips: if the file arrives earlier the browser
-    // progress bar is already showing it; if it arrives later the user
-    // still sees bytes landing in their downloads list. Was 10s but felt
-    // unnecessarily slow for the (common) sub-1s server response.
-    downloadingTimer.current = setTimeout(() => setPhase("downloaded"), 5000);
+    adDoneRef.current = true;
+    if (!fetchDoneRef.current) {
+      setPhase("downloading");
+      return;
+    }
+    if (fetchBlobRef.current) {
+      doDownload(fetchBlobRef.current.blob, fetchBlobRef.current.name);
+    } else if (fetchErrRef.current) {
+      setErrorMsg(fetchErrRef.current);
+      setPhase("error");
+    }
   };
 
   const paste = async () => {
@@ -166,15 +210,17 @@ export default function SimpleDownloader({
   };
 
   const clearUrl = () => {
-    if (downloadingTimer.current) clearTimeout(downloadingTimer.current);
+    abortRef.current?.abort();
     setUrl("");
     setPhase("idle");
+    setErrorMsg(null);
   };
 
   const isAd = phase === "ad";
   const isDownloading = phase === "downloading";
   const isBusy = isAd || isDownloading;
   const isDone = phase === "downloaded";
+  const isError = phase === "error";
 
   return (
     <div className="space-y-5">
@@ -185,11 +231,6 @@ export default function SimpleDownloader({
           onChange={(e) => setUrl(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && !isBusy && !isDone && start()}
           disabled={isBusy}
-          // a11y: visible <Input> has only a placeholder (which screen
-          // readers may or may not announce depending on assistive
-          // tech), so an explicit aria-label guarantees the field's
-          // purpose is announced. Maps to the Lighthouse audit
-          // "form-field-multiple-labels" / "label" rule.
           aria-label={`Paste ${platform} URL here`}
           inputMode="url"
           autoComplete="off"
@@ -224,8 +265,7 @@ export default function SimpleDownloader({
         </div>
       </div>
 
-      {/* Output-format pills. Sit between input + button so users see
-          "what file will I get?" right where they're about to commit. */}
+      {/* Output-format pills */}
       {badges && badges.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {badges.map((b, i) => (
@@ -242,21 +282,16 @@ export default function SimpleDownloader({
 
       <Button
         onClick={start}
-        // Intentionally NOT disabling on empty URL: keeps the button
-        // visually "alive" (hover gradient, lift) before the user has
-        // pasted anything. validate() handles empty/invalid URLs and
-        // surfaces a toast so the click isn't silently ignored.
         disabled={isBusy || isDone}
-        // Per-platform descriptive label so screen readers announce
-        // "Download Instagram Reel" / "Download TikTok video without
-        // watermark" rather than the generic word "Download".
         aria-label={`Download ${platform} ${mediaTypeLabel}`}
         className={
           isDone
             ? "w-full h-14 text-lg font-bold bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-600/30 transition-all"
             : isDownloading
               ? "w-full h-14 text-lg font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/30 transition-all"
-              : `w-full h-14 text-lg font-bold text-white shadow-lg transition-all duration-200 hover:scale-[1.02] hover:shadow-xl active:scale-[0.99] ${buttonClassName}`
+              : isError
+                ? `w-full h-14 text-lg font-bold text-white shadow-lg transition-all duration-200 hover:scale-[1.02] hover:shadow-xl active:scale-[0.99] ${buttonClassName}`
+                : `w-full h-14 text-lg font-bold text-white shadow-lg transition-all duration-200 hover:scale-[1.02] hover:shadow-xl active:scale-[0.99] ${buttonClassName}`
         }
       >
         {isAd ? (
@@ -282,7 +317,7 @@ export default function SimpleDownloader({
         )}
       </Button>
 
-      {/* Inline downloading hint while the 4s buffer runs after the ad. */}
+      {/* Inline downloading hint while fetch is still running after ad. */}
       {isDownloading && (
         <div className="flex items-center justify-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/15 dark:bg-amber-500/10 px-4 py-3 animate-in fade-in duration-200">
           <Loader2 className="h-4 w-4 animate-spin text-amber-700 dark:text-amber-300" />
@@ -292,7 +327,18 @@ export default function SimpleDownloader({
         </div>
       )}
 
-      {/* Persistent confirmation banner — stays until URL is cleared or page reloads. */}
+      {/* Error banner — shows server error text so user knows exactly what failed. */}
+      {isError && errorMsg && (
+        <div className="flex items-start gap-3 rounded-lg border-2 border-red-500/50 bg-red-500/15 dark:bg-red-500/10 px-4 py-3 animate-in fade-in slide-in-from-top-2 duration-300">
+          <AlertCircle className="h-5 w-5 text-red-700 dark:text-red-300 flex-shrink-0 mt-0.5" />
+          <div className="text-sm">
+            <p className="font-semibold text-red-800 dark:text-red-200">Download failed</p>
+            <p className="text-xs text-red-700/90 dark:text-red-300/90 mt-0.5">{errorMsg}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Persistent confirmation banner */}
       {isDone && (
         <div className="flex items-center gap-3 rounded-lg border-2 border-emerald-500/50 bg-emerald-500/15 dark:bg-emerald-500/10 px-4 py-3 animate-in fade-in slide-in-from-top-2 duration-300">
           <CheckCircle2 className="h-5 w-5 text-emerald-700 dark:text-emerald-300 flex-shrink-0" />
@@ -307,11 +353,11 @@ export default function SimpleDownloader({
         </div>
       )}
 
-      {help && !isDone && !isBusy && (
+      {help && !isDone && !isBusy && !isError && (
         <p className="text-xs text-muted-foreground text-center">{help}</p>
       )}
 
-      {/* Ad runs in parallel with the server's yt-dlp warm-up + stream start. */}
+      {/* Ad runs in parallel with the server fetch. */}
       {isAd && (
         <AdCountdown
           seconds={5}

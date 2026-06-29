@@ -27,7 +27,7 @@ export function isValidYouTubeUrl(url: string): boolean {
 }
 
 export function isValidInstagramUrl(url: string): boolean {
-  const pattern = /^(https?:\/\/)?(www\.)?instagram\.com\/(reel|p)\//;
+  const pattern = /^(https?:\/\/)?(www\.)?instagram\.com\/(reel|p|tv)\//;
   return pattern.test(url);
 }
 
