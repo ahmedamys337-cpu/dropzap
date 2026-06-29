@@ -170,6 +170,7 @@ export async function GET(request: NextRequest) {
   }
 
   const isYoutube = /youtu(?:\.be|be\.com)/i.test(url);
+  const isInstagram = (() => { try { return /(?:^|\.)instagram\.com$/i.test(new URL(url).hostname); } catch { return false; } })();
 
   // ---------- format selector ----------
   let fmtArg: string;
@@ -297,6 +298,38 @@ export async function GET(request: NextRequest) {
   }
 
   // =========================================================================
+  // INSTAGRAM PATH — cobalt.tools proxy
+  // Instagram has blocked unauthenticated yt-dlp on datacenter IPs since
+  // 2024. We attempt cobalt (which handles IG auth at their end) and proxy
+  // the bytes through our server so the client-side fetch()+blob flow works
+  // without CORS issues. Falls through to yt-dlp if cobalt returns nothing.
+  // =========================================================================
+  if (isInstagram) {
+    try {
+      const igCobalt = await resolveViaCobalt({ url, audio });
+      if (igCobalt) {
+        const proxyRes = await fetch(igCobalt.url, {
+          headers: { "User-Agent": "Mozilla/5.0 (compatible; Dropzap/1.0)" },
+          signal: AbortSignal.timeout(30000),
+        });
+        if (proxyRes.ok && proxyRes.body) {
+          const ct = proxyRes.headers.get("Content-Type") || (audio ? "audio/mpeg" : "video/mp4");
+          return new Response(proxyRes.body, {
+            status: 200,
+            headers: {
+              "Content-Type": ct,
+              "Content-Disposition": `attachment; filename="${safeName}"`,
+              "Cache-Control": "no-store",
+            },
+          });
+        }
+      }
+    } catch (e: any) {
+      console.warn("[stream] cobalt Instagram attempt failed, falling back to yt-dlp:", e.message?.slice(0, 200));
+    }
+  }
+
+  // =========================================================================
   // UNIFIED TEMP-FILE PATH
   // Why not stream directly to the client? Because yt-dlp has to download
   // BOTH the video-only and audio-only DASH streams fully before it can
@@ -373,9 +406,26 @@ export async function GET(request: NextRequest) {
     const { code, stderr } = await runYtDlp(args);
     if (code !== 0) {
       unlink(expectedFinal).catch(() => {});
-      const msg = stderr.split("\n").find((l) => l.includes("ERROR")) || "yt-dlp failed";
-      console.warn(`[stream] yt-dlp error: ${msg}`, stderr.slice(0, 500));
-      return new Response("Download failed: " + msg, { status: 500 });
+      // Map common yt-dlp errors to user-friendly messages.
+      let friendlyMsg: string;
+      if (/empty media response/i.test(stderr)) {
+        friendlyMsg = isInstagram
+          ? "Instagram requires login cookies to download this content. Set MEDIA_COOKIES in your Render environment variables with your Instagram session cookies (Netscape format)."
+          : "The platform returned an empty response. The content may be private or restricted.";
+      } else if (/private|login required|sign.?in|not accessible|authentication required|not.*available.*login/i.test(stderr)) {
+        friendlyMsg = "This post is private or requires login to download.";
+      } else if (/not available|has been removed|no longer available|unavailable/i.test(stderr)) {
+        friendlyMsg = "This content is no longer available or has been removed.";
+      } else if (/unsupported url|unable to extract|no video formats/i.test(stderr)) {
+        friendlyMsg = "This URL type is not supported. Please paste a direct post or reel link.";
+      } else if (/timeout/i.test(stderr)) {
+        friendlyMsg = "Download timed out. The server is busy — please try again in a moment.";
+      } else {
+        const rawErr = stderr.split("\n").find((l) => l.includes("ERROR")) || "Download failed";
+        friendlyMsg = rawErr.length > 250 ? rawErr.slice(0, 250) + "\u2026" : rawErr;
+      }
+      console.warn(`[stream] yt-dlp error for ${isInstagram ? "instagram" : "generic"}: ${friendlyMsg}`, stderr.slice(0, 500));
+      return new Response(friendlyMsg, { status: 500 });
     }
 
     // Resolve the file yt-dlp actually produced
