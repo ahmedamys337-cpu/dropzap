@@ -33,27 +33,65 @@ export default function AdsterraAds() {
     loadedRef.current = true;
 
     const configs = [
-      { key: "21eeee1bf19c9831ef94e5861e4041bc", height: 90, width: 728 },
-      { key: "8f5ab175ed15860124d6de8f263e3f77", height: 60, width: 468 },
+      { key: "21eeee1bf19c9831ef94e5861e4041bc", height: 90, width: 728, containerId: "container-21eeee1bf19c9831ef94e5861e4041bc" },
+      { key: "8f5ab175ed15860124d6de8f263e3f77", height: 60, width: 468, containerId: "container-8f5ab175ed15860124d6de8f263e3f77" },
+      { key: "a6e0db0917d7797d8010bc5800e6a087", height: 50, width: 320, containerId: "container-a6e0db0917d7797d8010bc5800e6a087" },
+      { key: "83cd26a15a3f22a1702782834e0fd0ab", height: 300, width: 160, containerId: "container-83cd26a15a3f22a1702782834e0fd0ab" },
     ];
 
-    configs.forEach(({ key, height, width }) => {
-      const opts = document.createElement("script");
-      opts.textContent = `
-        atOptions = {
-          'key' : '${key}',
-          'format' : 'iframe',
-          'height' : ${height},
-          'width' : ${width},
-          'params' : {}
-        };
-      `;
-      container.appendChild(opts);
+    // Render each banner ad in its own iframe so every ad gets its own
+    // global atOptions and document scope. This prevents the race condition
+    // that happens when multiple Adsterra scripts share the same page.
+    configs.forEach(({ key, height, width, containerId }) => {
+      const adContainer = document.createElement("div");
+      adContainer.id = containerId;
+      adContainer.style.display = "inline-block";
+      adContainer.style.maxWidth = "100%";
+      container.appendChild(adContainer);
 
-      const script = document.createElement("script");
-      script.src = `https://www.highperformanceformat.com/${key}/invoke.js`;
-      script.async = true;
-      container.appendChild(script);
+      const iframe = document.createElement("iframe");
+      iframe.width = String(width);
+      iframe.height = String(height);
+      iframe.scrolling = "no";
+      iframe.style.border = "0";
+      iframe.style.overflow = "hidden";
+      iframe.style.maxWidth = "100%";
+      iframe.style.background = "transparent";
+      iframe.title = "Advertisement";
+      iframe.srcdoc = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <style>html,body{margin:0;padding:0;overflow:hidden;width:100%;height:100%;background:transparent;}</style>
+          </head>
+          <body>
+            <script type="text/javascript">
+              atOptions = {
+                'key' : '${key}',
+                'format' : 'iframe',
+                'height' : ${height},
+                'width' : ${width},
+                'params' : {}
+              };
+            </script>
+            <script type="text/javascript" src="https://www.highperformanceformat.com/${key}/invoke.js"></script>
+          </body>
+        </html>
+      `;
+
+      adContainer.appendChild(iframe);
+
+      // Detect if the ad actually rendered content (not just blank)
+      setTimeout(() => {
+        try {
+          const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+          const hasContent = iframeDoc && iframeDoc.body && iframeDoc.body.innerHTML.length > 100;
+          console.log(`[Adsterra] ${key}: ${hasContent ? "rendered" : "empty/no fill"}`);
+        } catch (e) {
+          console.log(`[Adsterra] ${key}: cross-origin check skipped`);
+        }
+      }, 3000);
     });
   }, [mounted, pathname]);
 
@@ -63,20 +101,20 @@ export default function AdsterraAds() {
     <>
       <Script
         src="https://pl30087661.effectivecpmnetwork.com/7e/da/3a/7eda3aedc8736e42270e448f7f5531a6.js"
-        strategy="lazyOnload"
+        strategy="afterInteractive"
       />
       <Script
         src="https://pl30087662.effectivecpmnetwork.com/65/f9/20/65f920d880821ea5435bf95e085e0b30.js"
-        strategy="lazyOnload"
+        strategy="afterInteractive"
       />
-      <div id="container-5bc8ac44c319f4229556e677c20a528d" />
+      <div id="container-5bc8ac44c319f4229556e677c20a528d" className="min-h-[90px] min-w-[320px] max-w-[728px] w-full mx-auto overflow-hidden" />
       <Script
         async
         data-cfasync="false"
         src="https://pl30087663.effectivecpmnetwork.com/5bc8ac44c319f4229556e677c20a528d/invoke.js"
-        strategy="lazyOnload"
+        strategy="afterInteractive"
       />
-      <div ref={containerRef} className="adsterra-banners" />
+      <div ref={containerRef} className="adsterra-banners flex flex-wrap justify-center items-center gap-3 p-3 w-full" />
     </>
   );
 }

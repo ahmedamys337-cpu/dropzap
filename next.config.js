@@ -91,13 +91,13 @@ const nextConfig = {
     //   worker-src   — blob: needed for any future web-worker downloads.
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://*.highperformanceformat.com https://*.effectivecpmnetwork.com",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://*.highperformanceformat.com https://*.effectivecpmnetwork.com https: http:",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https://i.ytimg.com https://img.youtube.com https://*.cdninstagram.com https://*.twimg.com https://*.tiktokcdn.com https://*.fbcdn.net https://*.redd.it",
+      "img-src 'self' data: blob: https: http: https://i.ytimg.com https://img.youtube.com https://*.cdninstagram.com https://*.twimg.com https://*.tiktokcdn.com https://*.fbcdn.net https://*.redd.it",
       "font-src 'self' data:",
-      "connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://stats.g.doubleclick.net https://api.cobalt.tools https://cobalt-api.kwiatekmiki.com https://co.eepy.today",
+      "connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://stats.g.doubleclick.net https://api.cobalt.tools https://cobalt-api.kwiatekmiki.com https://co.eepy.today https: http:",
       "frame-src *",
-      "media-src 'self' blob:",
+      "media-src 'self' blob: https: http:",
       "object-src 'none'",
       "base-uri 'self'",
       "worker-src 'self' blob:",
