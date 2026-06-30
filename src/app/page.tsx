@@ -651,6 +651,8 @@ export default function Home() {
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[
+            { href: "/free-tiktok-downloader", label: "Free TikTok Downloader", desc: "100% free TikTok downloader — no watermark, no signup, no limit.", tag: "Tool" },
+            { href: "/tiktok-watermark-remover", label: "TikTok Watermark Remover", desc: "Remove TikTok logo from videos for free. No app, no software.", tag: "Tool" },
             { href: "/snaptik-alternative", label: "SnapTik Alternative", desc: "SnapTik now charges $4.99–$9.99/mo. Best free alternatives in 2026.", tag: "Comparison" },
             { href: "/blog/snaptik-now-paid-free-alternative", label: "SnapTik Now Paid — What Changed", desc: "Full breakdown of SnapTik's subscription model and which free tools still work.", tag: "News" },
             { href: "/blog/musicallydown-alternative-no-limit", label: "MusicallyDown Alternative", desc: "MusicallyDown hitting its daily limit? DropZap has no cap and no popunder ads.", tag: "Comparison" },
@@ -658,8 +660,6 @@ export default function Home() {
             { href: "/blog/threads-video-downloader", label: "Threads Video Downloader", desc: "Download any public Threads video or photo for free in under 10 seconds.", tag: "Tutorial" },
             { href: "/blog/tiktok-downloader-pc-laptop", label: "TikTok Downloader for PC", desc: "Save TikTok videos on Windows or Mac — no software, no extension, works in any browser.", tag: "Tutorial" },
             { href: "/blog/how-to-save-tiktok-to-camera-roll", label: "Save TikTok to Camera Roll", desc: "No watermark. Step-by-step for iPhone and Android with screenshots.", tag: "Tutorial" },
-            { href: "/best-tiktok-downloader-2026", label: "Best TikTok Downloader 2026", desc: "Ranked list of every major TikTok downloader — SnapTik, ssstik, DropZap, and more.", tag: "Rankings" },
-            { href: "/blog/how-to-download-tiktok-without-watermark", label: "Download TikTok Without Watermark", desc: "The complete guide to removing TikTok's watermark on every device.", tag: "Tutorial" },
           ].map((g) => (
             <a
               key={g.href}
@@ -706,6 +706,8 @@ export default function Home() {
               <a href="/reddit-video-downloader" className="hover:text-foreground transition-colors">Reddit Downloader</a>
               <a href="/threads-downloader" className="hover:text-foreground transition-colors">Threads Downloader</a>
               <a href="/snaptik-alternative" className="hover:text-foreground transition-colors">SnapTik Alternative</a>
+              <a href="/free-tiktok-downloader" className="hover:text-foreground transition-colors">Free TikTok Downloader</a>
+              <a href="/tiktok-watermark-remover" className="hover:text-foreground transition-colors">TikTok Watermark Remover</a>
               <a href="/mp3-converter" className="hover:text-foreground transition-colors">MP3 Converter</a>
               <a href="/how-to" className="hover:text-foreground transition-colors">How-To</a>
               <a href="/glossary" className="hover:text-foreground transition-colors">Glossary</a>

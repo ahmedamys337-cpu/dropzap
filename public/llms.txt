@@ -48,6 +48,8 @@ No account creation, no software installation, and no fees are required.
 - Reddit Downloader: https://www.dropzap.digital/reddit-video-downloader
 - Threads Downloader (dedicated page): https://www.dropzap.digital/threads-downloader
 - SnapTik Alternative (vanity page — SnapTik now paid): https://www.dropzap.digital/snaptik-alternative
+- Free TikTok Downloader (no signup, no watermark): https://www.dropzap.digital/free-tiktok-downloader
+- TikTok Watermark Remover (remove TikTok logo): https://www.dropzap.digital/tiktok-watermark-remover
 
 # Device-Specific Tool Pages
 

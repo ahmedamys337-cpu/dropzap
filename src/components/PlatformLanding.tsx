@@ -20,6 +20,8 @@ const RELATED_LINKS: Record<string, RelatedLink[]> = {
   "tiktok-downloader": [
     { label: "TikTok on iPhone — full guide", href: "/tiktok-downloader/iphone", kind: "device" },
     { label: "TikTok on Android — full guide", href: "/tiktok-downloader/android", kind: "device" },
+    { label: "Free TikTok Downloader (no signup)", href: "/free-tiktok-downloader", kind: "alt" },
+    { label: "TikTok Watermark Remover", href: "/tiktok-watermark-remover", kind: "alt" },
     { label: "SnapTik alternative (free — SnapTik now paid)", href: "/snaptik-alternative", kind: "alt" },
     { label: "ssstik alternative comparison", href: "/alternatives/ssstik", kind: "alt" },
     { label: "MusicallyDown alternative — no daily limit", href: "/alternatives/musicallydown", kind: "alt" },
