@@ -33,6 +33,7 @@ const RELATED_LINKS: Record<string, RelatedLink[]> = {
     { label: "Save TikTok to Camera Roll (no watermark)", href: "/blog/how-to-save-tiktok-to-camera-roll", kind: "blog" },
     { label: "TikTok downloader for PC & laptop", href: "/blog/tiktok-downloader-pc-laptop", kind: "blog" },
     { label: "SnapTik now charges $4.99/mo — alternatives", href: "/blog/snaptik-now-paid-free-alternative", kind: "blog" },
+    { label: "7 best TikTok downloaders tested (2026)", href: "/blog/best-tiktok-downloader-no-watermark", kind: "blog" },
     { label: "Best TikTok Downloader 2026 (tested)", href: "/blog/best-tiktok-downloader-2026", kind: "blog" },
   ],
   "tiktok-to-mp3": [
@@ -49,7 +50,8 @@ const RELATED_LINKS: Record<string, RelatedLink[]> = {
     { label: "Instagram Story Downloader", href: "/instagram-story-downloader", kind: "alt" },
     { label: "SnapInsta alternative comparison", href: "/alternatives/snapinsta", kind: "alt" },
     { label: "iGram alternative (no daily limit)", href: "/alternatives/igram", kind: "alt" },
-    { label: "Best Instagram downloader 2026 (tested)", href: "/blog/best-instagram-downloader-2026", kind: "blog" },
+    { label: "Best Instagram downloader 2026 (tested)", href: "/blog/best-instagram-downloader-2026-free", kind: "blog" },
+    { label: "Best Instagram Downloader 2026 (new)", href: "/blog/best-instagram-downloader-2026", kind: "blog" },
     { label: "How to download Reels on iPhone", href: "/blog/how-to-download-instagram-reels-on-iphone", kind: "blog" },
     { label: "How to download Instagram carousels", href: "/blog/how-to-download-instagram-carousel", kind: "blog" },
     { label: "How to download Instagram videos", href: "/blog/how-to-download-instagram-video", kind: "blog" },
@@ -64,11 +66,14 @@ const RELATED_LINKS: Record<string, RelatedLink[]> = {
     { label: "Facebook Reels Downloader", href: "/facebook-reel-downloader", kind: "alt" },
     { label: "GetFVid alternative comparison", href: "/alternatives/getfvid", kind: "alt" },
     { label: "GetVid alternative comparison", href: "/alternatives/getvid", kind: "alt" },
+    { label: "How to download Facebook videos & albums", href: "/blog/how-to-download-facebook-video-2026", kind: "blog" },
+    { label: "Facebook video downloader guide (2026)", href: "/blog/facebook-video-downloader-guide", kind: "blog" },
     { label: "How to download Facebook videos", href: "/blog/how-to-download-facebook-video", kind: "blog" },
   ],
   "twitter-video-downloader": [
     { label: "ssstwitter alternative comparison", href: "/alternatives/ssstwitter", kind: "alt" },
     { label: "How to download Twitter / X videos", href: "/blog/how-to-download-twitter-videos", kind: "blog" },
+    { label: "Twitter video downloader guide (2026)", href: "/blog/twitter-video-downloader-guide", kind: "blog" },
     { label: "How to download Twitter GIFs", href: "/blog/how-to-download-twitter-gifs", kind: "blog" },
   ],
   "threads-downloader": [
