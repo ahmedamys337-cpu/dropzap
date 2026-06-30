@@ -336,6 +336,38 @@ export async function GET(request: NextRequest) {
   }
 
   // =========================================================================
+  // FACEBOOK PATH — cobalt.tools first
+  // Facebook video posts now require login cookies on almost every request
+  // from datacenter IPs. Cobalt maintains its own Facebook session handling,
+  // so try it before falling through to the yt-dlp temp-file path.
+  // =========================================================================
+  const isFacebook = (() => { try { return /(?:^|\.)facebook\.com$/i.test(new URL(url).hostname) || /^https?:\/\/fb\.watch/i.test(url); } catch { return false; } })();
+  if (isFacebook) {
+    try {
+      const fbCobalt = await resolveViaCobalt({ url, audio, videoQuality: "1080" });
+      if (fbCobalt) {
+        const proxyRes = await fetch(fbCobalt.url, {
+          headers: { "User-Agent": "Mozilla/5.0 (compatible; Dropzap/1.0)" },
+          signal: AbortSignal.timeout(30000),
+        });
+        if (proxyRes.ok && proxyRes.body) {
+          const ct = proxyRes.headers.get("Content-Type") || (audio ? "audio/mpeg" : "video/mp4");
+          return new Response(proxyRes.body, {
+            status: 200,
+            headers: {
+              "Content-Type": ct,
+              "Content-Disposition": `attachment; filename="${safeName}"`,
+              "Cache-Control": "no-store",
+            },
+          });
+        }
+      }
+    } catch (e: any) {
+      console.warn("[stream] cobalt Facebook attempt failed, falling back to yt-dlp:", e.message?.slice(0, 200));
+    }
+  }
+
+  // =========================================================================
   // UNIFIED TEMP-FILE PATH
   // Why not stream directly to the client? Because yt-dlp has to download
   // BOTH the video-only and audio-only DASH streams fully before it can

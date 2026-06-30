@@ -9,6 +9,7 @@ import archiver from "archiver";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { writeFile } from "fs/promises";
 import { getGenericCookiesArgs, getCookieHeader } from "@/lib/ytdlp";
+import { resolveViaCobalt } from "@/lib/cobalt";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -165,6 +166,52 @@ async function extractRedditImageUrls(postUrl: string): Promise<string[] | null>
   }
 }
 
+// ── Twitter / X ───────────────────────────────────────────────────────────────
+// X/Twitter now login-walls and bot-blocks most tweet pages. When yt-dlp
+// can't find a video, we scrape the HTML for embedded image data. Public
+// image tweets may still expose their media URLs in the initial JSON.
+async function extractTwitterImageUrls(tweetUrl: string): Promise<string[] | null> {
+  try {
+    const res = await fetch(tweetUrl, {
+      headers: {
+        "User-Agent": BROWSER_UA,
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+      },
+      redirect: "follow",
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
+    const urls: string[] = [];
+
+    // 1. Embedded Next.js / Hydration JSON with tweet data.
+    //    Looks like "media_url_https":"https://pbs.twimg.com/media/..."
+    const re = /"media_url_https"\s*:\s*"([^"]+)"/gi;
+    for (const m of html.matchAll(re)) {
+      const u = m[1].replace(/\\/g, "");
+      if (/https:\/\/pbs\.twimg\.com\/media\/[^"]+\.(?:jpe?g|png|webp)(?:\?|$)/i.test(u)) urls.push(u);
+    }
+
+    // 2. og:image tag (usually the first image, lower res but reliable).
+    if (urls.length === 0) {
+      const og = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
+      if (og && og[1]) urls.push(og[1].replace(/&amp;/g, "&"));
+    }
+
+    // 3. JSON shapes like: "url":"https://pbs.twimg.com/media/...?format=jpg&name=..."
+    const altRe = /"url"\s*:\s*"([^"]+)"/gi;
+    for (const m of html.matchAll(altRe)) {
+      const u = m[1].replace(/\\/g, "");
+      if (/https:\/\/pbs\.twimg\.com\/media\/[^"]+\.(?:jpe?g|png|webp)(?:\?|$)/i.test(u)) urls.push(u);
+    }
+
+    return urls.length > 0 ? [...new Set(urls)] : null;
+  } catch (e: any) {
+    console.warn(`[auto:twitter] extractor threw:`, e?.message);
+    return null;
+  }
+}
+
 // ── Pinterest ────────────────────────────────────────────────────────────────
 // Pinterest's pin pages embed all media URLs in a JSON blob inside a
 // <script id="__PWS_INITIAL_PROPS__"> or <script id="__PWS_DATA__"> tag.
@@ -259,6 +306,42 @@ async function handleDownload(url: string): Promise<Response> {
   const cleanup = () => rm(workDir, { recursive: true, force: true }).catch(() => {});
 
   try {
+    // Pinterest pins are a special case: the page often contains a short
+    // animated preview that yt-dlp treats as a video, even for static image
+    // pins. For Pinterest we try the image extractor FIRST so image pins get
+    // their original JPG/PNG, then fall back to yt-dlp for video-only pins.
+    if (platform === "pinterest") {
+      const imageUrls = await extractPinterestImageUrls(url);
+      if (imageUrls && imageUrls.length > 0) {
+        const downloaded = await downloadImagesToWorkDir(imageUrls, workDir, platform);
+        if (downloaded.length === 1) {
+          return streamSingle(join(workDir, downloaded[0]), downloaded[0], platform, "image", cleanup);
+        }
+        if (downloaded.length > 1) {
+          return streamZip(workDir, downloaded, platform, "album", cleanup);
+        }
+      }
+      // Image extractor returned nothing → fall through to yt-dlp for video.
+    }
+
+    // Cobalt handles X/Twitter, Reddit, and Pinterest/Threads videos more
+    // reliably than yt-dlp from a datacenter IP because Cobalt maintains its
+    // own extractors and auth. Try it first for video-capable platforms.
+    if (platform === "twitter" || platform === "reddit" || platform === "pinterest" || platform === "threads") {
+      try {
+        const cobalt = await resolveViaCobalt({ url, videoQuality: "1080" });
+        if (cobalt) {
+          const target = new URL(cobalt.url);
+          if (!target.searchParams.has("filename") && cobalt.filename) {
+            target.searchParams.set("filename", cobalt.filename);
+          }
+          return Response.redirect(target.toString(), 302);
+        }
+      } catch (e: any) {
+        console.warn(`[auto:${platform}] cobalt attempt failed:`, e?.message?.slice(0, 200));
+      }
+    }
+
     // No -f flag → yt-dlp picks best available media for whatever the post
     // is. For video posts that means muxed best-video+best-audio (yt-dlp
     // runs ffmpeg internally). For image posts it dumps every image.
@@ -283,16 +366,17 @@ async function handleDownload(url: string): Promise<Response> {
     const { code, stderr } = await runYtDlp(args);
 
     // If yt-dlp failed AND this looks like an image-only post, fall back to
-    // platform-specific direct extractors. yt-dlp's "Unsupported URL" and
-    // "No video formats" errors are the canonical signals an image post
-    // tripped the video-centric extractor; we silently retry with the
-    // image path before bailing.
+    // platform-specific direct extractors. yt-dlp's "Unsupported URL",
+    // "No video formats", and X/Twitter's "No video could be found in this tweet"
+    // errors are the canonical signals an image post tripped the video-centric
+    // extractor; we silently retry with the image path before bailing.
     if (code !== 0) {
-      const looksImageOnly = /unsupported url|no video formats/i.test(stderr);
-      if (looksImageOnly) {
+      const looksImageOnly = /unsupported url|no video formats|no video could be found/i.test(stderr);
+      if (looksImageOnly || platform === "twitter") {
         let imageUrls: string[] | null = null;
         if (platform === "reddit") imageUrls = await extractRedditImageUrls(url);
         else if (platform === "pinterest") imageUrls = await extractPinterestImageUrls(url);
+        else if (platform === "twitter") imageUrls = await extractTwitterImageUrls(url);
 
         if (imageUrls && imageUrls.length > 0) {
           const downloaded = await downloadImagesToWorkDir(imageUrls, workDir, platform);

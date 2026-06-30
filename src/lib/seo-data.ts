@@ -363,9 +363,9 @@ export const platforms: Record<string, PlatformSEO> = {
   reddit: {
     slug: "reddit-video-downloader",
     name: "Reddit",
-    title: "Reddit Video Downloader With Sound - Save Reddit Videos Free",
-    h1: "Reddit Video Downloader With Sound",
-    description: "Download Reddit videos with sound merged automatically. Free Reddit video saver — save Reddit videos with audio to MP4. Works on all devices, no signup.",
+    title: "Reddit Downloader - Save Reddit Videos, Images & Galleries Free",
+    h1: "Reddit Downloader",
+    description: "Download Reddit videos with sound, images, and galleries. Free Reddit saver — save Reddit videos, photos, and albums to your device. Works on all devices, no signup.",
     keywords: [
       "reddit video downloader", "reddit downloader", "download reddit video",
       "reddit video downloader with sound", "save reddit video",
