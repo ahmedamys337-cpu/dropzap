@@ -770,13 +770,30 @@ async function handleDownload(url: string): Promise<Response> {
     // indicating every mirror hit a login wall — the latter is a
     // deployment problem, not a "post is private" problem.
     if (platform === "facebook") {
+      // Resolve /share/p/XXX and /share/r/XXX short links to the real permalink
+      // so we can extract the fbid. These links redirect to a full photo URL.
+      let resolvedUrl = url;
+      try {
+        const u = new URL(url);
+        if (/^\/share\/(p|v|reel)\//i.test(u.pathname)) {
+          const res = await fetch(url, {
+            headers: {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+              "Accept": "text/html,*/*",
+            },
+            redirect: "follow",
+          });
+          resolvedUrl = res.url;
+        }
+      } catch {}
+
       // Detect album: FB photo URLs of shape /photo/?fbid=X&set=a.Y are
       // single-photo viewers inside an album. To download the WHOLE album
       // we expand the set= param into the full list of fbids.
       let setParam: string | null = null;
       let originalFbid: string | null = null;
       try {
-        const u = new URL(url);
+        const u = new URL(resolvedUrl);
         setParam = u.searchParams.get("set");
         originalFbid = u.searchParams.get("fbid");
         if (!originalFbid) {
