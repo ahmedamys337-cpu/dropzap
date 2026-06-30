@@ -41,6 +41,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { slug: "instagram-reels-downloader", priority: 0.85 as const },
     { slug: "instagram-photo-downloader", priority: 0.85 as const },
     { slug: "pinterest-video-downloader", priority: 0.85 as const },
+    // Keyword vanity redirects (301 to canonical pages, but listed for
+    // discovery so Google indexes the target URL under these query terms)
+    { slug: "tiktok-downloader-for-iphone", priority: 0.7 as const },
+    { slug: "tiktok-downloader-for-android", priority: 0.7 as const },
+    { slug: "tiktok-downloader-for-pc", priority: 0.7 as const },
+    { slug: "tiktok-to-mp3-converter", priority: 0.7 as const },
+    { slug: "tiktok-video-downloader", priority: 0.7 as const },
+    { slug: "instagram-reels-downloader-for-iphone", priority: 0.7 as const },
+    { slug: "instagram-reels-downloader-for-android", priority: 0.7 as const },
+    { slug: "instagram-video-downloader", priority: 0.7 as const },
   ];
 
   const blogEntries: MetadataRoute.Sitemap = blogPosts.map((post) => ({
