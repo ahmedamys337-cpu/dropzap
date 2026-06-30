@@ -72,6 +72,14 @@ export const metadata: Metadata = {
   ],
   alternates: {
     canonical: SITE_URL,
+    languages: {
+      "en": SITE_URL,
+      "en-US": SITE_URL,
+      "en-GB": SITE_URL,
+      "en-CA": SITE_URL,
+      "en-AU": SITE_URL,
+      "en-IN": SITE_URL,
+    },
   },
   openGraph: {
     type: "website",
@@ -95,9 +103,6 @@ export const metadata: Metadata = {
     description: SITE_DESCRIPTION,
     images: ["/opengraph-image"],
     creator: "@dropzap",
-  },
-  icons: {
-    icon: "/favicon.ico",
   },
   other: {
     "rss": `${SITE_URL}/feed.xml`,
