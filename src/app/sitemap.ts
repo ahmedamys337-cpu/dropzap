@@ -57,6 +57,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { slug: "instagram-video-downloader", priority: 0.7 as const },
     { slug: "tiktok-slideshow-downloader", priority: 0.7 as const },
     { slug: "instagram-story-downloader", priority: 0.7 as const },
+    { slug: "instagram-downloader-for-pc", priority: 0.7 as const },
+    { slug: "facebook-downloader-for-pc", priority: 0.7 as const },
+    { slug: "twitter-downloader-for-pc", priority: 0.7 as const },
+    { slug: "reddit-downloader-for-pc", priority: 0.7 as const },
   ];
 
   const blogEntries: MetadataRoute.Sitemap = blogPosts.map((post) => ({
