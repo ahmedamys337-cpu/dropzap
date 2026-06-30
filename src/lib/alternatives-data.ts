@@ -893,4 +893,263 @@ export const alternativePages: AlternativePage[] = [
     ],
     dateModified: "2026-06-30",
   },
+
+  // -------------------------------------------------------------------
+  // 11. SnapInsta  (Instagram downloader competitor)
+  // -------------------------------------------------------------------
+  {
+    slug: "snapinsta",
+    competitor: "SnapInsta",
+    competitorLowercase: "snapinsta",
+    metaTitle: "SnapInsta Alternative — Download Instagram Reels & Photos Free (No Limits)",
+    metaDescription:
+      "SnapInsta (snapinsta.app) down or slow? DropZap is the best SnapInsta alternative for Instagram Reels, photos, carousels, and IGTV. No watermark, no daily limit, no signup.",
+    keywords: [
+      "snapinsta alternative",
+      "snapinsta not working",
+      "snapinsta downloader alternative",
+      "instagram downloader no limit",
+      "snapinsta.app alternative",
+      "instagram reel downloader free",
+      "download instagram reels online",
+    ],
+    h1: "The Best SnapInsta Alternative for Instagram Downloads (2026)",
+    intro:
+      "SnapInsta (snapinsta.app) is a well-known Instagram downloader but users report daily download limits, incomplete carousel support, and frequent downtime. DropZap is the cleanest SnapInsta alternative: download Instagram Reels as HD MP4, single photos as JPG, and multi-slide carousels as a full ZIP archive — no daily limits, no popups, no signup required.",
+    primaryPlatform: "Instagram",
+    toolPath: "/instagram-downloader",
+    comparison: [
+      { feature: "Reels / video (HD MP4)",   competitor: "Yes",          dropzap: "Yes", highlight: "tie" },
+      { feature: "Single photo (JPG)",        competitor: "Yes",          dropzap: "Yes", highlight: "tie" },
+      { feature: "Carousel as ZIP",           competitor: "Slide-by-slide", dropzap: "Full ZIP", highlight: "win" },
+      { feature: "Daily download limit",      competitor: "Yes",          dropzap: "No limit" },
+      { feature: "Loading speed",             competitor: "Often slow",   dropzap: "Fast" },
+      { feature: "Redirect ads",              competitor: "Yes",          dropzap: "No" },
+      { feature: "Signup required",           competitor: "No",           dropzap: "No", highlight: "tie" },
+      { feature: "IGTV support",              competitor: "Yes",          dropzap: "Yes", highlight: "tie" },
+      { feature: "Mobile-first UI",           competitor: "Partial",      dropzap: "Yes" },
+      { feature: "Processing time",           competitor: "5-10 sec",     dropzap: "3-5 sec" },
+    ],
+    whySwitch: [
+      "No daily download limit. SnapInsta caps free downloads per day. DropZap has no cap — download as many Instagram Reels, photos, and carousels as you need.",
+      "Complete carousel downloads. SnapInsta requires clicking each slide individually. DropZap packages all carousel slides into one ZIP file.",
+      "Faster and more reliable. SnapInsta experiences frequent outages when Instagram updates its API. DropZap uses yt-dlp (updated within 24-48 hours) and stays online consistently.",
+      "Cleaner experience. No redirect ads, no fake download buttons, no popups.",
+      "Works on all devices. iPhone Safari, Android Chrome, Windows, Mac — no app or extension needed.",
+    ],
+    howToSteps: [
+      {
+        name: "Copy the Instagram post URL",
+        text: "Open Instagram, find the Reel, photo, or carousel you want, tap the share button (three dots), then Copy Link.",
+      },
+      {
+        name: "Open DropZap's Instagram downloader",
+        text: "Go to dropzap.digital/instagram-downloader. No account, no captcha, no trial sign-up.",
+      },
+      {
+        name: "Download your file",
+        text: "Paste the URL and click Download. Reels save as MP4, photos as JPG, carousels as ZIP. No daily limit.",
+      },
+    ],
+    faq: [
+      {
+        q: "Why is SnapInsta not working today?",
+        a: "SnapInsta experiences outages when Instagram updates its internal API. DropZap uses yt-dlp (updated within 24-48 hours of any Instagram change) and has a cobalt.tools fallback, so it stays online more consistently.",
+      },
+      {
+        q: "Can DropZap download all photos from an Instagram carousel in one click?",
+        a: "Yes. Paste any carousel URL into DropZap and you get a ZIP file containing every slide at original resolution. SnapInsta requires clicking each slide individually.",
+      },
+      {
+        q: "Does DropZap have a daily download limit like SnapInsta?",
+        a: "No. DropZap has no daily download limit. Download as many Instagram Reels, photos, and carousels as you need — it's always free and always unlimited.",
+      },
+      {
+        q: "Does DropZap work for Instagram on iPhone?",
+        a: "Yes. Open Safari → go to dropzap.digital/instagram-downloader → paste link → tap Download. Files save to the Files app. To move to Camera Roll: open the file → Share → Save Video (or Save Image).",
+      },
+      {
+        q: "Is DropZap safe to use for Instagram downloads?",
+        a: "Yes. DropZap never asks for your Instagram login. It only accesses publicly available posts. No credentials, no cookies from your Instagram session are ever needed.",
+      },
+    ],
+    relatedBlogPosts: [
+      "how-to-download-instagram-reels-on-iphone",
+      "how-to-download-instagram-carousel",
+      "igram-alternative",
+    ],
+    dateModified: "2026-06-30",
+  },
+
+  // -------------------------------------------------------------------
+  // 12. GetVid  (Facebook downloader competitor)
+  // -------------------------------------------------------------------
+  {
+    slug: "getvid",
+    competitor: "GetVid",
+    competitorLowercase: "getvid",
+    metaTitle: "GetVid Alternative — Download Facebook Videos Free (No Limits)",
+    metaDescription:
+      "GetVid (getvid.cc) down or slow? DropZap is the best GetVid alternative for Facebook videos, Reels, and live streams. No watermark, no daily limit, no signup.",
+    keywords: [
+      "getvid alternative",
+      "getvid not working",
+      "getvid downloader alternative",
+      "facebook downloader no limit",
+      "getvid.cc alternative",
+      "facebook video downloader free",
+      "download facebook videos online",
+    ],
+    h1: "The Best GetVid Alternative for Facebook Downloads (2026)",
+    intro:
+      "GetVid (getvid.cc) is a Facebook downloader but users report heavy ads, slow downloads, and inconsistent Reels support. DropZap is the cleanest GetVid alternative: download Facebook videos, Reels, and live streams as HD MP4 — no daily limits, no popups, no signup required.",
+    primaryPlatform: "Facebook",
+    toolPath: "/facebook-video-downloader",
+    comparison: [
+      { feature: "Facebook videos (HD MP4)",  competitor: "Yes",          dropzap: "Yes", highlight: "tie" },
+      { feature: "Facebook Reels",            competitor: "Partial",      dropzap: "Yes", highlight: "win" },
+      { feature: "Live streams",             competitor: "Yes",          dropzap: "Yes", highlight: "tie" },
+      { feature: "Daily download limit",      competitor: "Yes",          dropzap: "No limit" },
+      { feature: "Loading speed",             competitor: "Slow",         dropzap: "Fast", highlight: "win" },
+      { feature: "Redirect ads",              competitor: "Yes",          dropzap: "No" },
+      { feature: "Signup required",           competitor: "No",           dropzap: "No", highlight: "tie" },
+      { feature: "Mobile-first UI",           competitor: "Partial",      dropzap: "Yes" },
+      { feature: "Processing time",           competitor: "10-15 sec",    dropzap: "3-5 sec" },
+    ],
+    whySwitch: [
+      "No daily download limit. GetVid caps free downloads per day. DropZap has no cap — download as many Facebook videos and Reels as you need.",
+      "Better Reels support. GetVid often fails on Reels. DropZap downloads Facebook Reels consistently.",
+      "Faster downloads. GetVid can be slow during peak hours. DropZap downloads in 3-5 seconds.",
+      "Cleaner experience. No redirect ads, no fake download buttons, no popups.",
+      "More platforms. DropZap also supports Instagram, TikTok, Twitter/X, Reddit, Pinterest, and Threads.",
+    ],
+    howToSteps: [
+      {
+        name: "Copy the Facebook video URL",
+        text: "Open Facebook, find the video or Reel, tap the share button, then Copy Link. The URL looks like https://www.facebook.com/watch?v=123456 or https://fb.watch/abcde.",
+      },
+      {
+        name: "Open DropZap's Facebook downloader",
+        text: "Go to dropzap.digital/facebook-video-downloader. No account, no captcha.",
+      },
+      {
+        name: "Download your video",
+        text: "Paste the URL and click Download. The video saves as MP4 in 3-5 seconds. No daily limit.",
+      },
+    ],
+    faq: [
+      {
+        q: "Why is GetVid not working today?",
+        a: "GetVid experiences outages when Facebook updates its API. DropZap uses yt-dlp (updated within 24-48 hours of any Facebook change) and stays online more consistently.",
+      },
+      {
+        q: "Can DropZap download Facebook Reels?",
+        a: "Yes. DropZap downloads Facebook Reels consistently. GetVid often fails on Reels.",
+      },
+      {
+        q: "Does DropZap have a daily download limit like GetVid?",
+        a: "No. DropZap has no daily download limit. Download as many Facebook videos and Reels as you need.",
+      },
+      {
+        q: "Does DropZap work for Facebook on iPhone?",
+        a: "Yes. Open Safari → go to dropzap.digital/facebook-video-downloader → paste link → tap Download. Files save to the Files app. To move to Camera Roll: open the file → Share → Save Video.",
+      },
+      {
+        q: "Is DropZap safe to use for Facebook downloads?",
+        a: "Yes. DropZap never asks for your Facebook login. It only accesses publicly available posts.",
+      },
+    ],
+    relatedBlogPosts: [
+      "how-to-download-facebook-video",
+      "facebook-reel-downloader",
+    ],
+    dateModified: "2026-06-30",
+  },
+
+  // -------------------------------------------------------------------
+  // 13. SaveFrom  (Universal downloader competitor)
+  // -------------------------------------------------------------------
+  {
+    slug: "savefrom",
+    competitor: "SaveFrom",
+    competitorLowercase: "savefrom",
+    metaTitle: "SaveFrom Alternative — Download Videos Free (No Limits)",
+    metaDescription:
+      "SaveFrom (savefrom.net) down or slow? DropZap is the best SaveFrom alternative for TikTok, Instagram, Facebook, Twitter/X, Reddit, Pinterest, and Threads. No watermark, no daily limit, no signup.",
+    keywords: [
+      "savefrom alternative",
+      "savefrom not working",
+      "savefrom downloader alternative",
+      "video downloader no limit",
+      "savefrom.net alternative",
+      "universal video downloader",
+      "download videos online",
+    ],
+    h1: "The Best SaveFrom Alternative for Video Downloads (2026)",
+    intro:
+      "SaveFrom (savefrom.net) is a universal video downloader but users report daily download limits, heavy ads, and inconsistent support for newer platforms like Threads. DropZap is the cleanest SaveFrom alternative: download from TikTok, Instagram, Facebook, Twitter/X, Reddit, Pinterest, and Threads — no daily limits, no popups, no signup required.",
+    primaryPlatform: "TikTok",
+    toolPath: "/tiktok-downloader",
+    comparison: [
+      { feature: "TikTok support",              competitor: "Yes",          dropzap: "Yes", highlight: "tie" },
+      { feature: "Instagram support",           competitor: "Yes",          dropzap: "Yes", highlight: "tie" },
+      { feature: "Facebook support",            competitor: "Yes",          dropzap: "Yes", highlight: "tie" },
+      { feature: "Twitter / X support",        competitor: "Yes",          dropzap: "Yes", highlight: "tie" },
+      { feature: "Reddit (with sound)",        competitor: "No",           dropzap: "Yes", highlight: "win" },
+      { feature: "Pinterest support",           competitor: "No",           dropzap: "Yes", highlight: "win" },
+      { feature: "Threads support",            competitor: "No",           dropzap: "Yes", highlight: "win" },
+      { feature: "Daily download limit",       competitor: "Yes",          dropzap: "No limit" },
+      { feature: "Redirect ads",               competitor: "Yes",          dropzap: "No" },
+      { feature: "Processing time",           competitor: "5-10 sec",     dropzap: "3-5 sec" },
+    ],
+    whySwitch: [
+      "No daily download limit. SaveFrom caps free downloads per day. DropZap has no cap — download as many videos as you need.",
+      "More platforms. SaveFrom doesn't support Reddit (with sound), Pinterest, or Threads. DropZap supports all of them.",
+      "Faster downloads. SaveFrom can be slow during peak hours. DropZap downloads in 3-5 seconds.",
+      "Cleaner experience. No redirect ads, no fake download buttons, no popups.",
+      "Better Reddit support. SaveFrom downloads Reddit videos without audio. DropZap merges audio and video for complete files.",
+    ],
+    howToSteps: [
+      {
+        name: "Copy the video URL",
+        text: "Open any supported platform (TikTok, Instagram, Facebook, Twitter/X, Reddit, Pinterest, Threads), find the video, and Copy Link.",
+      },
+      {
+        name: "Open DropZap",
+        text: "Go to dropzap.digital and select the appropriate downloader tab, or use the universal homepage.",
+      },
+      {
+        name: "Download your video",
+        text: "Paste the URL and click Download. The video saves as MP4 in 3-5 seconds. No daily limit.",
+      },
+    ],
+    faq: [
+      {
+        q: "Why is SaveFrom not working today?",
+        a: "SaveFrom experiences outages when platforms update their APIs. DropZap uses yt-dlp (updated within 24-48 hours of any platform change) and stays online more consistently.",
+      },
+      {
+        q: "Can DropZap download Reddit videos with sound?",
+        a: "Yes. DropZap downloads Reddit videos with audio merged. SaveFrom downloads Reddit videos without sound.",
+      },
+      {
+        q: "Does DropZap support Pinterest and Threads?",
+        a: "Yes. DropZap supports Pinterest videos and Threads videos/photos. SaveFrom does not support these platforms.",
+      },
+      {
+        q: "Does DropZap have a daily download limit like SaveFrom?",
+        a: "No. DropZap has no daily download limit. Download as many videos as you need.",
+      },
+      {
+        q: "Is DropZap safe to use?",
+        a: "Yes. DropZap never asks for your login credentials on any platform. It only accesses publicly available posts.",
+      },
+    ],
+    relatedBlogPosts: [
+      "how-to-download-tiktok-without-watermark",
+      "how-to-download-instagram-reels-on-iphone",
+      "how-to-download-facebook-video",
+    ],
+    dateModified: "2026-06-30",
+  },
 ];
