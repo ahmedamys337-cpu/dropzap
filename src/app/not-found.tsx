@@ -17,7 +17,9 @@ export const metadata: Metadata = {
     "facebook downloader",
     "video downloader",
   ],
-  noindex: true,
+  robots: {
+    index: false,
+  },
 };
 
 const tools = [
