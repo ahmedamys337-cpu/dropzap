@@ -73,10 +73,41 @@ const nextConfig = {
     ];
   },
   async headers() {
+    // Content-Security-Policy rationale:
+    //   script-src   — 'unsafe-inline' is required by Next.js hydration scripts and
+    //                  Adsterra ad tags. 'unsafe-eval' is included because some ad
+    //                  networks use eval internally. Google Tag Manager + Adsterra
+    //                  domains are explicitly allowlisted.
+    //   style-src    — 'unsafe-inline' is required by Tailwind / shadcn inline styles.
+    //   img-src      — Restricted to known CDN hostnames (the same set used in
+    //                  next.config.js remotePatterns) plus data:/blob: for previews.
+    //   connect-src  — Restricts which servers JS can talk to (XHR/fetch). Cobalt
+    //                  API instances are included because /api/stream proxies IG
+    //                  downloads through them. Adsterra/GA beacons are allowlisted.
+    //   frame-src    — Ads deliver via iframes; wildcard is unavoidable here because
+    //                  Adsterra serves creatives from rotating partner domains.
+    //   object-src   — 'none' blocks Flash/Java plugin exploits entirely.
+    //   base-uri     — 'self' prevents <base> tag injection attacks.
+    //   worker-src   — blob: needed for any future web-worker downloads.
+    const csp = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://*.highperformanceformat.com https://*.effectivecpmnetwork.com",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob: https://i.ytimg.com https://img.youtube.com https://*.cdninstagram.com https://*.twimg.com https://*.tiktokcdn.com https://*.fbcdn.net https://*.redd.it",
+      "font-src 'self' data:",
+      "connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://stats.g.doubleclick.net https://api.cobalt.tools https://cobalt-api.kwiatekmiki.com https://co.eepy.today",
+      "frame-src *",
+      "media-src 'self' blob:",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "worker-src 'self' blob:",
+    ].join("; ");
+
     return [
       {
         source: '/:path*',
         headers: [
+          { key: 'Content-Security-Policy', value: csp },
           { key: 'X-DNS-Prefetch-Control', value: 'on' },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'X-Frame-Options', value: 'DENY' },
