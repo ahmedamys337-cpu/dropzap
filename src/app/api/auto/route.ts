@@ -457,9 +457,26 @@ async function handleDownload(url: string): Promise<Response> {
       }
       console.warn(`[auto:${platform}] yt-dlp failed:`, stderr.slice(0, 400));
       cleanup();
-      const friendly = /private|login|account|not.*available|requires.*authentication/i.test(stderr)
+      const privateMsg = /private|login|account|not.*available|requires.*authentication/i.test(stderr);
+      const unsupportedMsg = /unsupported url|no video formats/i.test(stderr);
+
+      if (platform === "reddit") {
+        return new Response(
+          "Reddit is blocking this server's IP. Reddit downloads need fresh Reddit session cookies in the MEDIA_COOKIES environment variable (Netscape format). Without cookies, both yt-dlp and the Reddit API return blocks from datacenter IPs.",
+          { status: 502 },
+        );
+      }
+
+      if (platform === "threads") {
+        return new Response(
+          "Threads is not currently downloadable. Neither yt-dlp nor the self-hosted Cobalt instance supports Threads URLs from this server.",
+          { status: 502 },
+        );
+      }
+
+      const friendly = privateMsg
         ? "This post is private, deleted, or requires login."
-        : /unsupported url|no video formats/i.test(stderr)
+        : unsupportedMsg
         ? "This URL doesn't appear to contain downloadable media."
         : `Failed to fetch this ${platform} post.`;
       return new Response(friendly, { status: 502 });
