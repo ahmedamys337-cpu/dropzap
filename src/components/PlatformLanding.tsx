@@ -41,6 +41,7 @@ const RELATED_LINKS: Record<string, RelatedLink[]> = {
     { label: "Instagram on iPhone — full guide", href: "/instagram-downloader/iphone", kind: "device" },
     { label: "Instagram on Android — full guide", href: "/instagram-downloader/android", kind: "device" },
     { label: "Instagram Reels Downloader", href: "/instagram-reels-downloader", kind: "alt" },
+    { label: "Instagram Photo Downloader", href: "/instagram-photo-downloader", kind: "alt" },
     { label: "SnapInsta alternative comparison", href: "/alternatives/snapinsta", kind: "alt" },
     { label: "iGram alternative (no daily limit)", href: "/alternatives/igram", kind: "alt" },
     { label: "Best Instagram downloader 2026 (tested)", href: "/blog/best-instagram-downloader-2026-free", kind: "blog" },
