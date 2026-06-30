@@ -10,7 +10,13 @@
     "favicons": "node scripts/generate-favicons.mjs",
     "seo:outreach": "node scripts/seo-outreach/index.mjs",
     "seo:publish": "node scripts/seo-outreach/publish-articles.mjs",
-    "seo:publish:dry": "node scripts/seo-outreach/publish-articles.mjs --dry-run"
+    "seo:publish:dry": "node scripts/seo-outreach/publish-articles.mjs --dry-run",
+    "seo:backlinks": "node scripts/seo-outreach/run-all.mjs",
+    "seo:backlinks:dry": "node scripts/seo-outreach/run-all.mjs --dry-run",
+    "seo:github": "node scripts/seo-outreach/run-all.mjs --only=github",
+    "seo:tumblr": "node scripts/seo-outreach/run-all.mjs --only=tumblr",
+    "seo:diigo": "node scripts/seo-outreach/run-all.mjs --only=diigo",
+    "seo:reddit": "node scripts/seo-outreach/run-all.mjs --only=reddit"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.0.5",

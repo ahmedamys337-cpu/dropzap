@@ -26,6 +26,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { publishToGitHubGist } from './github-gists.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -306,6 +307,9 @@ async function main() {
           break;
         case 'hackmd':
           await publishToHackMD(article);
+          break;
+        case 'github':
+          await publishToGitHubGist(article, dryRun);
           break;
         case 'substack':
         case 'hubpages':
