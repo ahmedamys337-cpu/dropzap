@@ -124,23 +124,34 @@ async function extractRedditImageUrls(postUrl: string): Promise<string[] | null>
     // Case 2/3: fetch <url>.json
     // Reddit's www host blocks most datacenter IPs. old.reddit.com is far more
     // lenient and returns the same JSON shape, so we try it first.
+    // However, when the user has supplied cookies, those cookies are almost
+    // always exported from www.reddit.com, so prefer www.reddit.com first.
     const path = u.pathname.replace(/\/$/, "");
-    const jsonUrl = `https://old.reddit.com${path}.json`;
     const cookieHeader =
       getCookieHeader("old.reddit.com") ||
       getCookieHeader("www.reddit.com") ||
       getCookieHeader("reddit.com");
-    const res = await fetch(jsonUrl, {
-      headers: {
-        "User-Agent": BROWSER_UA,
-        "Accept": "application/json",
-        "Referer": "https://old.reddit.com/",
-        ...(cookieHeader ? { Cookie: cookieHeader } : {}),
-      },
-      redirect: "follow",
-    });
-    if (!res.ok) return null;
-    const data = await res.json().catch(() => null);
+    const hosts = cookieHeader
+      ? ["https://www.reddit.com", "https://old.reddit.com"]
+      : ["https://old.reddit.com", "https://www.reddit.com"];
+
+    let data: any = null;
+    for (const base of hosts) {
+      const res = await fetch(`${base}${path}.json`, {
+        headers: {
+          "User-Agent": BROWSER_UA,
+          "Accept": "application/json",
+          "Referer": `${base}/`,
+          ...(cookieHeader ? { Cookie: cookieHeader } : {}),
+        },
+        redirect: "follow",
+      });
+      if (res.ok) {
+        data = await res.json().catch(() => null);
+        if (data) break;
+      }
+    }
+    if (!data) return null;
     if (!Array.isArray(data) || !data[0]?.data?.children?.[0]?.data) return null;
     const post = data[0].data.children[0].data;
     const urls: string[] = [];
