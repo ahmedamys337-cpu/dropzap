@@ -35,8 +35,6 @@ export default function AdsterraAds() {
     const configs = [
       { key: "21eeee1bf19c9831ef94e5861e4041bc", height: 90, width: 728, containerId: "container-21eeee1bf19c9831ef94e5861e4041bc" },
       { key: "8f5ab175ed15860124d6de8f263e3f77", height: 60, width: 468, containerId: "container-8f5ab175ed15860124d6de8f263e3f77" },
-      { key: "a6e0db0917d7797d8010bc5800e6a087", height: 50, width: 320, containerId: "container-a6e0db0917d7797d8010bc5800e6a087" },
-      { key: "83cd26a15a3f22a1702782834e0fd0ab", height: 300, width: 160, containerId: "container-83cd26a15a3f22a1702782834e0fd0ab" },
     ];
 
     // Render each banner ad in its own iframe so every ad gets its own
