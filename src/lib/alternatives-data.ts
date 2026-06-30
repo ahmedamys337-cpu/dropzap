@@ -59,76 +59,78 @@ export const alternativePages: AlternativePage[] = [
     slug: "snaptik",
     competitor: "SnapTik",
     competitorLowercase: "snaptik",
-    metaTitle: "SnapTik Alternative — DropZap: Faster, No Ads, No Fake Buttons",
+    metaTitle: "Free SnapTik Alternative 2026 — DropZap (SnapTik Now Charges $4.99/mo)",
     metaDescription:
-      "Looking for a SnapTik alternative? DropZap downloads TikTok videos without watermark — faster, no popups, no fake download buttons, and supports Instagram, Reddit, and Facebook too.",
+      "SnapTik now charges $4.99–$9.99/month for watermark-free TikTok downloads. DropZap is 100% free forever — no subscription, no watermark, no popups. Best SnapTik free alternative.",
     keywords: [
       "snaptik alternative",
+      "snaptik alternative free",
       "snaptik not working",
+      "snaptik free alternative",
       "snaptik replacement",
-      "tiktok downloader without ads",
-      "snaptik vs",
+      "snaptik paid alternative",
+      "tiktok downloader free without watermark",
+      "snaptik subscription cancel",
+      "snaptik vs dropzap",
     ],
-    h1: "The Best SnapTik Alternative in 2026",
+    h1: "Free SnapTik Alternative (SnapTik Now Charges — DropZap Is Free)",
     intro:
-      "SnapTik is one of the most popular TikTok downloaders, but it has a reputation for aggressive popups, fake \"Download\" buttons that lead to ads, and frequent outages. DropZap was built as the cleaner alternative: paste a TikTok link, get a watermark-free MP4. No redirect chains, no countdowns, no fake buttons. And unlike SnapTik, DropZap also handles Instagram, Reddit, Facebook, Twitter, Pinterest, and Threads from the same interface.",
+      "As of late 2025, SnapTik's free tier now adds its own watermark to downloaded TikTok videos. To get a clean, watermark-free download you must pay $4.99–$9.99 per month. DropZap is the best free SnapTik alternative — fully watermark-free, unlimited downloads, zero subscription, and no ads between you and your file. It also handles Instagram, Reddit, Facebook, Twitter/X, Pinterest, and Threads from the same page.",
     primaryPlatform: "TikTok",
     toolPath: "/tiktok-downloader",
     comparison: [
-      { feature: "Watermark removal",    competitor: "Yes", dropzap: "Yes", highlight: "tie" },
-      { feature: "Popup ads on click",   competitor: "Heavy",          dropzap: "None" },
-      { feature: "Fake download buttons", competitor: "Yes",            dropzap: "No" },
-      { feature: "Redirect chains",      competitor: "Often 2-3 hops", dropzap: "Direct" },
-      { feature: "Instagram support",    competitor: "No",             dropzap: "Yes" },
-      { feature: "Facebook support",     competitor: "No",             dropzap: "Yes" },
-      { feature: "Reddit (with sound)",  competitor: "No",             dropzap: "Yes" },
-      { feature: "Twitter / X support",  competitor: "No",             dropzap: "Yes" },
-      { feature: "Carousels as ZIP",     competitor: "N/A",            dropzap: "Yes" },
-      { feature: "MP3 conversion",       competitor: "No",             dropzap: "Yes" },
-      { feature: "Account required",     competitor: "No",             dropzap: "No", highlight: "tie" },
-      { feature: "Average time to file", competitor: "10-20 sec (with ads)", dropzap: "3-5 sec" },
+      { feature: "Watermark-free (free tier)", competitor: "❌ Now requires $4.99/mo", dropzap: "✅ Always free" },
+      { feature: "Monthly subscription",       competitor: "$4.99–$9.99/mo",           dropzap: "$0 — free forever" },
+      { feature: "Mandatory 15-sec video ads", competitor: "Yes (free tier)",           dropzap: "No" },
+      { feature: "Fake download buttons",      competitor: "Yes",                       dropzap: "No" },
+      { feature: "Instagram support",          competitor: "No",                        dropzap: "Yes" },
+      { feature: "Facebook support",           competitor: "No",                        dropzap: "Yes" },
+      { feature: "Reddit (with sound)",        competitor: "No",                        dropzap: "Yes" },
+      { feature: "Twitter / X support",        competitor: "No",                        dropzap: "Yes" },
+      { feature: "MP3 conversion",             competitor: "Paid only",                 dropzap: "Yes, free" },
+      { feature: "Average time to file",       competitor: "15-30 sec (with ad)",       dropzap: "3-5 sec" },
     ],
     whySwitch: [
-      "No fake buttons. SnapTik's pages contain multiple \"Download\" buttons that actually open ads. DropZap has exactly one download button per tool, and it does what it says.",
-      "Direct downloads. SnapTik often routes you through 2-3 redirect pages before the file is served. DropZap streams the file directly from the source CDN to your browser.",
-      "More platforms. SnapTik is TikTok-only. DropZap covers Instagram, Facebook, Reddit, Twitter/X, Pinterest, and Threads — same interface.",
-      "Reddit videos with sound. Reddit stores video and audio as separate streams; SnapTik can't help. DropZap merges them automatically.",
-      "Bulk downloads. DropZap has a queue mode for downloading multiple TikToks back-to-back without re-pasting tabs.",
+      "SnapTik is no longer free for watermark removal. Since late 2025, SnapTik's free tier adds its own branded watermark. Clean downloads require a $4.99–$9.99/month subscription. DropZap removes watermarks for free, forever.",
+      "No 15-second forced video ads. SnapTik's free tier makes you watch a 15-second video ad before every single download. DropZap starts your download immediately.",
+      "No subscription to cancel. There is no billing, no credit card, no free trial that auto-renews. DropZap is simply free.",
+      "More platforms in one place. DropZap covers Instagram, Facebook, Reddit (with sound merged), Twitter/X, Pinterest, and Threads — SnapTik only does TikTok.",
+      "MP3 extraction is free. SnapTik locks audio extraction behind its paid plan. DropZap converts any TikTok to MP3 for free.",
     ],
     howToSteps: [
       {
         name: "Copy the TikTok link",
-        text: "Open TikTok, find the video you want, tap Share, then Copy Link. The link looks like https://www.tiktok.com/@username/video/123456 or a tiktok.com/t/short URL — both work.",
+        text: "Open TikTok, find the video you want, tap Share, then Copy Link. The link looks like https://www.tiktok.com/@username/video/123456 or a short vm.tiktok.com URL — both work.",
       },
       {
-        name: "Open DropZap's TikTok tool",
-        text: "Go to dropzap.digital or dropzap.digital/tiktok-downloader and paste the link into the URL field. There's no signup or captcha.",
+        name: "Open DropZap's TikTok downloader",
+        text: "Go to dropzap.digital/tiktok-downloader and paste the link into the URL field. No signup, no captcha, no payment screen.",
       },
       {
-        name: "Tap Download",
-        text: "DropZap fetches the original watermark-free MP4 from TikTok's CDN and saves it to your device. Total time: about 3-5 seconds.",
+        name: "Tap Download — get a clean MP4 in 3-5 seconds",
+        text: "DropZap fetches the original watermark-free MP4 directly from TikTok's CDN and saves it to your device. No SnapTik subscription needed.",
       },
     ],
     faq: [
       {
-        q: "Why is SnapTik not working?",
-        a: "SnapTik experiences regular outages because TikTok's API changes break its scraping logic, and because it relies heavily on ad-network redirects that sometimes fail to load. DropZap uses yt-dlp, which is updated within days of any TikTok API change, so it stays online consistently.",
+        q: "Why is SnapTik now charging money?",
+        a: "SnapTik introduced a paid subscription model in late 2025. The free tier now adds SnapTik's own watermark to every downloaded video instead of removing TikTok's. Watermark-free downloads require a $4.99–$9.99/month Premium plan. Many guides online still say SnapTik is free — those are outdated.",
       },
       {
-        q: "Is DropZap really free like SnapTik?",
-        a: "Yes. DropZap is 100% free with no subscription, no signup, no daily download cap, and no \"premium\" upsell. The only revenue is from minimal banner ads — never popups or fake buttons.",
+        q: "Is DropZap completely free like the old SnapTik?",
+        a: "Yes. DropZap is 100% free with no subscription, no signup, no daily download cap, and no watermarks. There is no premium tier — everything is free.",
       },
       {
-        q: "Does DropZap remove the TikTok watermark?",
-        a: "Yes. DropZap fetches videos directly from TikTok's source CDN before the watermark is applied, so all downloads are clean MP4 files with no logos.",
+        q: "Does DropZap remove the TikTok watermark without paying?",
+        a: "Yes. DropZap fetches videos directly from TikTok's source before the watermark is applied. Every download is a clean MP4 with no TikTok logo — always free, no subscription required.",
       },
       {
-        q: "Can I switch from SnapTik to DropZap on my phone?",
-        a: "Yes. DropZap works in any mobile browser — Safari on iPhone, Chrome on Android. No app installation or browser extension is required.",
+        q: "How do I cancel my SnapTik subscription and switch?",
+        a: "To cancel SnapTik: go to snaptik.app → Account → Subscription → Cancel. Then use DropZap at dropzap.digital/tiktok-downloader for free watermark-free downloads going forward.",
       },
       {
-        q: "Does DropZap save my TikTok account info?",
-        a: "DropZap never asks for any TikTok credentials. You only need the public video URL. No login, no cookies, no account access.",
+        q: "Can I use DropZap on my phone instead of SnapTik?",
+        a: "Yes. DropZap works in Safari on iPhone and Chrome on Android. No app installation required. The download experience is faster than SnapTik was even before the paywall.",
       },
     ],
     relatedBlogPosts: [
@@ -136,7 +138,7 @@ export const alternativePages: AlternativePage[] = [
       "best-tiktok-downloader-no-watermark",
       "ssstik-alternative",
     ],
-    dateModified: "2026-05-09",
+    dateModified: "2026-06-30",
   },
 
   // -------------------------------------------------------------------
@@ -221,7 +223,7 @@ export const alternativePages: AlternativePage[] = [
       "snaptik-alternative",
       "best-tiktok-downloader-no-watermark",
     ],
-    dateModified: "2026-05-09",
+    dateModified: "2026-06-30",
   },
 
   // -------------------------------------------------------------------
@@ -306,7 +308,7 @@ export const alternativePages: AlternativePage[] = [
       "how-to-download-instagram-carousel",
       "how-to-download-instagram-reels-on-iphone",
     ],
-    dateModified: "2026-05-09",
+    dateModified: "2026-06-30",
   },
 
   // -------------------------------------------------------------------
@@ -388,7 +390,7 @@ export const alternativePages: AlternativePage[] = [
     relatedBlogPosts: [
       "how-to-download-facebook-videos",
     ],
-    dateModified: "2026-05-09",
+    dateModified: "2026-06-30",
   },
 
   // -------------------------------------------------------------------
@@ -470,6 +472,180 @@ export const alternativePages: AlternativePage[] = [
     relatedBlogPosts: [
       "how-to-download-twitter-videos",
     ],
-    dateModified: "2026-05-09",
+    dateModified: "2026-06-30",
+  },
+
+  // -------------------------------------------------------------------
+  // 6. MusicallyDown  (TikTok to MP3 #1 competitor)
+  // -------------------------------------------------------------------
+  {
+    slug: "musicallydown",
+    competitor: "MusicallyDown",
+    competitorLowercase: "musicallydown",
+    metaTitle: "MusicallyDown Alternative — Free TikTok to MP3 Converter (No Limits)",
+    metaDescription:
+      "MusicallyDown hitting daily limits or showing ads? DropZap converts any TikTok to MP3 free — no daily cap, no signup, no redirects. Works on iPhone, Android, and desktop.",
+    keywords: [
+      "musicallydown alternative",
+      "musicallydown not working",
+      "tiktok to mp3 free",
+      "tiktok mp3 downloader",
+      "tiktok audio download",
+      "convert tiktok to mp3",
+      "tiktok to mp3 without watermark",
+      "best tiktok mp3 converter",
+    ],
+    h1: "Free MusicallyDown Alternative — Convert TikTok to MP3 Without Limits",
+    intro:
+      "MusicallyDown is a well-known TikTok-to-MP3 converter, but users report daily download limits on the free tier, heavy banner ads, and frequent slowdowns during peak hours. DropZap's TikTok MP3 converter has no daily cap, no payment wall, and no ads between you and your audio file. Paste a TikTok link, get a clean MP3 in seconds.",
+    primaryPlatform: "TikTok",
+    toolPath: "/tiktok-to-mp3",
+    comparison: [
+      { feature: "TikTok to MP3 (free)",    competitor: "Limited/capped",    dropzap: "Unlimited", highlight: "win" },
+      { feature: "Daily download limit",    competitor: "Yes (free tier)",   dropzap: "No limit" },
+      { feature: "MP4 video download",      competitor: "Yes",               dropzap: "Yes", highlight: "tie" },
+      { feature: "Audio quality",           competitor: "128kbps",           dropzap: "Best available" },
+      { feature: "Banner ads",              competitor: "Heavy",             dropzap: "Minimal" },
+      { feature: "Instagram support",       competitor: "No",                dropzap: "Yes" },
+      { feature: "Reddit (with sound)",     competitor: "No",                dropzap: "Yes" },
+      { feature: "Signup required",         competitor: "No",                dropzap: "No", highlight: "tie" },
+      { feature: "Mobile-first UI",         competitor: "Partial",           dropzap: "Yes" },
+      { feature: "Processing time",         competitor: "5-15 sec",          dropzap: "3-5 sec" },
+    ],
+    whySwitch: [
+      "No daily download limit. MusicallyDown caps free conversions per day. DropZap has no limit — convert as many TikToks to MP3 as you need.",
+      "Clean experience. No redirect ads, no fake \"Download MP3\" buttons that open popups. DropZap shows one button per action.",
+      "Better audio. DropZap extracts audio at the highest bitrate TikTok serves — no re-encoding quality loss.",
+      "Same tool for everything. Also downloads TikTok videos (watermark-free), Instagram Reels, Reddit videos with audio, and more.",
+      "Works on all devices. Mobile Safari, Chrome Android, desktop — no extension or app needed.",
+    ],
+    howToSteps: [
+      {
+        name: "Copy the TikTok video link",
+        text: "Open TikTok, tap Share on the video, then Copy Link. Both full URLs and short vm.tiktok.com links work.",
+      },
+      {
+        name: "Open DropZap's TikTok to MP3 converter",
+        text: "Go to dropzap.digital/tiktok-to-mp3. No account, no captcha, no trial sign-up.",
+      },
+      {
+        name: "Download your MP3",
+        text: "DropZap extracts the audio track and saves it as an MP3 file to your device in 3-5 seconds. No daily limit, no watermark on the audio.",
+      },
+    ],
+    faq: [
+      {
+        q: "Why does MusicallyDown say I've reached my daily limit?",
+        a: "MusicallyDown caps the number of free conversions per day per IP address. DropZap has no such limit — you can convert unlimited TikTok videos to MP3 at no cost.",
+      },
+      {
+        q: "What audio quality does DropZap TikTok to MP3 give?",
+        a: "DropZap extracts audio at the highest bitrate that TikTok serves for that video, typically 128kbps AAC. The quality matches what you hear in the TikTok app — no re-encoding degrades it.",
+      },
+      {
+        q: "Can I convert a TikTok sound or song to MP3?",
+        a: "Yes. Any TikTok video that uses a sound, song, or voiceover can be converted. Paste the video link and DropZap extracts just the audio track as MP3.",
+      },
+      {
+        q: "Does it work for TikTok slideshows with music?",
+        a: "Yes. TikTok photo slideshows include an audio track. DropZap extracts that audio as an MP3 the same way it does for video posts.",
+      },
+      {
+        q: "Is DropZap's TikTok to MP3 free forever?",
+        a: "Yes. DropZap has no premium tier, no subscription, and no trial period. The TikTok to MP3 converter is completely free with no daily limits.",
+      },
+    ],
+    relatedBlogPosts: [
+      "tiktok-to-mp3-converter",
+      "how-to-download-tiktok-without-watermark",
+    ],
+    dateModified: "2026-06-30",
+  },
+
+  // -------------------------------------------------------------------
+  // 7. iGram  (Instagram downloader competitor, high traffic)
+  // -------------------------------------------------------------------
+  {
+    slug: "igram",
+    competitor: "iGram",
+    competitorLowercase: "igram",
+    metaTitle: "iGram Alternative — Download Instagram Reels & Photos Free (No Limits)",
+    metaDescription:
+      "iGram (igram.world) down or slow? DropZap is the fastest iGram alternative for Instagram Reels, photos, carousels, and IGTV. No watermark, no daily limit, no signup.",
+    keywords: [
+      "igram alternative",
+      "igram not working",
+      "igram downloader alternative",
+      "instagram downloader no limit",
+      "igram.world alternative",
+      "instagram reel downloader free",
+      "download instagram reels online",
+    ],
+    h1: "The Best iGram Alternative for Instagram Downloads (2026)",
+    intro:
+      "iGram (igram.world) is a popular Instagram downloader but users frequently report slow loading, broken carousel support, and heavy ad interruptions. DropZap is the cleanest iGram alternative: download Instagram Reels as HD MP4, single photos as JPG, and multi-slide carousels as a full ZIP archive — no daily limits, no popups, no signup required.",
+    primaryPlatform: "Instagram",
+    toolPath: "/instagram-downloader",
+    comparison: [
+      { feature: "Reels / video (HD MP4)",   competitor: "Yes",          dropzap: "Yes", highlight: "tie" },
+      { feature: "Single photo (JPG)",        competitor: "Yes",          dropzap: "Yes", highlight: "tie" },
+      { feature: "Carousel as ZIP",           competitor: "Slide-by-slide", dropzap: "Full ZIP", highlight: "win" },
+      { feature: "Daily download limit",      competitor: "Yes",          dropzap: "No limit" },
+      { feature: "Loading speed",             competitor: "Often slow",   dropzap: "Fast" },
+      { feature: "Popup/overlay ads",         competitor: "Yes",          dropzap: "No" },
+      { feature: "TikTok support",            competitor: "No",           dropzap: "Yes" },
+      { feature: "Reddit (with sound)",       competitor: "No",           dropzap: "Yes" },
+      { feature: "Account required",          competitor: "No",           dropzap: "No", highlight: "tie" },
+      { feature: "Mobile UX",                 competitor: "Cluttered",    dropzap: "Mobile-first" },
+    ],
+    whySwitch: [
+      "No daily download limit. iGram restricts how many downloads you can make per day on the free tier. DropZap has no cap.",
+      "Full carousel downloads. iGram requires you to download each carousel slide one at a time. DropZap packages every slide into a single ZIP file with one click.",
+      "Faster processing. iGram servers frequently slow down under load. DropZap processes downloads in 3-5 seconds consistently.",
+      "No popup ads. iGram shows overlay ads on download clicks. DropZap never does.",
+      "Eight platforms in one. Same tool also handles TikTok, Facebook, Reddit, Twitter/X, Pinterest, and Threads.",
+    ],
+    howToSteps: [
+      {
+        name: "Copy the Instagram link",
+        text: "Open the Reel, photo, or carousel in Instagram. Tap the three-dot (⋯) menu → Copy Link. For desktop, copy the URL from the address bar.",
+      },
+      {
+        name: "Open DropZap Instagram Downloader",
+        text: "Go to dropzap.digital/instagram-downloader. The interface has two input fields: one for Reels/Videos, one for Photos & Carousels. Paste into the correct one.",
+      },
+      {
+        name: "Tap Download",
+        text: "Reels save as HD MP4. Single photos save as full-resolution JPG. Carousels save as a ZIP containing all slides. No iGram account or daily limit applies.",
+      },
+    ],
+    faq: [
+      {
+        q: "Why is iGram not working today?",
+        a: "iGram experiences outages when Instagram updates its internal API, which happens frequently. DropZap uses yt-dlp (updated within 24-48 hours of any Instagram change) and has a cobalt.tools fallback, so it stays online more consistently.",
+      },
+      {
+        q: "Can DropZap download all photos from an Instagram carousel in one click?",
+        a: "Yes. Paste any carousel URL into DropZap and you get a ZIP file containing every slide at original resolution. iGram requires clicking each slide individually.",
+      },
+      {
+        q: "Does DropZap have a daily download limit like iGram?",
+        a: "No. DropZap has no daily download limit. Download as many Instagram Reels, photos, and carousels as you need — it's always free and always unlimited.",
+      },
+      {
+        q: "Does DropZap work for Instagram on iPhone?",
+        a: "Yes. Open Safari → go to dropzap.digital/instagram-downloader → paste link → tap Download. Files save to the Files app. To move to Camera Roll: open the file → Share → Save Video (or Save Image).",
+      },
+      {
+        q: "Is DropZap safe to use for Instagram downloads?",
+        a: "Yes. DropZap never asks for your Instagram login. It only accesses publicly available posts. No credentials, no cookies from your Instagram session are ever needed.",
+      },
+    ],
+    relatedBlogPosts: [
+      "how-to-download-instagram-reels-on-iphone",
+      "how-to-download-instagram-carousel",
+      "snapinsta-alternative",
+    ],
+    dateModified: "2026-06-30",
   },
 ];
