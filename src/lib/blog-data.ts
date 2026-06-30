@@ -5187,8 +5187,8 @@ export const blogPosts: BlogPost[] = [
     },
     related: [
       "how-to-download-instagram-reels-on-iphone",
-      "snaptik-alternative",
-      "how-to-download-tiktok-without-watermark",
+      "best-instagram-downloader-2026-free",
+      "snaptik-now-paid-free-alternative",
     ],
   },
 
@@ -5276,8 +5276,8 @@ export const blogPosts: BlogPost[] = [
     },
     related: [
       "how-to-download-tiktok-without-watermark",
-      "snaptik-alternative",
-      "video-download-iphone-guide",
+      "how-to-save-tiktok-to-camera-roll",
+      "snaptik-now-paid-free-alternative",
     ],
   },
 
@@ -5439,8 +5439,8 @@ export const blogPosts: BlogPost[] = [
     },
     related: [
       "how-to-download-tiktok-without-watermark",
-      "how-to-download-instagram-reels-on-iphone",
-      "video-download-iphone-guide",
+      "tiktok-downloader-pc-laptop",
+      "snaptik-now-paid-free-alternative",
     ],
   },
 
@@ -5522,6 +5522,7 @@ export const blogPosts: BlogPost[] = [
       "how-to-download-instagram-reels-on-iphone",
       "snapinsta-alternative",
       "how-to-download-instagram-carousel",
+      "snaptik-now-paid-free-alternative",
     ],
   },
 ];

@@ -8,6 +8,10 @@ import { glossaryEntries } from "@/lib/glossary-data";
 import { mobilePages } from "@/lib/mobile-pages-data";
 import { yearPages } from "@/lib/year-pages-data";
 
+// Force server-render on every request so new blog posts and programmatic
+// pages appear immediately without needing a full redeploy.
+export const dynamic = "force-dynamic";
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital";
   const lastModified = new Date();
@@ -26,13 +30,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "twitter-video-downloader",
     "facebook-video-downloader",
     "reddit-video-downloader",
+    "threads-downloader",
+  ];
+
+  // High-value standalone pages targeting top competitor / keyword queries
+  const standalonePages = [
+    { slug: "snaptik-alternative", priority: 0.85 as const },
   ];
 
   const blogEntries: MetadataRoute.Sitemap = blogPosts.map((post) => ({
     url: `${baseUrl}/blog/${post.slug}`,
-    lastModified: new Date(post.date),
+    // Use dateModified where available so Google sees the freshness signal
+    // on posts we've updated (e.g. snaptik-alternative now reflects paid model).
+    lastModified: new Date(post.dateModified ?? post.date),
     changeFrequency: "monthly" as const,
-    priority: 0.6,
+    // Higher priority for new high-value posts added June 2026
+    priority: post.date >= "2026-06-01" ? 0.75 : 0.6,
   }));
 
   return [
@@ -47,6 +60,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: stableDate,
       changeFrequency: "weekly" as const,
       priority: 0.9,
+    })),
+    ...standalonePages.map((p) => ({
+      url: `${baseUrl}/${p.slug}`,
+      lastModified: new Date("2026-06-30"),
+      changeFrequency: "monthly" as const,
+      priority: p.priority,
     })),
     // MP3 converter — dedicated page for the high-volume "video to mp3"
     // query family. Tool already exists; the dedicated URL gives Google

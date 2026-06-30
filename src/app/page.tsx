@@ -635,6 +635,52 @@ export default function Home() {
         </div>
       </section>
 
+      {/* SEO: Latest Guides — static internal-link section. This is the
+         primary PageRank pipeline from the homepage (highest DA page on
+         the domain) to the new blog posts that currently have zero
+         referring pages per Google Search Console. Each card is an
+         anchor tag so crawlers follow the links. Grouped by intent:
+         competitor keywords first (highest-value), then how-to, then
+         platform guides. */}
+      <section className="max-w-6xl mx-auto px-4 py-12" aria-labelledby="guides-heading">
+        <h2 id="guides-heading" className="text-2xl sm:text-3xl font-bold text-center mb-2">
+          Latest Guides &amp; Comparisons
+        </h2>
+        <p className="text-center text-muted-foreground text-sm mb-8">
+          In-depth tutorials and tool comparisons from the DropZap team.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[
+            { href: "/snaptik-alternative", label: "SnapTik Alternative", desc: "SnapTik now charges $4.99–$9.99/mo. Best free alternatives in 2026.", tag: "Comparison" },
+            { href: "/blog/snaptik-now-paid-free-alternative", label: "SnapTik Now Paid — What Changed", desc: "Full breakdown of SnapTik's subscription model and which free tools still work.", tag: "News" },
+            { href: "/blog/musicallydown-alternative-no-limit", label: "MusicallyDown Alternative", desc: "MusicallyDown hitting its daily limit? DropZap has no cap and no popunder ads.", tag: "Comparison" },
+            { href: "/blog/best-instagram-downloader-2026-free", label: "Best Instagram Downloader 2026", desc: "We tested 6 Instagram downloaders — here are the best free picks for Reels, photos, and carousels.", tag: "Comparison" },
+            { href: "/blog/threads-video-downloader", label: "Threads Video Downloader", desc: "Download any public Threads video or photo for free in under 10 seconds.", tag: "Tutorial" },
+            { href: "/blog/tiktok-downloader-pc-laptop", label: "TikTok Downloader for PC", desc: "Save TikTok videos on Windows or Mac — no software, no extension, works in any browser.", tag: "Tutorial" },
+            { href: "/blog/how-to-save-tiktok-to-camera-roll", label: "Save TikTok to Camera Roll", desc: "No watermark. Step-by-step for iPhone and Android with screenshots.", tag: "Tutorial" },
+            { href: "/best-tiktok-downloader-2026", label: "Best TikTok Downloader 2026", desc: "Ranked list of every major TikTok downloader — SnapTik, ssstik, DropZap, and more.", tag: "Rankings" },
+            { href: "/blog/how-to-download-tiktok-without-watermark", label: "Download TikTok Without Watermark", desc: "The complete guide to removing TikTok's watermark on every device.", tag: "Tutorial" },
+          ].map((g) => (
+            <a
+              key={g.href}
+              href={g.href}
+              className="glass rounded-xl p-5 hover:-translate-y-0.5 hover:bg-white/10 transition-all block"
+            >
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-600/20 text-purple-400">
+                {g.tag}
+              </span>
+              <h3 className="font-bold mt-2 mb-1 text-foreground">{g.label}</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">{g.desc}</p>
+            </a>
+          ))}
+        </div>
+        <div className="text-center mt-6">
+          <a href="/blog" className="text-sm text-purple-400 hover:underline">
+            View all guides →
+          </a>
+        </div>
+      </section>
+
       {/* === AD ZONE: Bottom Banner === */}
       <div className="max-w-6xl mx-auto px-4 pb-6">
         <AdBanner slot="bottom" />
@@ -658,6 +704,8 @@ export default function Home() {
               <a href="/twitter-video-downloader" className="hover:text-foreground transition-colors">Twitter Downloader</a>
               <a href="/facebook-video-downloader" className="hover:text-foreground transition-colors">Facebook Downloader</a>
               <a href="/reddit-video-downloader" className="hover:text-foreground transition-colors">Reddit Downloader</a>
+              <a href="/threads-downloader" className="hover:text-foreground transition-colors">Threads Downloader</a>
+              <a href="/snaptik-alternative" className="hover:text-foreground transition-colors">SnapTik Alternative</a>
               <a href="/mp3-converter" className="hover:text-foreground transition-colors">MP3 Converter</a>
               <a href="/how-to" className="hover:text-foreground transition-colors">How-To</a>
               <a href="/glossary" className="hover:text-foreground transition-colors">Glossary</a>

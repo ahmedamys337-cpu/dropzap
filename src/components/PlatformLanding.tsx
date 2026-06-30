@@ -20,33 +20,49 @@ const RELATED_LINKS: Record<string, RelatedLink[]> = {
   "tiktok-downloader": [
     { label: "TikTok on iPhone — full guide", href: "/tiktok-downloader/iphone", kind: "device" },
     { label: "TikTok on Android — full guide", href: "/tiktok-downloader/android", kind: "device" },
-    { label: "SnapTik alternative comparison", href: "/alternatives/snaptik", kind: "alt" },
+    { label: "SnapTik alternative (free — SnapTik now paid)", href: "/snaptik-alternative", kind: "alt" },
     { label: "ssstik alternative comparison", href: "/alternatives/ssstik", kind: "alt" },
+    { label: "MusicallyDown alternative — no daily limit", href: "/alternatives/musicallydown", kind: "alt" },
     { label: "How to download TikTok without watermark", href: "/blog/how-to-download-tiktok-without-watermark", kind: "blog" },
-    { label: "7 best TikTok downloaders (tested)", href: "/blog/best-tiktok-downloader-no-watermark", kind: "blog" },
+    { label: "Save TikTok to Camera Roll (no watermark)", href: "/blog/how-to-save-tiktok-to-camera-roll", kind: "blog" },
+    { label: "TikTok downloader for PC & laptop", href: "/blog/tiktok-downloader-pc-laptop", kind: "blog" },
+    { label: "SnapTik now charges $4.99/mo — alternatives", href: "/blog/snaptik-now-paid-free-alternative", kind: "blog" },
+    { label: "7 best TikTok downloaders tested (2026)", href: "/blog/best-tiktok-downloader-no-watermark", kind: "blog" },
   ],
   "tiktok-to-mp3": [
     { label: "TikTok Downloader — save videos", href: "/tiktok-downloader", kind: "alt" },
     { label: "Video to MP3 Converter — upload files", href: "/mp3-converter", kind: "alt" },
+    { label: "MusicallyDown alternative — no limit", href: "/blog/musicallydown-alternative-no-limit", kind: "blog" },
+    { label: "MusicallyDown alternative comparison", href: "/alternatives/musicallydown", kind: "alt" },
   ],
   "instagram-downloader": [
     { label: "Instagram on iPhone — full guide", href: "/instagram-downloader/iphone", kind: "device" },
     { label: "Instagram on Android — full guide", href: "/instagram-downloader/android", kind: "device" },
     { label: "SnapInsta alternative comparison", href: "/alternatives/snapinsta", kind: "alt" },
+    { label: "iGram alternative (no daily limit)", href: "/alternatives/igram", kind: "alt" },
+    { label: "Best Instagram downloader 2026 (tested)", href: "/blog/best-instagram-downloader-2026-free", kind: "blog" },
     { label: "How to download Reels on iPhone", href: "/blog/how-to-download-instagram-reels-on-iphone", kind: "blog" },
     { label: "How to download Instagram carousels", href: "/blog/how-to-download-instagram-carousel", kind: "blog" },
   ],
   "reddit-video-downloader": [
     { label: "Reddit downloader with sound", href: "/reddit-video-downloader/with-sound", kind: "device" },
     { label: "Why Reddit videos download silent (fix)", href: "/blog/reddit-video-no-sound-fix", kind: "blog" },
+    { label: "Save Reddit videos with sound — guide 2026", href: "/blog/save-reddit-video-with-sound", kind: "blog" },
   ],
   "facebook-video-downloader": [
     { label: "GetFVid alternative comparison", href: "/alternatives/getfvid", kind: "alt" },
     { label: "How to download Facebook videos & albums", href: "/blog/how-to-download-facebook-video-2026", kind: "blog" },
+    { label: "Facebook video downloader guide (2026)", href: "/blog/facebook-video-downloader-guide", kind: "blog" },
   ],
   "twitter-video-downloader": [
     { label: "ssstwitter alternative comparison", href: "/alternatives/ssstwitter", kind: "alt" },
     { label: "How to download Twitter / X videos", href: "/blog/how-to-download-twitter-videos", kind: "blog" },
+    { label: "Twitter video downloader guide (2026)", href: "/blog/twitter-video-downloader-guide", kind: "blog" },
+  ],
+  "threads-downloader": [
+    { label: "Threads video downloader guide", href: "/blog/threads-video-downloader", kind: "blog" },
+    { label: "Instagram Downloader (same CDN, same team)", href: "/instagram-downloader", kind: "alt" },
+    { label: "Download Threads video — step-by-step", href: "/download/threads-video-downloader", kind: "blog" },
   ],
 };
 
