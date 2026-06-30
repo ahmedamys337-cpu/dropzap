@@ -126,11 +126,15 @@ async function extractRedditImageUrls(postUrl: string): Promise<string[] | null>
     // lenient and returns the same JSON shape, so we try it first.
     const path = u.pathname.replace(/\/$/, "");
     const jsonUrl = `https://old.reddit.com${path}.json`;
-    const cookieHeader = getCookieHeader("old.reddit.com") || getCookieHeader("reddit.com");
+    const cookieHeader =
+      getCookieHeader("old.reddit.com") ||
+      getCookieHeader("www.reddit.com") ||
+      getCookieHeader("reddit.com");
     const res = await fetch(jsonUrl, {
       headers: {
         "User-Agent": BROWSER_UA,
         "Accept": "application/json",
+        "Referer": "https://old.reddit.com/",
         ...(cookieHeader ? { Cookie: cookieHeader } : {}),
       },
       redirect: "follow",
@@ -283,19 +287,20 @@ async function extractPinterestImageUrls(pinUrl: string): Promise<string[] | nul
           const target = pin || pins[0];
           const images = target.images as Record<string, any>;
           const best = images?.orig?.url || images?.["1200x"]?.url || images?.["736x"]?.url;
-          if (best) return [best];
+          if (best) {
+            // Only skip the image path if the parsed pin data explicitly says
+            // it's a video. A broad "video" substring check would falsely
+            // discard static image pins that mention video in related content.
+            const isVideoPin = !!(target.vimeoId || target.videoUrl || target.isPlayable || target.isVideo);
+            if (!isVideoPin) return [best];
+          }
         }
       } catch (e) {
         // JSON parse failed, fall through to regex below.
       }
     }
 
-    // 3. If this is a video pin, don't return images — let the video path run.
-    if (/"vimeoId"|"video_url"|"isPlayable"\s*:\s*true|"hasRequiredAttribution"[^}]*"video"|"video"\s*:\s*\{/.test(html)) {
-      return null;
-    }
-
-    // 4. Fallback: pick the largest single i.pinimg.com image in the page.
+    // 3. Fallback: pick the largest single i.pinimg.com image in the page.
     const re = /https:\/\/i\.pinimg\.com\/(?:originals|1200x|736x|564x|474x|236x)\/[^"\\\s]+\.(?:jpe?g|png|gif|webp)/gi;
     const matches = html.match(re) || [];
     const byHash = new Map<string, { url: string; size: number }>();
@@ -461,10 +466,15 @@ async function handleDownload(url: string): Promise<Response> {
       const unsupportedMsg = /unsupported url|no video formats/i.test(stderr);
 
       if (platform === "reddit") {
-        return new Response(
-          "Reddit is blocking this server's IP. Reddit downloads need fresh Reddit session cookies in the MEDIA_COOKIES environment variable (Netscape format). Without cookies, both yt-dlp and the Reddit API return blocks from datacenter IPs.",
-          { status: 502 },
+        const hasCookies = !!(
+          getCookieHeader("old.reddit.com") ||
+          getCookieHeader("www.reddit.com") ||
+          getCookieHeader("reddit.com")
         );
+        const msg = hasCookies
+          ? "Reddit rejected the cookies in MEDIA_COOKIES. They may be expired, missing the session cookie, or formatted for www.reddit.com instead of .reddit.com. Export fresh Reddit cookies in Netscape format (domain .reddit.com) and redeploy."
+          : "Reddit is blocking this server's IP. Reddit downloads need fresh Reddit session cookies in the MEDIA_COOKIES environment variable (Netscape format). Without cookies, both yt-dlp and the Reddit API return blocks from datacenter IPs.";
+        return new Response(msg, { status: 502 });
       }
 
       if (platform === "threads") {

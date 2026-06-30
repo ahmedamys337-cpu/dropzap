@@ -112,6 +112,30 @@ export default function SimpleDownloader({
     abortRef.current?.abort();
   }, []);
 
+  // Infer the final download filename from the server's Content-Disposition
+  // header, or from the blob's MIME type. This prevents mixed-media platforms
+  // like Twitter/X and Pinterest from saving images as .mp4.
+  const inferFilename = (res: Response, blob: Blob, fallback: string): string => {
+    const cd = res.headers.get("content-disposition");
+    if (cd) {
+      const match = cd.match(/filename[^;=\n]*=(["']?)([^"';\n]*)\1/);
+      if (match?.[2]) return match[2].trim();
+    }
+    const ext = (() => {
+      const type = blob.type || res.headers.get("content-type") || "";
+      if (type.includes("image/png")) return "png";
+      if (type.includes("image/webp")) return "webp";
+      if (type.includes("image/gif")) return "gif";
+      if (type.includes("image/")) return "jpg";
+      if (type.includes("video/webm")) return "webm";
+      if (type.includes("video/")) return "mp4";
+      if (type.includes("application/zip")) return "zip";
+      return fileExtension;
+    })();
+    const base = fallback.replace(/\.[^.]+$/, "");
+    return `${base}.${ext}`;
+  };
+
   const doDownload = (blob: Blob, name: string) => {
     const objectUrl = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -138,11 +162,11 @@ export default function SimpleDownloader({
       return;
     }
 
-    const name = `${safeFilename(filePrefix, filePrefix)}.${fileExtension}`;
+    const defaultName = `${safeFilename(filePrefix, filePrefix)}.${fileExtension}`;
     const [basePath, baseQuery] = endpoint.split("?");
     const params = new URLSearchParams(baseQuery || "");
     params.set("url", url);
-    params.set("name", name);
+    params.set("name", defaultName);
     const streamUrl = `${basePath}?${params.toString()}`;
 
     adDoneRef.current = false;
@@ -171,10 +195,11 @@ export default function SimpleDownloader({
           return;
         }
         const blob = await res.blob();
-        fetchBlobRef.current = { blob, name };
+        const finalName = inferFilename(res, blob, defaultName);
+        fetchBlobRef.current = { blob, name: finalName };
         fetchDoneRef.current = true;
         if (adDoneRef.current) {
-          doDownload(blob, name);
+          doDownload(blob, finalName);
         }
       })
       .catch((err: any) => {

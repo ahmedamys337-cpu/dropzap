@@ -483,12 +483,38 @@ async function fetchFacebookAlbumFbids(
 async function fetchFacebookImageUrl(postUrl: string): Promise<FbPhotoResult> {
   // Extract fbid (the photo ID) from any URL shape FB uses.
   let fbid: string | null = null;
+  let resolvedUrl = postUrl;
   try {
     const u = new URL(postUrl);
     fbid = u.searchParams.get("fbid");
     if (!fbid) {
       const m = u.pathname.match(/\/photos\/[^\/]+\/(\d+)/);
       if (m) fbid = m[1];
+    }
+
+    // /share/p/XXX and /share/r/XXX are short links that redirect to the real
+    // permalink. Fetch them once to capture the final URL and extract fbid.
+    if (!fbid && /^\/share\/(p|v|reel)\//i.test(u.pathname)) {
+      const res = await fetch(postUrl, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+          "Accept": "text/html,*/*",
+        },
+        redirect: "follow",
+      });
+      resolvedUrl = res.url;
+      const final = new URL(resolvedUrl);
+      fbid = final.searchParams.get("fbid");
+      if (!fbid) {
+        const m2 = final.pathname.match(/\/photos\/[^\/]+\/(\d+)/);
+        if (m2) fbid = m2[1];
+      }
+      // Also scan the final HTML for any fbid in case the URL is opaque.
+      if (!fbid) {
+        const html = await res.text();
+        const m3 = html.match(/(?:photo\.php\?fbid=|\/photo\/\?fbid=|"fbid":"?)(\d{8,})/i);
+        if (m3) fbid = m3[1];
+      }
     }
   } catch {}
 
