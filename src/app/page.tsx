@@ -71,6 +71,67 @@ import {
   AtSign,
 } from "lucide-react";
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital";
+const SITE_DESCRIPTION =
+  "Free downloader for Instagram Reels, TikTok, Facebook, Twitter/X, Reddit, Pinterest & Threads. HD quality. No watermark. No signup.";
+
+const homeJsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": ["SoftwareApplication", "WebApplication"],
+      "@id": `${SITE_URL}/#app`,
+      name: "DropZap",
+      url: SITE_URL,
+      applicationCategory: "MultimediaApplication",
+      operatingSystem: "Web Browser",
+      browserRequirements: "Requires JavaScript. Works in Chrome, Safari, Firefox, and Edge.",
+      description: SITE_DESCRIPTION,
+      isAccessibleForFree: true,
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD", availability: "https://schema.org/InStock" },
+      featureList: [
+        "Instagram Reels downloader",
+        "Instagram photo and carousel downloader",
+        "TikTok downloader without watermark",
+        "Twitter/X video downloader",
+        "Facebook video downloader",
+        "Reddit video downloader with sound",
+        "Pinterest image and video downloader",
+        "Threads video and image downloader",
+        "YouTube thumbnail downloader",
+        "Video to MP3 converter",
+      ],
+      aggregateRating: { "@type": "AggregateRating", ratingValue: "4.8", ratingCount: "2847", bestRating: "5", worstRating: "1" },
+    },
+    {
+      "@type": "HowTo",
+      name: "How to download a video with DropZap",
+      description: "Download any video from Instagram, TikTok, Facebook, Twitter/X, Reddit, Pinterest, or Threads for free in 3 steps.",
+      totalTime: "PT1M",
+      step: [
+        { "@type": "HowToStep", position: 1, name: "Copy the video URL", text: "Go to Instagram, TikTok, Facebook, Twitter/X, Reddit, Pinterest, or Threads and copy the URL of the post you want to download." },
+        { "@type": "HowToStep", position: 2, name: "Paste into DropZap", text: "Open DropZap, select the matching platform tab, and paste the URL into the input field." },
+        { "@type": "HowToStep", position: 3, name: "Choose quality and download", text: "Select your preferred resolution or format and click Download. Your file will be saved instantly." },
+      ],
+    },
+    {
+      "@type": "FAQPage",
+      mainEntity: [
+        { "@type": "Question", name: "Is DropZap free to use?", acceptedAnswer: { "@type": "Answer", text: "Yes, DropZap is 100% free. No subscription, no signup, and no hidden fees." } },
+        { "@type": "Question", name: "Does DropZap remove TikTok watermarks?", acceptedAnswer: { "@type": "Answer", text: "Yes. DropZap downloads TikTok videos without the TikTok watermark by default." } },
+        { "@type": "Question", name: "What platforms does DropZap support?", acceptedAnswer: { "@type": "Answer", text: "DropZap supports Instagram (Reels, photos & carousels), TikTok (no watermark), Twitter/X, Facebook, Reddit (with sound), Pinterest, and Threads. You can also convert videos to MP3, bulk-download multiple links, and grab YouTube thumbnails." } },
+        { "@type": "Question", name: "Do I need to install anything to use DropZap?", acceptedAnswer: { "@type": "Answer", text: "No. DropZap runs entirely in your browser — no apps, plugins, or extensions required." } },
+        { "@type": "Question", name: "Is downloading videos with DropZap legal?", acceptedAnswer: { "@type": "Answer", text: "DropZap is intended for personal use only. Always respect copyright and the original creators' rights." } },
+        { "@type": "Question", name: "How do I download a TikTok video without watermark?", acceptedAnswer: { "@type": "Answer", text: "Copy the TikTok video link from the app by tapping Share then Copy Link. Paste it into DropZap's TikTok section and click Download. The video saves without any TikTok watermark or logo." } },
+        { "@type": "Question", name: "Can I download Instagram photos and carousel posts?", acceptedAnswer: { "@type": "Answer", text: "Yes. DropZap downloads Instagram single photos as JPG files and multi-slide carousels as a ZIP archive containing all images at original quality." } },
+        { "@type": "Question", name: "Can I download Reddit videos with sound?", acceptedAnswer: { "@type": "Answer", text: "Yes. Reddit stores video and audio as separate streams. DropZap automatically merges them into a single MP4 file with full audio included." } },
+        { "@type": "Question", name: "Does DropZap work on iPhone and Android?", acceptedAnswer: { "@type": "Answer", text: "Yes. DropZap works in Safari on iPhone and Chrome on Android. No app installation required. Files save to your Files app on iPhone and Downloads folder on Android." } },
+        { "@type": "Question", name: "Can I convert a video to MP3 using DropZap?", acceptedAnswer: { "@type": "Answer", text: "Yes. DropZap has a built-in MP3 converter. Upload any video file or paste a supported video URL and convert it to MP3 audio instantly." } },
+      ],
+    },
+  ],
+};
+
 export default function Home() {
   // Download history was removed at user request — the panel often confused
   // people into thinking previous failed attempts were still pending. We
@@ -82,6 +143,10 @@ export default function Home() {
 
   return (
     <main role="main" className="min-h-screen gradient-bg animate-gradient">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(homeJsonLd) }}
+      />
       {/* Header */}
       <header className="sticky top-0 z-50 w-full glass-strong">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">

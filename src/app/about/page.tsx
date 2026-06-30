@@ -7,9 +7,9 @@ const SITE_URL =
 
 export const metadata: Metadata = {
   alternates: { canonical: `${SITE_URL}/about` },
-  title: "About DropZap — Free Online Video Downloader",
+  title: "About DropZap — Free Social Media Video Downloader",
   description:
-    "Learn about DropZap, the free, fast, and privacy-friendly online video downloader for YouTube, Instagram, TikTok, Twitter/X, Facebook, and Reddit. No signup, no watermark, 100% browser-based.",
+    "Learn about DropZap, the free, fast, and privacy-friendly online video downloader for Instagram, TikTok, Twitter/X, Facebook, Reddit, Pinterest, and Threads. No signup, no watermark, 100% browser-based.",
   robots: { index: true, follow: true },
 };
 
@@ -25,7 +25,7 @@ export default function AboutPage() {
 
       <h1 className="text-4xl font-bold mb-4">About DropZap</h1>
       <p className="text-lg text-muted-foreground mb-12">
-        Free, fast, and privacy-first media downloader.
+        Free, fast, and privacy-first social media downloader.
       </p>
 
       <div className="space-y-10 text-base leading-relaxed text-muted-foreground">

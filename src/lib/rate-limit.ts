@@ -2,6 +2,18 @@ const rateMap = new Map<string, { count: number; lastReset: number }>();
 const WINDOW_MS = 10000;
 const MAX_REQUESTS = 10;
 
+// Prune stale entries every 5 minutes to prevent unbounded memory growth.
+// Without this, every unique IP that ever hits the server stays in the map
+// forever, potentially consuming hundreds of MB on a busy server.
+if (typeof setInterval !== "undefined") {
+  setInterval(() => {
+    const now = Date.now();
+    for (const [key, entry] of rateMap.entries()) {
+      if (now - entry.lastReset > WINDOW_MS * 2) rateMap.delete(key);
+    }
+  }, 5 * 60 * 1000).unref?.();
+}
+
 export function rateLimit(ip: string): { success: boolean; retryAfter?: number } {
   const now = Date.now();
   const entry = rateMap.get(ip);

@@ -11,6 +11,7 @@ import { getGenericCookiesArgs, getCookieHeader } from "@/lib/ytdlp";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 // =============================================================================
 // /api/photos
@@ -56,15 +57,19 @@ function platformPrefix(url: string): string {
   return "post";
 }
 
-function runYtDlpJson(args: string[]): Promise<{ code: number; stdout: string; stderr: string }> {
+function runYtDlpJson(args: string[], timeoutMs = 60000): Promise<{ code: number; stdout: string; stderr: string }> {
   return new Promise((resolve) => {
     const proc = spawn("yt-dlp", args, { stdio: ["ignore", "pipe", "pipe"] });
     let stdout = "";
     let stderr = "";
+    const timer = setTimeout(() => {
+      try { proc.kill("SIGKILL"); } catch {}
+      resolve({ code: 1, stdout, stderr: stderr + "\n[timeout] yt-dlp process timed out" });
+    }, timeoutMs);
     proc.stdout?.on("data", (c: Buffer) => { stdout += c.toString(); });
     proc.stderr?.on("data", (c: Buffer) => { stderr += c.toString(); });
-    proc.on("close", (code) => resolve({ code: code ?? 1, stdout, stderr }));
-    proc.on("error", () => resolve({ code: 1, stdout, stderr }));
+    proc.on("close", (code) => { clearTimeout(timer); resolve({ code: code ?? 1, stdout, stderr }); });
+    proc.on("error", () => { clearTimeout(timer); resolve({ code: 1, stdout, stderr }); });
   });
 }
 

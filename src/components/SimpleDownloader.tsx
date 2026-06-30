@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { safeFilename } from "@/lib/download";
 import AdCountdown from "@/components/AdCountdown";
-import { Download, Loader2, Clipboard, X, CheckCircle2, AlertCircle } from "lucide-react";
+import { Download, Loader2, Clipboard, X, CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
 
 /**
  * Single-button downloader used by every "non-YouTube" platform (TikTok,
@@ -308,6 +308,11 @@ export default function SimpleDownloader({
           <>
             <CheckCircle2 className="h-5 w-5 mr-2" />
             Downloaded ✓
+          </>
+        ) : isError ? (
+          <>
+            <RefreshCw className="h-5 w-5 mr-2" />
+            Try Again
           </>
         ) : (
           <>

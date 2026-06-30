@@ -11,6 +11,10 @@ import { yearPages } from "@/lib/year-pages-data";
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital";
   const lastModified = new Date();
+  // Stable date for pages that don't change with each deploy.
+  // Using new Date() for everything signals every page changed today on
+  // every crawl — Google eventually stops trusting lastModified for the domain.
+  const stableDate = new Date("2026-06-01");
 
   // /youtube-downloader is intentionally excluded — the page now 308s to /
   // while YouTube downloads are disabled. Listing it would cause search
@@ -40,7 +44,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     ...platformPages.map((slug) => ({
       url: `${baseUrl}/${slug}`,
-      lastModified,
+      lastModified: stableDate,
       changeFrequency: "weekly" as const,
       priority: 0.9,
     })),
@@ -49,7 +53,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // a clean target instead of the homepage tab.
     {
       url: `${baseUrl}/mp3-converter`,
-      lastModified,
+      lastModified: stableDate,
       changeFrequency: "weekly" as const,
       priority: 0.85,
     },
@@ -127,31 +131,31 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
     {
       url: `${baseUrl}/about`,
-      lastModified,
+      lastModified: stableDate,
       changeFrequency: "monthly",
       priority: 0.5,
     },
     {
       url: `${baseUrl}/contact`,
-      lastModified,
+      lastModified: stableDate,
       changeFrequency: "monthly",
       priority: 0.5,
     },
     {
       url: `${baseUrl}/privacy`,
-      lastModified,
+      lastModified: stableDate,
       changeFrequency: "yearly",
       priority: 0.3,
     },
     {
       url: `${baseUrl}/terms`,
-      lastModified,
+      lastModified: stableDate,
       changeFrequency: "yearly",
       priority: 0.3,
     },
     {
       url: `${baseUrl}/dmca`,
-      lastModified,
+      lastModified: stableDate,
       changeFrequency: "yearly",
       priority: 0.3,
     },

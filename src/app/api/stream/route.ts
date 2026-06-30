@@ -15,6 +15,7 @@ import {
 } from "@/lib/ytdlp";
 import { resolveViaCobalt, isCobaltConfigured } from "@/lib/cobalt";
 import { getGenericCookiesArgs } from "@/lib/ytdlp";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -157,12 +158,17 @@ function runFfmpegStream(
 }
 
 export async function GET(request: NextRequest) {
+  const ip = getClientIp(request);
+  const limit = rateLimit(ip);
+  if (!limit.success) {
+    return new Response(`Rate limited. Try again in ${limit.retryAfter}s`, { status: 429 });
+  }
+
   const url = request.nextUrl.searchParams.get("url");
   const format = request.nextUrl.searchParams.get("f") || "best";
   const heightParam = request.nextUrl.searchParams.get("h");
   const filename = request.nextUrl.searchParams.get("name") || "download.mp4";
   const audio = request.nextUrl.searchParams.get("audio") === "1";
-
 
   if (!url) {
     console.warn("[stream] missing URL");

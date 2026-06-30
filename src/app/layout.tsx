@@ -144,6 +144,11 @@ export const metadata: Metadata = {
   },
 };
 
+// Site-wide identity schemas only — WebSite and Organization.
+// WebApplication, HowTo, and FAQPage are emitted per-page (homepage + each
+// platform page) so they are never duplicated across routes. Duplicate
+// structured-data types on the same URL cause Google to suppress or
+// ignore all instances, costing rich-result eligibility sitewide.
 const jsonLd = {
   "@context": "https://schema.org",
   "@graph": [
@@ -152,11 +157,6 @@ const jsonLd = {
       "@id": `${SITE_URL}/#website`,
       url: SITE_URL,
       name: SITE_NAME,
-      // Multiple alternateName values seed Google's Knowledge Graph
-      // with the brand variants we actually want to rank for. The
-      // single-word "DropZap" SERP collides with an iOS puzzle game
-      // entity, so we explicitly register the disambiguating brand
-      // forms users actually type when looking for the downloader.
       alternateName: [
         SITE_TAGLINE,
         "DropZap Downloader",
@@ -176,11 +176,6 @@ const jsonLd = {
       "@type": "Organization",
       "@id": `${SITE_URL}/#organization`,
       name: SITE_NAME,
-      // Same disambiguation strategy on the Organization node, plus
-      // an explicit `disambiguatingDescription` that tells Google
-      // we are NOT the iOS puzzle game by Amir Michail. This is the
-      // single highest-leverage Knowledge Graph signal for a brand
-      // that collides with a pre-existing entity.
       alternateName: [
         "DropZap Downloader",
         "DropZap Media Downloader",
@@ -196,24 +191,8 @@ const jsonLd = {
         width: 512,
         height: 512,
       },
-      // sameAs is the strongest Knowledge Graph signal we have for
-      // brand entity establishment. Each verified social profile
-      // creates a graph edge Google's KG ingestion respects. List
-      // every external profile we control \u2014 even empty ones \u2014
-      // so the entity has multiple anchor points.
-      // TODO(user): replace these placeholders with real URLs as
-      // social profiles are created. Each entry must point to a
-      // page that itself links back to dropzap.digital, otherwise
-      // Google won't establish the bidirectional graph edge.
-      sameAs: [
-        "https://twitter.com/dropzap",
-        "https://x.com/dropzap",
-        "https://www.facebook.com/dropzap",
-        "https://www.youtube.com/@dropzap",
-        "https://github.com/dropzap",
-      ],
       foundingDate: "2026-04-01",
-      slogan: "Free media downloader \u2014 Instagram, TikTok, Facebook, Reddit, and more.",
+      slogan: "Free media downloader — Instagram, TikTok, Facebook, Reddit, and more.",
       knowsAbout: [
         "Instagram Reels download",
         "TikTok video download without watermark",
@@ -224,158 +203,6 @@ const jsonLd = {
         "Threads media download",
         "YouTube thumbnail download",
         "Video to MP3 conversion",
-      ],
-    },
-    {
-      // WebApplication is a more specific subtype of SoftwareApplication
-      // that AI/answer engines (Perplexity, ChatGPT Search, Google AI
-      // Overviews) treat as a first-class citable entity. Including
-      // aggregateRating gives the entity star-rating eligibility in
-      // SERP rich results when traffic justifies it.
-      "@type": "WebApplication",
-      "@id": `${SITE_URL}/#app`,
-      name: SITE_NAME,
-      url: SITE_URL,
-      applicationCategory: "MultimediaApplication",
-      operatingSystem: "Web Browser",
-      browserRequirements: "Requires JavaScript. Works in Chrome, Safari, Firefox, and Edge.",
-      description: SITE_DESCRIPTION,
-      screenshot: `${SITE_URL}/opengraph-image`,
-      offers: {
-        "@type": "Offer",
-        price: "0",
-        priceCurrency: "USD",
-        availability: "https://schema.org/InStock",
-      },
-      featureList: [
-        "Instagram Reels downloader",
-        "Instagram photo and carousel downloader",
-        "TikTok downloader without watermark",
-        "Twitter/X video downloader",
-        "Facebook video downloader",
-        "Reddit video downloader with sound",
-        "Pinterest image and video downloader",
-        "Threads video and image downloader",
-        "YouTube thumbnail downloader",
-        "Video to MP3 converter",
-      ],
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: "4.8",
-        ratingCount: "2847",
-        bestRating: "5",
-        worstRating: "1",
-      },
-    },
-    {
-      "@type": "HowTo",
-      name: "How to download a video with DropZap",
-      description: "Download any video from Instagram, TikTok, Facebook, Twitter/X, Reddit, Pinterest, or Threads for free in 3 steps.",
-      totalTime: "PT1M",
-      step: [
-        {
-          "@type": "HowToStep",
-          position: 1,
-          name: "Copy the video URL",
-          text: "Go to Instagram, TikTok, Facebook, Twitter/X, Reddit, Pinterest, or Threads and copy the URL of the post you want to download.",
-        },
-        {
-          "@type": "HowToStep",
-          position: 2,
-          name: "Paste into DropZap",
-          text: "Open DropZap, select the matching platform tab, and paste the URL into the input field.",
-        },
-        {
-          "@type": "HowToStep",
-          position: 3,
-          name: "Choose quality and download",
-          text: "Select your preferred resolution or format and click Download. Your file will be saved instantly.",
-        },
-      ],
-    },
-    {
-      "@type": "FAQPage",
-      mainEntity: [
-        {
-          "@type": "Question",
-          name: "Is DropZap free to use?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Yes, DropZap is 100% free. No subscription, no signup, and no hidden fees.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Does DropZap remove TikTok watermarks?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Yes. DropZap downloads TikTok videos without the TikTok watermark by default.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "What platforms does DropZap support?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "DropZap supports Instagram (Reels, photos & carousels), TikTok (no watermark), Twitter/X, Facebook, Reddit (with sound), Pinterest, and Threads. You can also convert videos to MP3, bulk-download multiple links, and grab YouTube thumbnails.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Do I need to install anything to use DropZap?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "No. DropZap runs entirely in your browser — no apps, plugins, or extensions required.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Is downloading videos with DropZap legal?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "DropZap is intended for personal use only. Always respect copyright and the original creators' rights.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "How do I download a TikTok video without watermark?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Copy the TikTok video link from the app by tapping Share then Copy Link. Paste it into DropZap's TikTok section and click Download. The video saves without any TikTok watermark or logo.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Can I download Instagram photos and carousel posts?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Yes. DropZap downloads Instagram single photos as JPG files and multi-slide carousels as a ZIP archive containing all images at original quality.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Can I download Reddit videos with sound?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Yes. Reddit stores video and audio as separate streams. DropZap automatically merges them into a single MP4 file with full audio included.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Does DropZap work on iPhone and Android?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Yes. DropZap works in Safari on iPhone and Chrome on Android. No app installation required. Files save to your Files app on iPhone and Downloads folder on Android.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Can I convert a video to MP3 using DropZap?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Yes. DropZap has a built-in MP3 converter. Upload any video file or paste a supported video URL and convert it to MP3 audio instantly.",
-          },
-        },
       ],
     },
   ],

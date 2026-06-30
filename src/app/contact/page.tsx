@@ -72,7 +72,7 @@ export default function ContactPage() {
           const Icon = opt.icon;
           return (
             <div
-              key={opt.email}
+              key={opt.title}
               className="p-6 rounded-xl border border-border bg-card flex gap-4 items-start"
             >
               <div className="shrink-0">
