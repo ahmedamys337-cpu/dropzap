@@ -96,6 +96,12 @@ export const metadata: Metadata = {
     images: ["/opengraph-image"],
     creator: "@dropzap",
   },
+  icons: {
+    icon: "/favicon.ico",
+  },
+  other: {
+    "rss": `${SITE_URL}/feed.xml`,
+  },
   robots: {
     index: true,
     follow: true,

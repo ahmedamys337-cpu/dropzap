@@ -17,6 +17,12 @@ export const metadata: Metadata = {
     description: "Expert guides on downloading videos from YouTube, TikTok, Instagram, Twitter, Facebook & Reddit.",
     images: [{ url: "/opengraph-image", width: 1200, height: 630 }],
   },
+  icons: {
+    icon: "/favicon.ico",
+  },
+  other: {
+    "rss": `${SITE_URL}/feed.xml`,
+  },
 };
 
 export default function BlogIndex() {
