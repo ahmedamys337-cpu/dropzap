@@ -714,7 +714,11 @@ export default function Home() {
               <a href="/instagram-reels-downloader" className="hover:text-foreground transition-colors">Instagram Reels Downloader</a>
               <a href="/instagram-photo-downloader" className="hover:text-foreground transition-colors">Instagram Photo Downloader</a>
               <a href="/pinterest-video-downloader" className="hover:text-foreground transition-colors">Pinterest Video Downloader</a>
+              <a href="/tiktok-sound-downloader" className="hover:text-foreground transition-colors">TikTok Sound Downloader</a>
+              <a href="/facebook-reel-downloader" className="hover:text-foreground transition-colors">Facebook Reels Downloader</a>
               <a href="/mp3-converter" className="hover:text-foreground transition-colors">MP3 Converter</a>
+              <a href="/tools" className="hover:text-foreground transition-colors">All Tools</a>
+              <a href="/compare" className="hover:text-foreground transition-colors">Compare</a>
               <a href="/how-to" className="hover:text-foreground transition-colors">How-To</a>
               <a href="/glossary" className="hover:text-foreground transition-colors">Glossary</a>
               <a href="/blog" className="hover:text-foreground transition-colors">Blog</a>

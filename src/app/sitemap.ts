@@ -41,6 +41,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { slug: "instagram-reels-downloader", priority: 0.85 as const },
     { slug: "instagram-photo-downloader", priority: 0.85 as const },
     { slug: "pinterest-video-downloader", priority: 0.85 as const },
+    { slug: "tiktok-sound-downloader", priority: 0.85 as const },
+    { slug: "facebook-reel-downloader", priority: 0.85 as const },
+    { slug: "tools", priority: 0.8 as const },
+    { slug: "compare", priority: 0.8 as const },
     // Keyword vanity redirects (301 to canonical pages, but listed for
     // discovery so Google indexes the target URL under these query terms)
     { slug: "tiktok-downloader-for-iphone", priority: 0.7 as const },

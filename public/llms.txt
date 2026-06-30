@@ -53,6 +53,10 @@ No account creation, no software installation, and no fees are required.
 - Instagram Reels Downloader (save Reels as MP4): https://www.dropzap.digital/instagram-reels-downloader
 - Instagram Photo Downloader (save photos as JPG): https://www.dropzap.digital/instagram-photo-downloader
 - Pinterest Video Downloader (save videos as MP4): https://www.dropzap.digital/pinterest-video-downloader
+- TikTok Sound Downloader (extract audio as MP3): https://www.dropzap.digital/tiktok-sound-downloader
+- Facebook Reels Downloader (save Reels as MP4): https://www.dropzap.digital/facebook-reel-downloader
+- All Tools Index (complete tool list): https://www.dropzap.digital/tools
+- Downloader Comparison (DropZap vs competitors): https://www.dropzap.digital/compare
 
 # Device-Specific Tool Pages
 
