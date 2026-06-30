@@ -241,13 +241,20 @@ async function extractPinterestImageUrls(pinUrl: string): Promise<string[] | nul
     if (!res.ok) return null;
     const html = await res.text();
 
-    // 1. Parse the Pinterest initial-props JSON if present.
+    // 1. og:image is the most reliable signal for the MAIN pin image.
+    //    Pinterest sets it to the highest-quality canonical image for the pin,
+    //    so use it directly and avoid accidentally grabbing related-pin thumbs.
+    const og = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
+    if (og && og[1]) {
+      const ogUrl = og[1].replace(/&amp;/g, "&");
+      if (/i\.pinimg\.com/i.test(ogUrl)) return [ogUrl];
+    }
+
+    // 2. Parse the Pinterest initial-props JSON if present.
     const propsMatch = html.match(/<script[^>]*id=["']__PWS_INITIAL_PROPS__["'][^>]*>([^]*?)<\/script>/i);
     if (propsMatch) {
       try {
         const props = JSON.parse(propsMatch[1].replace(/^\s*<!--\s*/, "").replace(/\s*-->\s*$/, ""));
-        // The pin data is deeply nested; walk the props object to find the
-        // first object that looks like a pin with images.
         const pins: Record<string, any>[] = [];
         const walk = (obj: any) => {
           if (!obj || typeof obj !== "object") return;
@@ -257,7 +264,6 @@ async function extractPinterestImageUrls(pinUrl: string): Promise<string[] | nul
           }
           for (const [k, v] of Object.entries(obj)) {
             if (k === "images" && v && typeof v === "object" && !Array.isArray(v)) {
-              // Check if this is a pin (has images.orig, images.736x, etc.)
               const img = v as Record<string, any>;
               if (img.orig || img["1200x"] || img["736x"]) {
                 pins.push(obj as Record<string, any>);
@@ -269,7 +275,6 @@ async function extractPinterestImageUrls(pinUrl: string): Promise<string[] | nul
         walk(props);
 
         if (pins.length > 0) {
-          // Prefer the pin that has a title/id matching the URL.
           const urlId = pinUrl.match(/\/pin\/(\d+)/)?.[1];
           const pin = urlId
             ? pins.find((p) => p.id === urlId || p.entityId === urlId || p.nativePinId === urlId)
@@ -279,51 +284,37 @@ async function extractPinterestImageUrls(pinUrl: string): Promise<string[] | nul
           const images = target.images as Record<string, any>;
           const best = images?.orig?.url || images?.["1200x"]?.url || images?.["736x"]?.url;
           if (best) return [best];
-
-          // Carousel-style pins expose story pins with multiple pages.
-          const pages = target.storyPinData?.pages || target.pages;
-          if (Array.isArray(pages)) {
-            const urls: string[] = [];
-            for (const page of pages) {
-              const pageImages = page?.images as Record<string, any>;
-              const img = pageImages?.orig?.url || pageImages?.["1200x"]?.url || pageImages?.["736x"]?.url;
-              if (img) urls.push(img);
-            }
-            if (urls.length > 0) return urls;
-          }
         }
       } catch (e) {
-        // JSON parse failed, fall through to regex/og-image below.
+        // JSON parse failed, fall through to regex below.
       }
     }
 
-    // 2. If this is a video pin, don't return images — let the video path run.
+    // 3. If this is a video pin, don't return images — let the video path run.
     if (/"vimeoId"|"video_url"|"isPlayable"\s*:\s*true|"hasRequiredAttribution"[^}]*"video"|"video"\s*:\s*\{/.test(html)) {
       return null;
     }
 
-    // 3. Fallback: regex out the main pin image URLs only from the JSON blob.
-    //    We now match the FULL i.pinimg.com URLs embedded in the JSON and
-    //    upgrade them to /originals/ to avoid small thumbnails.
-    const re = /https:\/\/i\.pinimg\.com\/(?:originals|736x|474x|236x)\/[^"\\\s]+\.(?:jpe?g|png|gif|webp)/gi;
+    // 4. Fallback: pick the largest single i.pinimg.com image in the page.
+    const re = /https:\/\/i\.pinimg\.com\/(?:originals|1200x|736x|564x|474x|236x)\/[^"\\\s]+\.(?:jpe?g|png|gif|webp)/gi;
     const matches = html.match(re) || [];
     const byHash = new Map<string, { url: string; size: number }>();
     for (const u of matches) {
       const hashKey = u.replace(/\/i\.pinimg\.com\/[^/]+\//, "").split("?")[0];
-      const size = u.includes("/originals/") ? 4 : u.includes("/736x/") ? 3 : u.includes("/474x/") ? 2 : 1;
+      const size = u.includes("/originals/") ? 5 : u.includes("/1200x/") ? 4 : u.includes("/736x/") ? 3 : u.includes("/564x/") ? 2 : 1;
       const prev = byHash.get(hashKey);
       if (!prev || size > prev.size) {
-        // Upgrade to /originals/ so we always return the highest quality.
         const upgraded = u.replace(/\/i\.pinimg\.com\/[^/]+\//, "/i.pinimg.com/originals/");
         byHash.set(hashKey, { url: upgraded, size });
       }
     }
-    const unique = Array.from(byHash.values()).map((v) => v.url);
-    if (unique.length > 0) return unique;
-
-    // 4. Last resort: og:image (usually lower res, but always present).
-    const og = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
-    if (og && og[1]) return [og[1].replace(/&amp;/g, "&")];
+    const values = Array.from(byHash.values());
+    if (values.length > 0) {
+      // Return only the single largest image. Pinterest carousels are rare and
+      // the current regex is too noisy to reliably return multi-slide ZIPs.
+      values.sort((a, b) => b.size - a.size);
+      return [values[0].url];
+    }
     return null;
   } catch (e: any) {
     console.warn(`[auto:pinterest] extractor threw:`, e?.message);
