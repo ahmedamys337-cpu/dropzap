@@ -40,6 +40,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { slug: "tiktok-watermark-remover", priority: 0.85 as const },
     { slug: "instagram-reels-downloader", priority: 0.85 as const },
     { slug: "instagram-photo-downloader", priority: 0.85 as const },
+    { slug: "pinterest-video-downloader", priority: 0.85 as const },
   ];
 
   const blogEntries: MetadataRoute.Sitemap = blogPosts.map((post) => ({

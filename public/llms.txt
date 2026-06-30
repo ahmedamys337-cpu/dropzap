@@ -52,6 +52,7 @@ No account creation, no software installation, and no fees are required.
 - TikTok Watermark Remover (remove TikTok logo): https://www.dropzap.digital/tiktok-watermark-remover
 - Instagram Reels Downloader (save Reels as MP4): https://www.dropzap.digital/instagram-reels-downloader
 - Instagram Photo Downloader (save photos as JPG): https://www.dropzap.digital/instagram-photo-downloader
+- Pinterest Video Downloader (save videos as MP4): https://www.dropzap.digital/pinterest-video-downloader
 
 # Device-Specific Tool Pages
 
