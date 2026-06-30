@@ -653,6 +653,7 @@ export default function Home() {
           {[
             { href: "/free-tiktok-downloader", label: "Free TikTok Downloader", desc: "100% free TikTok downloader — no watermark, no signup, no limit.", tag: "Tool" },
             { href: "/tiktok-watermark-remover", label: "TikTok Watermark Remover", desc: "Remove TikTok logo from videos for free. No app, no software.", tag: "Tool" },
+            { href: "/instagram-reels-downloader", label: "Instagram Reels Downloader", desc: "Download Instagram Reels as MP4 — no login, no watermark.", tag: "Tool" },
             { href: "/snaptik-alternative", label: "SnapTik Alternative", desc: "SnapTik now charges $4.99–$9.99/mo. Best free alternatives in 2026.", tag: "Comparison" },
             { href: "/blog/snaptik-now-paid-free-alternative", label: "SnapTik Now Paid — What Changed", desc: "Full breakdown of SnapTik's subscription model and which free tools still work.", tag: "News" },
             { href: "/blog/musicallydown-alternative-no-limit", label: "MusicallyDown Alternative", desc: "MusicallyDown hitting its daily limit? DropZap has no cap and no popunder ads.", tag: "Comparison" },
@@ -708,6 +709,7 @@ export default function Home() {
               <a href="/snaptik-alternative" className="hover:text-foreground transition-colors">SnapTik Alternative</a>
               <a href="/free-tiktok-downloader" className="hover:text-foreground transition-colors">Free TikTok Downloader</a>
               <a href="/tiktok-watermark-remover" className="hover:text-foreground transition-colors">TikTok Watermark Remover</a>
+              <a href="/instagram-reels-downloader" className="hover:text-foreground transition-colors">Instagram Reels Downloader</a>
               <a href="/mp3-converter" className="hover:text-foreground transition-colors">MP3 Converter</a>
               <a href="/how-to" className="hover:text-foreground transition-colors">How-To</a>
               <a href="/glossary" className="hover:text-foreground transition-colors">Glossary</a>

@@ -38,6 +38,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { slug: "snaptik-alternative", priority: 0.85 as const },
     { slug: "free-tiktok-downloader", priority: 0.85 as const },
     { slug: "tiktok-watermark-remover", priority: 0.85 as const },
+    { slug: "instagram-reels-downloader", priority: 0.85 as const },
   ];
 
   const blogEntries: MetadataRoute.Sitemap = blogPosts.map((post) => ({
