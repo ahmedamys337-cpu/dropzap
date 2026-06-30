@@ -216,6 +216,17 @@ const jsonLd = {
         "Video to MP3 conversion",
       ],
     },
+    {
+      "@type": "FAQPage",
+      mainEntity: [
+        { "@type": "Question", name: "Is DropZap free?", acceptedAnswer: { "@type": "Answer", text: "Yes. DropZap is 100% free with no subscription, no signup, and no hidden fees." } },
+        { "@type": "Question", name: "Does DropZap remove TikTok watermarks?", acceptedAnswer: { "@type": "Answer", text: "Yes. DropZap downloads TikTok videos from the source before the watermark is applied, so the downloaded MP4 has no TikTok logo or username overlay." } },
+        { "@type": "Question", name: "Do I need to create an account?", acceptedAnswer: { "@type": "Answer", text: "No. DropZap never asks for your email, phone number, or social media login. Just paste the URL and download." } },
+        { "@type": "Question", name: "Is there a daily download limit?", acceptedAnswer: { "@type": "Answer", text: "No. DropZap has no daily limit. You can download as many files as you need in a single session." } },
+        { "@type": "Question", name: "Does DropZap work on iPhone?", acceptedAnswer: { "@type": "Answer", text: "Yes. Open DropZap in Safari on your iPhone, paste the URL, and download. The file saves to Files. Tap Share → Save Video for Camera Roll." } },
+        { "@type": "Question", name: "Does DropZap work on Android?", acceptedAnswer: { "@type": "Answer", text: "Yes. Open DropZap in Chrome on Android, paste the URL, and download. The file saves directly to your Downloads folder and appears in your Gallery." } },
+      ],
+    },
   ],
 };
 
