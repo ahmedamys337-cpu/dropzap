@@ -122,9 +122,11 @@ async function extractRedditImageUrls(postUrl: string): Promise<string[] | null>
     }
 
     // Case 2/3: fetch <url>.json
-    // Reddit's www host requires UA + cookies. old.reddit.com is more lenient.
-    const jsonUrl = `https://www.reddit.com${u.pathname.replace(/\/$/, "")}.json`;
-    const cookieHeader = getCookieHeader("www.reddit.com") || getCookieHeader("reddit.com");
+    // Reddit's www host blocks most datacenter IPs. old.reddit.com is far more
+    // lenient and returns the same JSON shape, so we try it first.
+    const path = u.pathname.replace(/\/$/, "");
+    const jsonUrl = `https://old.reddit.com${path}.json`;
+    const cookieHeader = getCookieHeader("old.reddit.com") || getCookieHeader("reddit.com");
     const res = await fetch(jsonUrl, {
       headers: {
         "User-Agent": BROWSER_UA,
@@ -192,20 +194,33 @@ async function extractTwitterImageUrls(tweetUrl: string): Promise<string[] | nul
       if (/https:\/\/pbs\.twimg\.com\/media\/[^"]+\.(?:jpe?g|png|webp)(?:\?|$)/i.test(u)) urls.push(u);
     }
 
-    // 2. og:image tag (usually the first image, lower res but reliable).
-    if (urls.length === 0) {
-      const og = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
-      if (og && og[1]) urls.push(og[1].replace(/&amp;/g, "&"));
-    }
-
-    // 3. JSON shapes like: "url":"https://pbs.twimg.com/media/...?format=jpg&name=..."
+    // 2. JSON shapes like: "url":"https://pbs.twimg.com/media/...?format=jpg&name=..."
     const altRe = /"url"\s*:\s*"([^"]+)"/gi;
     for (const m of html.matchAll(altRe)) {
       const u = m[1].replace(/\\/g, "");
       if (/https:\/\/pbs\.twimg\.com\/media\/[^"]+\.(?:jpe?g|png|webp)(?:\?|$)/i.test(u)) urls.push(u);
     }
 
-    return urls.length > 0 ? [...new Set(urls)] : null;
+    // 3. Upgrade every URL to original quality and dedupe by media ID.
+    const seen = new Set<string>();
+    const upgraded: string[] = [];
+    for (const raw of urls) {
+      const u = new URL(raw);
+      // Force original quality. name=orig is the highest native quality; for
+      // PNG/WebP images name=orig still works, so it's safe as a default.
+      u.searchParams.set("name", "orig");
+      const mediaId = u.pathname.replace(/^.*\/media\//, "").split(".")[0];
+      if (seen.has(mediaId)) continue;
+      seen.add(mediaId);
+      upgraded.push(u.toString());
+    }
+
+    if (upgraded.length > 0) return upgraded;
+
+    // 4. og:image tag (last resort: usually the first image, lower res).
+    const og = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
+    if (og && og[1]) return [og[1].replace(/&amp;/g, "&")];
+    return null;
   } catch (e: any) {
     console.warn(`[auto:twitter] extractor threw:`, e?.message);
     return null;
@@ -213,12 +228,12 @@ async function extractTwitterImageUrls(tweetUrl: string): Promise<string[] | nul
 }
 
 // ── Pinterest ────────────────────────────────────────────────────────────────
-// Pinterest's pin pages embed all media URLs in a JSON blob inside a
-// <script id="__PWS_INITIAL_PROPS__"> or <script id="__PWS_DATA__"> tag.
-// Easier and more reliable than yt-dlp for image pins.
+// Pinterest's pin pages embed the pin data in a JSON blob inside
+// <script id="__PWS_INITIAL_PROPS__">. We parse that blob to extract ONLY the
+// main pin image(s). This avoids grabbing related-pin thumbnails, and it lets
+// us detect video pins so we can fall through to yt-dlp/Cobalt for video.
 async function extractPinterestImageUrls(pinUrl: string): Promise<string[] | null> {
   try {
-    // pin.it short links redirect to pinterest.com/pin/<id>/
     const res = await fetch(pinUrl, {
       headers: { "User-Agent": BROWSER_UA, "Accept": "text/html,*/*" },
       redirect: "follow",
@@ -226,28 +241,89 @@ async function extractPinterestImageUrls(pinUrl: string): Promise<string[] | nul
     if (!res.ok) return null;
     const html = await res.text();
 
-    // The page embeds a big JSON blob. We regex out every i.pinimg.com image
-    // URL. Pinterest uses several size buckets; /originals/ is full resolution,
-    // but carousel/slide posts often expose /736x/ or /474x/ for every slide
-    // while only the first two originals are present. We capture all sizes
-    // then return the highest-resolution variant for each unique image hash.
+    // 1. Parse the Pinterest initial-props JSON if present.
+    const propsMatch = html.match(/<script[^>]*id=["']__PWS_INITIAL_PROPS__["'][^>]*>([^]*?)<\/script>/i);
+    if (propsMatch) {
+      try {
+        const props = JSON.parse(propsMatch[1].replace(/^\s*<!--\s*/, "").replace(/\s*-->\s*$/, ""));
+        // The pin data is deeply nested; walk the props object to find the
+        // first object that looks like a pin with images.
+        const pins: Record<string, any>[] = [];
+        const walk = (obj: any) => {
+          if (!obj || typeof obj !== "object") return;
+          if (Array.isArray(obj)) {
+            for (const item of obj) walk(item);
+            return;
+          }
+          for (const [k, v] of Object.entries(obj)) {
+            if (k === "images" && v && typeof v === "object" && !Array.isArray(v)) {
+              // Check if this is a pin (has images.orig, images.736x, etc.)
+              const img = v as Record<string, any>;
+              if (img.orig || img["1200x"] || img["736x"]) {
+                pins.push(obj as Record<string, any>);
+              }
+            }
+            if (typeof v === "object") walk(v);
+          }
+        };
+        walk(props);
+
+        if (pins.length > 0) {
+          // Prefer the pin that has a title/id matching the URL.
+          const urlId = pinUrl.match(/\/pin\/(\d+)/)?.[1];
+          const pin = urlId
+            ? pins.find((p) => p.id === urlId || p.entityId === urlId || p.nativePinId === urlId)
+            : pins[0];
+
+          const target = pin || pins[0];
+          const images = target.images as Record<string, any>;
+          const best = images?.orig?.url || images?.["1200x"]?.url || images?.["736x"]?.url;
+          if (best) return [best];
+
+          // Carousel-style pins expose story pins with multiple pages.
+          const pages = target.storyPinData?.pages || target.pages;
+          if (Array.isArray(pages)) {
+            const urls: string[] = [];
+            for (const page of pages) {
+              const pageImages = page?.images as Record<string, any>;
+              const img = pageImages?.orig?.url || pageImages?.["1200x"]?.url || pageImages?.["736x"]?.url;
+              if (img) urls.push(img);
+            }
+            if (urls.length > 0) return urls;
+          }
+        }
+      } catch (e) {
+        // JSON parse failed, fall through to regex/og-image below.
+      }
+    }
+
+    // 2. If this is a video pin, don't return images — let the video path run.
+    if (/"vimeoId"|"video_url"|"isPlayable"\s*:\s*true|"hasRequiredAttribution"[^}]*"video"|"video"\s*:\s*\{/.test(html)) {
+      return null;
+    }
+
+    // 3. Fallback: regex out the main pin image URLs only from the JSON blob.
+    //    We now match the FULL i.pinimg.com URLs embedded in the JSON and
+    //    upgrade them to /originals/ to avoid small thumbnails.
     const re = /https:\/\/i\.pinimg\.com\/(?:originals|736x|474x|236x)\/[^"\\\s]+\.(?:jpe?g|png|gif|webp)/gi;
     const matches = html.match(re) || [];
     const byHash = new Map<string, { url: string; size: number }>();
     for (const u of matches) {
-      // Normalize the path to the image hash so 736x and originals variants
-      // of the same slide dedupe against each other.
       const hashKey = u.replace(/\/i\.pinimg\.com\/[^/]+\//, "").split("?")[0];
       const size = u.includes("/originals/") ? 4 : u.includes("/736x/") ? 3 : u.includes("/474x/") ? 2 : 1;
       const prev = byHash.get(hashKey);
-      if (!prev || size > prev.size) byHash.set(hashKey, { url: u, size });
+      if (!prev || size > prev.size) {
+        // Upgrade to /originals/ so we always return the highest quality.
+        const upgraded = u.replace(/\/i\.pinimg\.com\/[^/]+\//, "/i.pinimg.com/originals/");
+        byHash.set(hashKey, { url: upgraded, size });
+      }
     }
     const unique = Array.from(byHash.values()).map((v) => v.url);
     if (unique.length > 0) return unique;
 
-    // Fallback to og:image (lower resolution but always present)
+    // 4. Last resort: og:image (usually lower res, but always present).
     const og = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
-    if (og && og[1]) return [og[1]];
+    if (og && og[1]) return [og[1].replace(/&amp;/g, "&")];
     return null;
   } catch (e: any) {
     console.warn(`[auto:pinterest] extractor threw:`, e?.message);
