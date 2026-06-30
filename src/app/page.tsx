@@ -653,16 +653,19 @@ export default function Home() {
           {[
             { href: "/free-tiktok-downloader", label: "Free TikTok Downloader", desc: "100% free TikTok downloader — no watermark, no signup, no limit.", tag: "Tool" },
             { href: "/tiktok-watermark-remover", label: "TikTok Watermark Remover", desc: "Remove TikTok logo from videos for free. No app, no software.", tag: "Tool" },
+            { href: "/tiktok-sound-downloader", label: "TikTok Sound Downloader", desc: "Extract audio from TikTok videos as MP3. No watermark, no limit.", tag: "Tool" },
             { href: "/instagram-reels-downloader", label: "Instagram Reels Downloader", desc: "Download Instagram Reels as MP4 — no login, no watermark.", tag: "Tool" },
             { href: "/instagram-photo-downloader", label: "Instagram Photo Downloader", desc: "Download Instagram photos as JPG — full resolution, no login.", tag: "Tool" },
+            { href: "/facebook-reel-downloader", label: "Facebook Reels Downloader", desc: "Download Facebook Reels as MP4 — no login, no watermark.", tag: "Tool" },
             { href: "/pinterest-video-downloader", label: "Pinterest Video Downloader", desc: "Download Pinterest videos as MP4 — no login, no watermark.", tag: "Tool" },
             { href: "/snaptik-alternative", label: "SnapTik Alternative", desc: "SnapTik now charges $4.99–$9.99/mo. Best free alternatives in 2026.", tag: "Comparison" },
+            { href: "/compare", label: "Downloader Comparison", desc: "DropZap vs 8 competitors — full feature comparison table.", tag: "Comparison" },
+            { href: "/tools", label: "All Tools Index", desc: "Complete list of 16 free download tools organized by platform.", tag: "Hub" },
             { href: "/blog/snaptik-now-paid-free-alternative", label: "SnapTik Now Paid — What Changed", desc: "Full breakdown of SnapTik's subscription model and which free tools still work.", tag: "News" },
-            { href: "/blog/musicallydown-alternative-no-limit", label: "MusicallyDown Alternative", desc: "MusicallyDown hitting its daily limit? DropZap has no cap and no popunder ads.", tag: "Comparison" },
-            { href: "/blog/best-instagram-downloader-2026-free", label: "Best Instagram Downloader 2026", desc: "We tested 6 Instagram downloaders — here are the best free picks for Reels, photos, and carousels.", tag: "Comparison" },
-            { href: "/blog/threads-video-downloader", label: "Threads Video Downloader", desc: "Download any public Threads video or photo for free in under 10 seconds.", tag: "Tutorial" },
-            { href: "/blog/tiktok-downloader-pc-laptop", label: "TikTok Downloader for PC", desc: "Save TikTok videos on Windows or Mac — no software, no extension, works in any browser.", tag: "Tutorial" },
-            { href: "/blog/how-to-save-tiktok-to-camera-roll", label: "Save TikTok to Camera Roll", desc: "No watermark. Step-by-step for iPhone and Android with screenshots.", tag: "Tutorial" },
+            { href: "/blog/best-tiktok-downloader-2026", label: "Best TikTok Downloader 2026", desc: "We tested 10 TikTok downloaders — here's the best free option.", tag: "Comparison" },
+            { href: "/blog/best-instagram-downloader-2026", label: "Best Instagram Downloader 2026", desc: "We tested 8 Instagram downloaders — here's the best free option.", tag: "Comparison" },
+            { href: "/blog/how-to-download-youtube-thumbnail", label: "YouTube Thumbnail Guide", desc: "Download YouTube thumbnails in HD (maxresdefault). Free, no login.", tag: "Tutorial" },
+            { href: "/blog/how-to-download-twitter-gifs", label: "Twitter GIF Downloader", desc: "Download Twitter/X GIFs as MP4. Step-by-step guide.", tag: "Tutorial" },
           ].map((g) => (
             <a
               key={g.href}

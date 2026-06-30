@@ -61,6 +61,8 @@ const competitors = [
   { name: "SaveTik", url: "/alternatives/savetik", free: true, watermark: false, dailyLimit: true, signup: false, instagram: false, reddit: false, twitter: false, facebook: false, threads: false, pinterest: false, mp3: false, ads: "Heavy", best: false },
   { name: "TikMate", url: "/alternatives/tikmate", free: true, watermark: false, dailyLimit: true, signup: false, instagram: false, reddit: false, twitter: false, facebook: false, threads: false, pinterest: false, mp3: false, ads: "Heavy", best: false },
   { name: "TikTokIO", url: "/alternatives/tiktokio", free: true, watermark: false, dailyLimit: true, signup: false, instagram: false, reddit: false, twitter: false, facebook: false, threads: false, pinterest: false, mp3: false, ads: "Moderate", best: false },
+  { name: "GetVid", url: "/alternatives/getvid", free: true, watermark: false, dailyLimit: true, signup: false, instagram: false, reddit: false, twitter: false, facebook: true, threads: false, pinterest: false, mp3: false, ads: "Heavy", best: false },
+  { name: "SaveFrom", url: "/alternatives/savefrom", free: true, watermark: false, dailyLimit: true, signup: false, instagram: true, reddit: true, twitter: true, facebook: true, threads: true, pinterest: true, mp3: false, ads: "Heavy", best: false },
 ];
 
 export default function ComparePage() {
@@ -97,8 +99,8 @@ export default function ComparePage() {
           </span>
         </h1>
         <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-          We tested 9 video downloaders. Here&apos;s how DropZap compares to SnapTik, ssstik, 
-          MusicallyDown, SnapInsta, iGram, SaveTik, TikMate, and TikTokIO.
+          We tested 11 video downloaders. Here&apos;s how DropZap compares to SnapTik, ssstik, 
+          MusicallyDown, SnapInsta, iGram, SaveTik, TikMate, TikTokIO, GetVid, and SaveFrom.
         </p>
       </section>
 
@@ -221,7 +223,7 @@ export default function ComparePage() {
         <h2 className="text-2xl font-bold mb-6">Key Takeaways</h2>
         <div className="space-y-4 text-muted-foreground">
           <p><strong className="text-foreground">SnapTik is no longer free.</strong> As of late 2025, SnapTik charges $4.99–$9.99/month for watermark-free downloads. The free tier adds SnapTik&apos;s own watermark. DropZap is the best free SnapTik alternative.</p>
-          <p><strong className="text-foreground">All competitors have daily limits.</strong> ssstik, MusicallyDown, SnapInsta, iGram, SaveTik, TikMate, and TikTokIO all cap free downloads per day. DropZap has no daily limit.</p>
+          <p><strong className="text-foreground">All competitors have daily limits.</strong> ssstik, MusicallyDown, SnapInsta, iGram, SaveTik, TikMate, TikTokIO, GetVid, and SaveFrom all cap free downloads per day. DropZap has no daily limit.</p>
           <p><strong className="text-foreground">DropZap supports 7 platforms.</strong> Instagram, TikTok, Twitter/X, Facebook, Reddit, Pinterest, and Threads. Most competitors only support 1-2 platforms.</p>
           <p><strong className="text-foreground">DropZap has minimal ads.</strong> No redirect ads, no fake download buttons, no popups. Most competitors have heavy banner ads and pop-unders.</p>
         </div>

@@ -82,6 +82,7 @@ const toolCategories = [
       { href: "/tiktok-watermark-remover", label: "TikTok Watermark Remover", desc: "Remove TikTok logo from videos for free.", icon: Download },
       { href: "/tiktok-to-mp3", label: "TikTok to MP3 Converter", desc: "Convert TikTok videos to MP3 audio.", icon: Music },
       { href: "/tiktok-sound-downloader", label: "TikTok Sound Downloader", desc: "Extract sounds and songs from TikTok as MP3.", icon: Music },
+      { href: "/tiktok-slideshow-downloader", label: "TikTok Slideshow Downloader", desc: "Download TikTok photo slideshows.", icon: Download },
     ],
   },
   {
@@ -89,6 +90,7 @@ const toolCategories = [
     tools: [
       { href: "/instagram-reels-downloader", label: "Instagram Reels Downloader", desc: "Download Instagram Reels as MP4.", icon: Film },
       { href: "/instagram-photo-downloader", label: "Instagram Photo Downloader", desc: "Download Instagram photos as JPG.", icon: ImageIcon },
+      { href: "/instagram-story-downloader", label: "Instagram Story Downloader", desc: "Download Instagram Stories.", icon: ImageIcon },
     ],
   },
   {
