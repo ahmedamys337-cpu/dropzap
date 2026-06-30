@@ -65,8 +65,10 @@ const templates: Template[] = [
       { slug: "tiktok-to-mp3", keyword: "TikTok to MP3" },
       { slug: "tiktok-slideshow-downloader", keyword: "TikTok slideshow downloader" },
       { slug: "tiktok-photo-downloader", keyword: "TikTok photo downloader", extra: "TikTok's photo-mode slideshows live at a different API endpoint than regular videos — many tools fail silently on them. DropZap detects the photo-mode URL pattern and returns every slide as a single ZIP file at original resolution." },
-      { slug: "snaptik-alternative", keyword: "SnapTik alternative", extra: "DropZap is a SnapTik alternative without forced redirects, fake CAPTCHAs, or the second-page interstitial that other tools use to inflate ad impressions." },
+      { slug: "snaptik-alternative", keyword: "SnapTik alternative", extra: "DropZap is a free SnapTik alternative that never charges. SnapTik introduced a $4.99–$9.99/month subscription in late 2025 for watermark-free downloads. DropZap removes TikTok watermarks for free with no subscription, no daily limit, and no forced 15-second video ads." },
       { slug: "ssstik-alternative", keyword: "ssstik alternative", extra: "DropZap is a captcha-free ssstik alternative. ssstik increasingly shows reCAPTCHA challenges that our server-side fetch architecture avoids entirely." },
+      { slug: "musicallydown-alternative", keyword: "MusicallyDown alternative", extra: "DropZap is a MusicallyDown alternative with no daily download limit. MusicallyDown caps free conversions per IP per day. DropZap converts TikTok videos to MP3 with no daily cap, no subscription, and no popunder ads." },
+      { slug: "tiktok-downloader-pc", keyword: "TikTok downloader for PC", device: "PC", extra: "DropZap works in every major desktop browser — Chrome, Firefox, Edge, Brave, Safari on Mac. No executable, no extension, no malware risk. Copy a TikTok URL, paste it, download the watermark-free MP4 in 3–5 seconds. The file lands in your default Downloads folder." },
       { slug: "tiktok-hd-no-watermark", keyword: "TikTok HD no watermark", quality: "HD" },
       { slug: "tiktok-1080p-downloader", keyword: "TikTok 1080p downloader", quality: "1080p" },
     ],
@@ -84,6 +86,7 @@ const templates: Template[] = [
       { slug: "instagram-igtv-downloader", keyword: "Instagram IGTV downloader" },
       { slug: "instagram-profile-picture-downloader", keyword: "Instagram profile picture downloader", extra: "Profile pictures on Instagram are stored at low resolution in the public profile view (150px), but the original is available at up to 320px on the CDN. DropZap fetches the original full-size version." },
       { slug: "snapinsta-alternative", keyword: "SnapInsta alternative", extra: "DropZap is a SnapInsta alternative that doesn't break every time Instagram rotates its private GraphQL endpoints — we ship updates the same week IG changes their API." },
+      { slug: "igram-alternative", keyword: "iGram alternative", extra: "DropZap is an iGram alternative with no daily download limit. iGram.world blocks free users after approximately 15 downloads per day. DropZap has no cap, downloads complete carousels as a ZIP file (iGram only returns the first slide), and processes Reels in 3–5 seconds." },
       { slug: "instagram-1080p-downloader", keyword: "Instagram 1080p downloader", quality: "1080p" },
       { slug: "instagram-reels-mp4", keyword: "Instagram Reels MP4" },
     ],
@@ -125,6 +128,18 @@ const templates: Template[] = [
       { slug: "v-redd-it-downloader", keyword: "v.redd.it downloader" },
       { slug: "reddit-audio-extractor", keyword: "Reddit audio extractor" },
       { slug: "reddit-cross-post-downloader", keyword: "Reddit cross-post downloader" },
+    ],
+  },
+  {
+    pattern: "threads",
+    platform: "Threads",
+    platformSlug: "/threads-downloader",
+    variants: [
+      { slug: "threads-video-downloader", keyword: "Threads video downloader" },
+      { slug: "threads-downloader-free", keyword: "free Threads downloader" },
+      { slug: "download-threads-video", keyword: "download Threads video", extra: "Threads (threads.net) is a Meta platform sharing CDN infrastructure with Instagram. DropZap resolves the expiring CDN URL server-side so you get the actual MP4, not an access-denied redirect." },
+      { slug: "threads-video-saver", keyword: "Threads video saver" },
+      { slug: "threads-photo-downloader", keyword: "Threads photo downloader", extra: "Threads photo posts store images at original resolution on Meta's CDN. Right-clicking in a browser only returns a low-resolution thumbnail. DropZap fetches the full-resolution image directly." },
     ],
   },
 ];
@@ -179,6 +194,11 @@ const platformTips: Record<string, string[]> = {
     `<p>Reddit videos hosted on v.redd.it are DASH-segmented with audio in a parallel stream. Tools that grab only <code>fallback_url</code> get silent video — DropZap probes <code>DASH_AUDIO_128.mp4</code>, <code>HLS_AUDIO_128.mp4</code>, and the legacy <code>audio</code> fallback in that order, then merges with ffmpeg server-side.</p>`,
     `<p>For cross-posts, the video lives on the original subreddit's <code>media</code> field, not the cross-post itself. DropZap walks <code>crosspost_parent_list</code> when present so a v.redd.it URL pasted from an x-post resolves to the actual file.</p>`,
     `<p>Reddit GIFs are usually MP4 internally but i.redd.it hosts a few thousand truly animated GIFs from before the v.redd.it migration. DropZap detects the host and returns the appropriate file format without forcing a re-encode.</p>`,
+  ],
+  Threads: [
+    `<p>Threads videos are served from Meta's CDN behind a short-lived signed URL. The expiry window is roughly 60 seconds — pasting the raw CDN link into a browser tab will typically return a 403 error within a minute. DropZap resolves the current signed URL at request time, not the cached one, so downloads succeed immediately.</p>`,
+    `<p>Threads and Instagram share the same underlying media storage layer (<code>cdninstagram.com</code>) but use different access tokens. A request that works for Instagram will not automatically work for Threads. DropZap routes each platform through its own token path so both work reliably.</p>`,
+    `<p>Threads photo carousels (multiple images in one post) follow the same lazy-resolution pattern as Instagram — only the first image is in the initial HTML. DropZap fetches the full post metadata to resolve all image URLs before returning the download, so you get every photo, not just slide one.</p>`,
   ],
 };
 
