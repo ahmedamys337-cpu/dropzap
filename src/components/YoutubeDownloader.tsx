@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
@@ -333,9 +334,11 @@ export default function YoutubeDownloader({
       {phase === "ready" && videoInfo && (
         <div className="space-y-5 p-5 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 animate-in fade-in slide-in-from-bottom-2 duration-300">
           <div className="flex flex-col sm:flex-row gap-4">
-            <img
+            <Image
               src={videoInfo.thumbnail}
               alt={videoInfo.title}
+              width={320}
+              height={180}
               className="w-full sm:w-56 aspect-video rounded-lg object-cover border border-white/10"
             />
             <div className="flex-1 min-w-0">

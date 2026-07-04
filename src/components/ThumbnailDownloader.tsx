@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -148,9 +149,11 @@ export default function ThumbnailDownloader() {
           {/* Hero: highest-resolution thumbnail */}
           <div className="rounded-2xl overflow-hidden border border-white/10 bg-white/5 backdrop-blur-sm shadow-lg">
             <div className="relative bg-black">
-              <img
+              <Image
                 src={hero.url}
                 alt={`${hero.label} thumbnail`}
+                width={hero.width}
+                height={hero.height}
                 className="w-full h-auto"
               />
               <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-orange-500 to-red-500 px-3 py-1 text-xs font-semibold text-white shadow-lg">
@@ -187,9 +190,11 @@ export default function ThumbnailDownloader() {
                     key={thumb.label}
                     className="rounded-xl overflow-hidden border border-white/10 bg-white/5 backdrop-blur-sm flex flex-col transition-all hover:border-orange-500/40 hover:shadow-md hover:shadow-orange-500/10"
                   >
-                    <img
+                    <Image
                       src={thumb.url}
                       alt={`${thumb.label} thumbnail`}
+                      width={thumb.width}
+                      height={thumb.height}
                       className="w-full aspect-video object-cover"
                     />
                     <div className="p-3 flex flex-col gap-2 flex-1">

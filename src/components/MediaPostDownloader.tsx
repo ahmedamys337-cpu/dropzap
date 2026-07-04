@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
@@ -236,9 +237,12 @@ export default function MediaPostDownloader({
                   <div className="relative bg-black">
                     {item.type === "video" ? (
                       item.thumbnail ? (
-                        <img
+                        <Image
                           src={item.thumbnail}
                           alt={`Item ${idx + 1}`}
+                          width={640}
+                          height={360}
+                          unoptimized
                           className="w-full aspect-video object-cover"
                         />
                       ) : (
@@ -247,9 +251,12 @@ export default function MediaPostDownloader({
                         </div>
                       )
                     ) : (
-                      <img
+                      <Image
                         src={item.url}
                         alt={`Item ${idx + 1}`}
+                        width={item.width || 800}
+                        height={item.height || 600}
+                        unoptimized
                         className="w-full h-auto max-h-96 object-contain"
                       />
                     )}
