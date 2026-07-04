@@ -98,6 +98,7 @@ export default function OGImage() {
               style={{
                 display: "flex",
                 alignItems: "center",
+                gap: 8,
                 background: "rgba(255,255,255,0.08)",
                 border: "1px solid rgba(255,255,255,0.15)",
                 borderRadius: 99,
@@ -106,7 +107,10 @@ export default function OGImage() {
                 color: "#d4d4d8",
               }}
             >
-              ✓ {badge}
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M3 8l3 3 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              {badge}
             </div>
           ))}
         </div>
