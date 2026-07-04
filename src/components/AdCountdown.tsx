@@ -15,6 +15,8 @@ interface AdCountdownProps {
   onClose?: () => void;
   /** Whether to auto-close the overlay once the timer reaches zero (default true). */
   autoClose?: boolean;
+  /** Render inline inside the parent card instead of a full-screen overlay. */
+  inline?: boolean;
 }
 
 /**
@@ -27,6 +29,7 @@ export default function AdCountdown({
   onComplete,
   onClose,
   autoClose = true,
+  inline = false,
 }: AdCountdownProps) {
   const [remaining, setRemaining] = useState(seconds);
   const [fired, setFired] = useState(false);
@@ -50,14 +53,8 @@ export default function AdCountdown({
 
   const progress = ((seconds - remaining) / seconds) * 100;
 
-  return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label="Processing download"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4"
-    >
-      <div className="relative w-full max-w-md rounded-2xl bg-background border border-white/10 shadow-2xl p-6 space-y-5">
+  const card = (
+    <div className="relative w-full max-w-md rounded-2xl bg-background border border-white/10 shadow-2xl p-6 space-y-5 mx-auto">
         {onClose && remaining <= 0 && (
           <Button
             variant="ghost"
@@ -90,7 +87,19 @@ export default function AdCountdown({
             />
           </div>
         </div>
-      </div>
+    </div>
+  );
+
+  return inline ? (
+    <div className="w-full py-2">{card}</div>
+  ) : (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Processing download"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4"
+    >
+      {card}
     </div>
   );
 }

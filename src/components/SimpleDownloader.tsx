@@ -72,6 +72,12 @@ interface SimpleDownloaderProps {
    * its accent color when active.
    */
   inputFocusRingClassName?: string;
+  /**
+   * Show the ad countdown inline inside the card instead of a full-page overlay.
+   * Useful when two downloaders are side-by-side (e.g. Instagram) so the other
+   * card stays visible and usable.
+   */
+  inlineCountdown?: boolean;
 }
 
 export default function SimpleDownloader({
@@ -88,6 +94,7 @@ export default function SimpleDownloader({
   badges,
   badgeClassName,
   inputFocusRingClassName,
+  inlineCountdown = false,
 }: SimpleDownloaderProps) {
   const [url, setUrl] = useState("");
   // Phase machine:
@@ -393,6 +400,7 @@ export default function SimpleDownloader({
           seconds={5}
           message="Starting your download. Stay on the page."
           onComplete={finishAd}
+          inline={inlineCountdown}
         />
       )}
     </div>

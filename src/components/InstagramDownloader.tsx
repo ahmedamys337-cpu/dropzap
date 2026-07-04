@@ -70,6 +70,7 @@ export default function InstagramDownloader({
           badgeClassName={reelTheme.badge}
           help="Works on any public Reel, IGTV episode, or video post."
           onDownload={onDownload}
+          inlineCountdown
         />
       </DownloaderSection>
 
@@ -99,6 +100,7 @@ export default function InstagramDownloader({
           onDownload={onDownload}
           endpoint="/api/photos"
           fileExtension="zip"
+          inlineCountdown
         />
       </DownloaderSection>
     </div>
