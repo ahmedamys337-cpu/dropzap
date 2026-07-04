@@ -491,7 +491,9 @@ export async function GET(request: NextRequest) {
           ? "Instagram requires login cookies to download this content. Set MEDIA_COOKIES in your Render environment variables with your Instagram session cookies (Netscape format)."
           : "The platform returned an empty response. The content may be private or restricted.";
       } else if (/private|login required|sign.?in|not accessible|authentication required|not.*available.*login/i.test(stderr)) {
-        friendlyMsg = "This post is private or requires login to download.";
+        friendlyMsg = isInstagram
+          ? "Instagram is requiring login for this post from the server. If it's a public post, add Instagram session cookies to the MEDIA_COOKIES or MEDIA_COOKIES_INSTAGRAM environment variable. If it's private, it can't be downloaded."
+          : "This post is private or requires login to download.";
       } else if (/not available|has been removed|no longer available|unavailable/i.test(stderr)) {
         friendlyMsg = "This content is no longer available or has been removed.";
       } else if (/unsupported url|unable to extract|no video formats/i.test(stderr)) {
