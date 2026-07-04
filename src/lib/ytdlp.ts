@@ -143,7 +143,7 @@ if (process.env.YOUTUBE_PROXIES) {
 }
 
 // Pick a random proxy per request to spread load and avoid bans
-function getProxyArgs(): string[] {
+export function getProxyArgs(): string[] {
   if (proxyList.length === 0) return [];
   const proxy = proxyList[Math.floor(Math.random() * proxyList.length)];
   return ["--proxy", proxy];

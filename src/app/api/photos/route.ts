@@ -7,7 +7,7 @@ import { join } from "path";
 import { randomUUID } from "crypto";
 import archiver from "archiver";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
-import { getGenericCookiesArgs, getCookieHeader } from "@/lib/ytdlp";
+import { getGenericCookiesArgs, getCookieHeader, getProxyArgs } from "@/lib/ytdlp";
 import { fetchInstagramImageUrls } from "@/lib/instagram";
 
 export const runtime = "nodejs";
@@ -61,12 +61,14 @@ function platformPrefix(url: string): string {
 async function downloadFilesWithYtDlp(
   url: string,
   outDir: string,
+  useCookies = true,
   timeoutMs = 60000,
 ): Promise<{ files: string[]; code: number; stderr: string }> {
   const args = [
     url,
     "-o", join(outDir, "%(title)s.%(ext)s"),
-    ...getGenericCookiesArgs(),
+    ...getProxyArgs(),
+    ...(useCookies ? getGenericCookiesArgs() : []),
     "--no-check-certificates",
     "--no-warnings",
     "--no-playlist",
@@ -673,18 +675,28 @@ async function handleDownload(url: string): Promise<Response> {
     //
     // --ignore-no-formats-error keeps image-only slides from aborting the
     // whole run with "No video formats found".
-    const args = [
+    const argsWithCookies = [
       url,
       "-j",
       "--ignore-no-formats-error",
       "--no-playlist-reverse",
+      ...getProxyArgs(),
       ...getGenericCookiesArgs(),
       "--no-check-certificates",
       "--no-warnings",
       "--socket-timeout", "30",
     ];
 
-    const { code, stdout, stderr } = await runYtDlpJson(args);
+    let { code, stdout, stderr } = await runYtDlpJson(argsWithCookies);
+
+    // Stale Instagram cookies often produce HTTP 400 from the datacenter IP.
+    // Retry once without cookies so the real cause (public vs private) is
+    // surfaced and public posts on less-blocked IPs have a chance.
+    if (code !== 0 && platform === "instagram" && getGenericCookiesArgs().length > 0) {
+      console.warn("[photos:instagram] yt-dlp -j with cookies failed, retrying without cookies");
+      const argsNoCookies = argsWithCookies.filter((a, i) => !(a === "--cookies" || (i > 0 && argsWithCookies[i - 1] === "--cookies")));
+      ({ code, stdout, stderr } = await runYtDlpJson(argsNoCookies));
+    }
 
     // Parse NDJSON: one entry per line. Tolerate non-zero exit if any lines
     // parsed successfully (yt-dlp may exit non-zero after warnings).
@@ -700,7 +712,11 @@ async function handleDownload(url: string): Promise<Response> {
 
       // Fallback: yt-dlp may still download the media files directly even when
       // JSON metadata extraction fails. Try a plain download before giving up.
-      const { files: directFiles } = await downloadFilesWithYtDlp(url, workDir);
+      let { files: directFiles } = await downloadFilesWithYtDlp(url, workDir, true);
+      if (directFiles.length === 0 && getGenericCookiesArgs().length > 0) {
+        console.warn("[photos:instagram] direct download with cookies failed, retrying without cookies");
+        ({ files: directFiles } = await downloadFilesWithYtDlp(url, workDir, false));
+      }
       const imageFiles = directFiles.filter((f) => IMAGE_EXT_RE.test(f));
       if (imageFiles.length === 1) {
         return streamSingleImage(join(workDir, imageFiles[0]), imageFiles[0], platform, cleanup);

@@ -12,9 +12,10 @@ import {
   HAS_YOUTUBE_PROXY,
   getYoutubeProxyUrl,
   type PickedFormat,
+  getGenericCookiesArgs,
+  getProxyArgs,
 } from "@/lib/ytdlp";
 import { resolveViaCobalt, isCobaltConfigured } from "@/lib/cobalt";
-import { getGenericCookiesArgs } from "@/lib/ytdlp";
 import { fetchInstagramVideoUrl } from "@/lib/instagram";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
@@ -429,6 +430,7 @@ export async function GET(request: NextRequest) {
   try {
     const args: string[] = [
       url,
+      ...getProxyArgs(),
       ...getGenericCookiesArgs(),
       "-o", tempTemplate,
       "--no-check-certificates",
