@@ -481,7 +481,18 @@ export async function GET(request: NextRequest) {
       args.push(...getYoutubeStreamAuthArgs());
     }
 
-    const { code, stderr } = await runYtDlp(args);
+    let { code, stderr } = await runYtDlp(args);
+
+    // Instagram: if cookies are configured but the request fails, try once
+    // without them. Stale or region-locked cookies can cause 400 Bad Request
+    // while the same request anonymously may succeed (or fail with a clearer
+    // error that tells us the post is genuinely private/login-required).
+    if (code !== 0 && isInstagram && getGenericCookiesArgs().length > 0) {
+      console.warn("[stream] yt-dlp with cookies failed, retrying Instagram without cookies");
+      const argsNoCookies = args.filter((a, i) => !(a === "--cookies" || (i > 0 && args[i - 1] === "--cookies")));
+      ({ code, stderr } = await runYtDlp(argsNoCookies));
+    }
+
     if (code !== 0) {
       unlink(expectedFinal).catch(() => {});
       // Map common yt-dlp errors to user-friendly messages.
@@ -496,6 +507,10 @@ export async function GET(request: NextRequest) {
           : "This post is private or requires login to download.";
       } else if (/not available|has been removed|no longer available|unavailable/i.test(stderr)) {
         friendlyMsg = "This content is no longer available or has been removed.";
+      } else if (/HTTP Error 400|400 Bad Request|Bad Request/i.test(stderr)) {
+        friendlyMsg = isInstagram
+          ? "Instagram rejected the request (400 Bad Request). Your cookies may be stale, or this post is private. Try refreshing your Instagram cookies, or use the Photos & Carousel downloader if this is a photo post."
+          : "The platform rejected the request (400 Bad Request).";
       } else if (/unsupported url|unable to extract|no video formats/i.test(stderr)) {
         friendlyMsg = "This URL type is not supported. Please paste a direct post or reel link.";
       } else if (/timeout/i.test(stderr)) {

@@ -49,10 +49,17 @@ if (cookiesEnvValue && cookiesEnvSource) {
   try {
     cookiesFilePath = join(tmpdir(), "yt-cookies.txt");
     writeFileSync(cookiesFilePath, cookiesEnvValue, "utf-8");
+    const cookieLines = cookiesEnvValue
+      .split(/\r?\n/)
+      .filter((l) => l && !l.startsWith("#"))
+      .length;
+    console.log(`[yt-dlp] cookies loaded from ${cookiesEnvSource} (${cookieLines} cookie lines) -> ${cookiesFilePath}`);
   } catch (e) {
     console.error("[yt-dlp] Failed to write cookies file:", e);
     cookiesFilePath = null;
   }
+} else {
+  console.log("[yt-dlp] no cookie env vars configured (MEDIA_COOKIES, MEDIA_COOKIES_INSTAGRAM, YOUTUBE_COOKIES)");
 }
 
 function getCookiesArgs(): string[] {
