@@ -80,7 +80,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Bump YTDLP_CACHEBUST any time you want to force a fresh nightly pull.
 # (Render's "Clear build cache & deploy" also works, but this is more
 # reliable when the cache decision is per-layer.)
-ARG YTDLP_CACHEBUST=2026-05-06-1
+ARG YTDLP_CACHEBUST=2026-07-04-1
 RUN echo "ytdlp cachebust: $YTDLP_CACHEBUST" \
     && curl -fsSL https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp_linux \
        -o /usr/local/bin/yt-dlp \
