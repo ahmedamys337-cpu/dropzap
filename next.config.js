@@ -17,7 +17,7 @@ const nextConfig = {
     formats: ['image/avif', 'image/webp'],
   },
   experimental: {
-    optimizeCss: false,
+    optimizeCss: true,
   },
   // Strip console.* in production builds (keeps console.error and
   // console.warn for actual error reporting, removes debug logs).

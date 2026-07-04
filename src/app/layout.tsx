@@ -243,6 +243,11 @@ export default function RootLayout({
            the preconnects would force an unused DNS+TLS handshake. */}
         <link rel="dns-prefetch" href="https://i.ytimg.com" />
         <link rel="dns-prefetch" href="https://img.youtube.com" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        <link rel="preconnect" href="https://pl30087661.effectivecpmnetwork.com" />
+        <link rel="preconnect" href="https://www.highperformanceformat.com" />
+        <link rel="dns-prefetch" href="https://pl30087662.effectivecpmnetwork.com" />
+        <link rel="dns-prefetch" href="https://pl30087663.effectivecpmnetwork.com" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
