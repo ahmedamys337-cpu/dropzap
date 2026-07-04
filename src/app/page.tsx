@@ -178,7 +178,10 @@ export default function Home() {
       {/* Hero / SEO H1 */}
       <section className="max-w-6xl mx-auto px-4 pt-10 pb-4 text-center">
         <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight">
-          <span className="text-foreground">Free </span>
+          <span className="bg-gradient-to-r from-blue-500 via-purple-600 to-pink-500 bg-clip-text text-transparent">
+            DropZap
+          </span>
+          <span className="text-foreground"> — Free </span>
           <span className="bg-gradient-to-r from-blue-500 via-purple-600 to-pink-500 bg-clip-text text-transparent">
             Instagram, TikTok &amp; Social Media
           </span>
@@ -709,6 +712,7 @@ export default function Home() {
               <span className="text-xs text-muted-foreground">— Media Downloader</span>
             </div>
             <nav aria-label="Footer navigation" className="flex flex-wrap gap-5 text-xs text-muted-foreground">
+              <a href="/" className="hover:text-foreground transition-colors font-semibold">DropZap Home</a>
               <a href="/tiktok-downloader" className="hover:text-foreground transition-colors">TikTok Downloader</a>
               <a href="/tiktok-to-mp3" className="hover:text-foreground transition-colors">TikTok to MP3</a>
               <a href="/instagram-downloader" className="hover:text-foreground transition-colors">Instagram Downloader</a>
