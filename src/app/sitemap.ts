@@ -64,7 +64,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   ];
 
   const blogEntries: MetadataRoute.Sitemap = blogPosts.map((post) => ({
-    url: `${baseUrl}/blog/${post.slug}`,
+    url: `${baseUrl}/blog/${post.lang ? `${post.lang}/` : ""}${post.slug}`,
     // Use dateModified where available so Google sees the freshness signal
     // on posts we've updated (e.g. snaptik-alternative now reflects paid model).
     lastModified: new Date(post.dateModified ?? post.date),

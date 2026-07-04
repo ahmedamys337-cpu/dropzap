@@ -15,6 +15,7 @@ import {
 } from "@/lib/ytdlp";
 import { resolveViaCobalt, isCobaltConfigured } from "@/lib/cobalt";
 import { getGenericCookiesArgs } from "@/lib/ytdlp";
+import { fetchInstagramVideoUrl } from "@/lib/instagram";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
@@ -304,11 +305,17 @@ export async function GET(request: NextRequest) {
   }
 
   // =========================================================================
-  // INSTAGRAM PATH — cobalt.tools proxy
-  // Instagram has blocked unauthenticated yt-dlp on datacenter IPs since
-  // 2024. We attempt cobalt (which handles IG auth at their end) and proxy
-  // the bytes through our server so the client-side fetch()+blob flow works
-  // without CORS issues. Falls through to yt-dlp if cobalt returns nothing.
+  // INSTAGRAM PATH — hybrid fallback chain
+  //
+  // 1. cobalt.tools (fastest when it works; keeps the server's IP away from
+  //    Instagram's anti-bot systems).
+  // 2. Instagram's own private mobile API / public JSON / web scrape. This uses
+  //    the same extraction logic as /api/photos and often succeeds for public
+  //    posts even when yt-dlp is blocked on datacenter IPs.
+  // 3. yt-dlp with cookies (last resort).
+  //
+  // We proxy the bytes through our server so the client-side fetch()+blob flow
+  // works without CORS issues.
   // =========================================================================
   if (isInstagram) {
     try {
@@ -331,7 +338,40 @@ export async function GET(request: NextRequest) {
         }
       }
     } catch (e: any) {
-      console.warn("[stream] cobalt Instagram attempt failed, falling back to yt-dlp:", e.message?.slice(0, 200));
+      console.warn("[stream] cobalt Instagram attempt failed, trying Instagram API:", e.message?.slice(0, 200));
+    }
+
+    // Fallback 2: Instagram's own API / public JSON / web scrape.
+    // Audio-only Instagram is not a real thing, so skip this for audio requests.
+    if (!audio) {
+      try {
+        const t0 = Date.now();
+        const igVideoUrl = await fetchInstagramVideoUrl(url);
+        if (igVideoUrl) {
+          const proxyRes = await fetch(igVideoUrl, {
+            headers: {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+              "Accept": "video/webm,video/mp4,video/*,*/*",
+              "Referer": "https://www.instagram.com/",
+            },
+            signal: AbortSignal.timeout(30000),
+          });
+          if (proxyRes.ok && proxyRes.body) {
+            const ct = proxyRes.headers.get("Content-Type") || "video/mp4";
+            console.log(`[stream] Instagram API fallback succeeded in ${Date.now() - t0}ms: ${url}`);
+            return new Response(proxyRes.body, {
+              status: 200,
+              headers: {
+                "Content-Type": ct,
+                "Content-Disposition": `attachment; filename="${safeName}"`,
+                "Cache-Control": "no-store",
+              },
+            });
+          }
+        }
+      } catch (e: any) {
+        console.warn("[stream] Instagram API fallback failed:", e.message?.slice(0, 200));
+      }
     }
   }
 

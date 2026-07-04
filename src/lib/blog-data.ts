@@ -1,6 +1,8 @@
 // Blog post data for SEO content marketing
 // Each post targets long-tail keywords for organic traffic
 
+import { blogPostsMultilingual } from "./blog-data-multilingual";
+
 // Optional structured-content blocks attached to a blog post.
 //
 // Why optional: the 16 legacy posts in this file only have `content`
@@ -18,6 +20,8 @@ export interface BlogPostHowToStep {
 }
 export interface BlogPost {
   slug: string;
+  /** ISO 639-1 language code. Absent means the legacy English-only route. */
+  lang?: string;
   title: string;
   description: string;
   date: string;
@@ -6153,6 +6157,7 @@ export const blogPosts: BlogPost[] = [
       "compare",
     ],
   },
+  ...blogPostsMultilingual,
 ];
 
 export const blogCategories = [...new Set(blogPosts.map((p) => p.category))];

@@ -75,8 +75,8 @@ export default function BlogIndex() {
         <div className="space-y-4">
           {blogPosts.map((post) => (
             <Link
-              key={post.slug}
-              href={`/blog/${post.slug}`}
+              key={post.lang ? `${post.lang}/${post.slug}` : post.slug}
+              href={post.lang ? `/blog/${post.lang}/${post.slug}` : `/blog/${post.slug}`}
               className="block glass rounded-xl p-5 hover:bg-white/10 transition-colors group"
             >
               <div className="flex items-start justify-between gap-4">
