@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { spawn } from "child_process";
 import { createReadStream } from "fs";
-import { mkdir, stat, rm, writeFile } from "fs/promises";
+import { mkdir, stat, rm, writeFile, readdir } from "fs/promises";
 import { tmpdir } from "os";
 import { join } from "path";
 import { randomUUID } from "crypto";
@@ -56,6 +56,25 @@ function platformPrefix(url: string): string {
     if (/facebook\.com$|fb\.watch$/i.test(h)) return "facebook";
   } catch {}
   return "post";
+}
+
+async function downloadFilesWithYtDlp(
+  url: string,
+  outDir: string,
+  timeoutMs = 60000,
+): Promise<{ files: string[]; code: number; stderr: string }> {
+  const args = [
+    url,
+    "-o", join(outDir, "%(title)s.%(ext)s"),
+    ...getGenericCookiesArgs(),
+    "--no-check-certificates",
+    "--no-warnings",
+    "--no-playlist",
+    "--socket-timeout", "30",
+  ];
+  const { code, stderr } = await runYtDlpJson(args, timeoutMs);
+  const files = await readdir(outDir).catch(() => []);
+  return { files, code, stderr };
 }
 
 function runYtDlpJson(args: string[], timeoutMs = 60000): Promise<{ code: number; stdout: string; stderr: string }> {
@@ -678,9 +697,25 @@ async function handleDownload(url: string): Promise<Response> {
 
     if (entries.length === 0) {
       console.warn(`[photos:${platform}] yt-dlp -j produced no entries (code=${code}):`, stderr.slice(0, 400));
+
+      // Fallback: yt-dlp may still download the media files directly even when
+      // JSON metadata extraction fails. Try a plain download before giving up.
+      const { files: directFiles } = await downloadFilesWithYtDlp(url, workDir);
+      const imageFiles = directFiles.filter((f) => IMAGE_EXT_RE.test(f));
+      if (imageFiles.length === 1) {
+        return streamSingleImage(join(workDir, imageFiles[0]), imageFiles[0], platform, cleanup);
+      }
+      if (imageFiles.length > 1) {
+        return streamZip(workDir, imageFiles, platform, cleanup);
+      }
+
       cleanup();
-      const friendly = /private|login|account|not.*available/i.test(stderr)
-        ? "This post is private, deleted, or requires login."
+      const isVideoOnly = directFiles.some((f) => /\.(mp4|m4v|mov|webm)$/i.test(f));
+      if (isVideoOnly) {
+        return new Response("This Instagram post is a video/Reel. Please use the Reel & Video downloader.", { status: 400 });
+      }
+      const friendly = /private|login|account|not.*available|400|Bad Request/i.test(stderr)
+        ? "This post is private, deleted, requires login, or Instagram rejected the request (400 Bad Request)."
         : `Failed to fetch this ${platform} post.`;
       return new Response(friendly, { status: 502 });
     }
@@ -711,7 +746,7 @@ async function handleDownload(url: string): Promise<Response> {
       // certainly blocked by Instagram. Surface an actionable message.
       if (platform === "instagram") {
         return new Response(
-          "Instagram is blocking this server's IP. For Instagram carousels and photos to work, the server needs fresh Instagram session cookies (sessionid) in the MEDIA_COOKIES/YOUTUBE_COOKIES environment variable, or a residential proxy. Public posts may still work once cookies are configured.",
+          "Instagram is blocking this server's IP. For Instagram carousels and photos to work, the server needs fresh Instagram session cookies (sessionid) in the MEDIA_COOKIES_INSTAGRAM/MEDIA_COOKIES environment variable, or a residential proxy. Public posts may still work once cookies are configured.",
           { status: 403 },
         );
       }
