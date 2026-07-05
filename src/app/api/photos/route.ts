@@ -757,10 +757,19 @@ async function handleDownload(url: string): Promise<Response> {
       };
       console.warn(`[photos:${platform}] no images extracted; first-entry summary:`, JSON.stringify(summary));
       cleanup();
-      // Instagram specifically: if we got here, every extraction method failed
-      // (private API, public JSON, web scrape, yt-dlp). The server IP is almost
-      // certainly blocked by Instagram. Surface an actionable message.
+      // Instagram specifically: if the resolved entry is a video (mp4, etc.),
+      // the user picked the wrong downloader. Otherwise, every extraction method
+      // failed and the server IP is likely blocked by Instagram.
       if (platform === "instagram") {
+        const isVideo = entries.some(
+          (e: any) => e?.ext && /^(mp4|m4v|mov|webm)$/i.test(e.ext),
+        );
+        if (isVideo) {
+          return new Response(
+            "This Instagram post is a video/Reel. Please use the Reel & Video downloader.",
+            { status: 400 },
+          );
+        }
         return new Response(
           "Instagram is blocking this server's IP. For Instagram carousels and photos to work, the server needs fresh Instagram session cookies (sessionid) in the MEDIA_COOKIES_INSTAGRAM/MEDIA_COOKIES environment variable, or a residential proxy. Public posts may still work once cookies are configured.",
           { status: 403 },
