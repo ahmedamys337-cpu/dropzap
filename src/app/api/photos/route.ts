@@ -720,10 +720,16 @@ async function handleDownload(url: string): Promise<Response> {
     let { code, stdout, stderr } = await runYtDlpJson(argsWithCookies);
 
     // Stale Instagram cookies often produce HTTP 400 from the datacenter IP.
-    // Retry once without cookies so the real cause (public vs private) is
-    // surfaced and public posts on less-blocked IPs have a chance.
-    if (code !== 0 && platform === "instagram" && getGenericCookiesArgs().length > 0) {
-      console.warn("[photos:instagram] yt-dlp -j with cookies failed, retrying without cookies");
+    // Skip cookie retry for Instagram since the fast path (fetchInstagramImageUrls)
+    // already handles cookie-based extraction. If we reach yt-dlp fallback,
+    // try without cookies first to avoid the 30+ second retry delay.
+    if (platform === "instagram" && getGenericCookiesArgs().length > 0) {
+      console.warn("[photos:instagram] skipping cookie retry in yt-dlp fallback (fast path should handle cookies)");
+      const argsNoCookies = argsWithCookies.filter((a, i) => !(a === "--cookies" || (i > 0 && argsWithCookies[i - 1] === "--cookies")));
+      ({ code, stdout, stderr } = await runYtDlpJson(argsNoCookies));
+    } else if (code !== 0 && getGenericCookiesArgs().length > 0) {
+      // For other platforms, retry without cookies on failure
+      console.warn(`[photos:${platform}] yt-dlp -j with cookies failed, retrying without cookies`);
       const argsNoCookies = argsWithCookies.filter((a, i) => !(a === "--cookies" || (i > 0 && argsWithCookies[i - 1] === "--cookies")));
       ({ code, stdout, stderr } = await runYtDlpJson(argsNoCookies));
     }
@@ -742,8 +748,11 @@ async function handleDownload(url: string): Promise<Response> {
 
       // Fallback: yt-dlp may still download the media files directly even when
       // JSON metadata extraction fails. Try a plain download before giving up.
-      let { files: directFiles } = await downloadFilesWithYtDlp(url, workDir, true);
-      if (directFiles.length === 0 && getGenericCookiesArgs().length > 0) {
+      let { files: directFiles } = await downloadFilesWithYtDlp(url, workDir, platform === "instagram" ? false : true);
+      if (directFiles.length === 0 && platform === "instagram" && getGenericCookiesArgs().length > 0) {
+        console.warn("[photos:instagram] direct download without cookies also failed, trying with cookies as last resort");
+        ({ files: directFiles } = await downloadFilesWithYtDlp(url, workDir, true));
+      } else if (directFiles.length === 0 && getGenericCookiesArgs().length > 0) {
         console.warn("[photos:instagram] direct download with cookies failed, retrying without cookies");
         ({ files: directFiles } = await downloadFilesWithYtDlp(url, workDir, false));
       }
