@@ -495,7 +495,9 @@ async function handleDownload(url: string): Promise<Response> {
         );
       }
 
-      const friendly = privateMsg
+      const friendly = /This content is only available for registered users who follow this account/i.test(stderr)
+        ? "This Instagram post is from a private account. Only followers can download private content. Ask the account owner to make the post public, or download it directly from the Instagram app."
+        : privateMsg
         ? "This post is private, deleted, or requires login."
         : unsupportedMsg
         ? "This URL doesn't appear to contain downloadable media."

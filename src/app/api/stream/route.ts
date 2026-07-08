@@ -271,6 +271,8 @@ export async function GET(request: NextRequest) {
         friendlyMsg = isInstagram
           ? "Instagram requires login cookies to download this content. Set MEDIA_COOKIES in your Render environment variables with your Instagram session cookies (Netscape format)."
           : "The platform returned an empty response. The content may be private or restricted.";
+      } else if (/This content is only available for registered users who follow this account/i.test(stderr)) {
+        friendlyMsg = "This Instagram post is from a private account. Only followers can download private content. Ask the account owner to make the post public, or download it directly from the Instagram app.";
       } else if (/private|login required|sign.?in|not accessible|authentication required|not.*available.*login/i.test(stderr)) {
         friendlyMsg = isInstagram
           ? "Instagram is requiring login for this post from the server. If it's a public post, add Instagram session cookies to the MEDIA_COOKIES or MEDIA_COOKIES_INSTAGRAM environment variable. If it's private, it can't be downloaded."

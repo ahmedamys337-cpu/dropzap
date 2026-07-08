@@ -730,7 +730,9 @@ async function handleDownload(url: string): Promise<Response> {
       if (isVideoOnly) {
         return new Response("This Instagram post is a video/Reel. Please use the Reel & Video downloader.", { status: 400 });
       }
-      const friendly = /private|login|account|not.*available|400|Bad Request/i.test(stderr)
+      const friendly = /This content is only available for registered users who follow this account/i.test(stderr)
+        ? "This Instagram post is from a private account. Only followers can download private content. Ask the account owner to make the post public, or download it directly from the Instagram app."
+        : /private|login|account|not.*available|400|Bad Request/i.test(stderr)
         ? "This post is private, deleted, requires login, or Instagram rejected the request (400 Bad Request)."
         : `Failed to fetch this ${platform} post.`;
       return new Response(friendly, { status: 502 });
