@@ -43,12 +43,6 @@ const jsonLd = {
       offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
       description:
         "Free TikTok sound downloader. Extracts audio from any TikTok video as MP3. No watermark, no signup, no daily limit. Works on iPhone, Android, PC, and Mac.",
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: "4.8",
-        ratingCount: "1674",
-        bestRating: "5",
-      },
     },
     {
       "@type": "HowTo",

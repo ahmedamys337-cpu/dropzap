@@ -11,7 +11,7 @@
 //      signal, not a generic "best of all time" page. Dedicated
 //      year URLs match that intent in title and slug.
 //   2. Each year we duplicate the page to a new slug
-//      (best-tiktok-downloader-2027) and add a 308 from the old
+//      (best-tiktok-downloader-2026) and add a 308 from the old
 //      slug. This preserves the page age for ranking while letting
 //      the title reflect the new year — the same trick TechRadar
 //      and Wirecutter use.

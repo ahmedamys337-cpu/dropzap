@@ -20,9 +20,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // every crawl — Google eventually stops trusting lastModified for the domain.
   const stableDate = new Date("2026-06-01");
 
-  // /youtube-downloader is intentionally excluded — the page now 308s to /
-  // while YouTube downloads are disabled. Listing it would cause search
-  // engines to crawl the redirect repeatedly and surface "broken" warnings.
+  // Removed platform pages are excluded from the sitemap to avoid redirect
+  // crawl warnings. Only canonical 200-status URLs should be listed here.
   const platformPages = [
     "tiktok-downloader",
     "tiktok-to-mp3",
@@ -33,7 +32,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "threads-downloader",
   ];
 
-  // High-value standalone pages targeting top competitor / keyword queries
+  // High-value standalone pages targeting top competitor / keyword queries.
+  // Only canonical 200-status URLs are listed here; vanity redirects that
+  // 301 to these pages are intentionally excluded from the sitemap.
   const standalonePages = [
     { slug: "snaptik-alternative", priority: 0.85 as const },
     { slug: "free-tiktok-downloader", priority: 0.85 as const },
@@ -45,22 +46,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { slug: "facebook-reel-downloader", priority: 0.85 as const },
     { slug: "tools", priority: 0.8 as const },
     { slug: "compare", priority: 0.8 as const },
-    // Keyword vanity redirects (301 to canonical pages, but listed for
-    // discovery so Google indexes the target URL under these query terms)
-    { slug: "tiktok-downloader-for-iphone", priority: 0.7 as const },
-    { slug: "tiktok-downloader-for-android", priority: 0.7 as const },
-    { slug: "tiktok-downloader-for-pc", priority: 0.7 as const },
-    { slug: "tiktok-to-mp3-converter", priority: 0.7 as const },
-    { slug: "tiktok-video-downloader", priority: 0.7 as const },
-    { slug: "instagram-reels-downloader-for-iphone", priority: 0.7 as const },
-    { slug: "instagram-reels-downloader-for-android", priority: 0.7 as const },
-    { slug: "instagram-video-downloader", priority: 0.7 as const },
-    { slug: "tiktok-slideshow-downloader", priority: 0.7 as const },
-    { slug: "instagram-story-downloader", priority: 0.7 as const },
-    { slug: "instagram-downloader-for-pc", priority: 0.7 as const },
-    { slug: "facebook-downloader-for-pc", priority: 0.7 as const },
-    { slug: "twitter-downloader-for-pc", priority: 0.7 as const },
-    { slug: "reddit-downloader-for-pc", priority: 0.7 as const },
   ];
 
   const blogEntries: MetadataRoute.Sitemap = blogPosts.map((post) => ({

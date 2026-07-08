@@ -44,12 +44,6 @@ const jsonLd = {
       offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
       description:
         "Free Threads video and photo downloader. Save any public Threads post as MP4 or JPG — no login, no watermark, no daily limit.",
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: "4.8",
-        ratingCount: "1243",
-        bestRating: "5",
-      },
     },
     {
       "@type": "HowTo",

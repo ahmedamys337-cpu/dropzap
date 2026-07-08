@@ -43,7 +43,6 @@ export default function BlogIndex() {
           </Link>
           <nav className="flex gap-4 text-sm text-muted-foreground">
             <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
-            <Link href="/youtube-downloader" className="hover:text-foreground transition-colors">YouTube</Link>
             <Link href="/tiktok-downloader" className="hover:text-foreground transition-colors">TikTok</Link>
           </nav>
         </div>

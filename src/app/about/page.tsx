@@ -52,7 +52,7 @@ export default function AboutPage() {
             (videos and GIFs), <strong>Facebook</strong> (videos, Reels, Albums),{" "}
             <strong>Reddit</strong> (with audio merged), <strong>Pinterest</strong>,{" "}
             and <strong>Threads</strong>. You can save videos in HD, extract audio
-            as MP3, grab YouTube thumbnails, or download in bulk — all directly
+            as MP3, or download in bulk — all directly
             from your browser, with no software to install.
           </p>
         </section>

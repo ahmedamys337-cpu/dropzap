@@ -82,7 +82,6 @@ export default function OGImage() {
           }}
         >
           <span>Download videos from</span>
-          <span style={{ color: "#ef4444", fontWeight: 700 }}>YouTube</span>
           <span style={{ color: "#ec4899", fontWeight: 700 }}>Instagram</span>
           <span style={{ color: "#06b6d4", fontWeight: 700 }}>TikTok</span>
           <span style={{ color: "#ffffff", fontWeight: 700 }}>Twitter/X</span>

@@ -139,7 +139,7 @@ export default function ContactPage() {
       </div>
 
       <p className="text-xs text-muted-foreground mt-10">
-        DropZap is operated independently. We are not affiliated with YouTube,
+        DropZap is operated independently. We are not affiliated with
         Instagram, TikTok, Twitter/X, Facebook, or Reddit.
       </p>
     </main>

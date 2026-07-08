@@ -244,6 +244,7 @@ export default function MediaPostDownloader({
                           height={360}
                           unoptimized
                           className="w-full aspect-video object-cover"
+                          loading="lazy"
                         />
                       ) : (
                         <div className="aspect-video flex items-center justify-center text-muted-foreground">
@@ -258,6 +259,7 @@ export default function MediaPostDownloader({
                         height={item.height || 600}
                         unoptimized
                         className="w-full h-auto max-h-96 object-contain"
+                        loading="lazy"
                       />
                     )}
                     <span className="absolute top-2 left-2 inline-flex items-center gap-1 rounded-full bg-black/70 backdrop-blur-sm px-2.5 py-1 text-xs font-medium text-white">

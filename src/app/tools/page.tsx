@@ -7,7 +7,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digita
 export const metadata: Metadata = {
   title: "All Download Tools — Free Media Downloader Index (2026)",
   description:
-    "Browse all free download tools from DropZap. TikTok, Instagram, Facebook, Twitter/X, Reddit, Pinterest, Threads, YouTube thumbnails, MP3 converter. No signup, no watermark.",
+    "Browse all free download tools from DropZap. TikTok, Instagram, Facebook, Twitter/X, Reddit, Pinterest, Threads, MP3 converter. No signup, no watermark.",
   keywords: [
     "free downloader tools",
     "video downloader tools",

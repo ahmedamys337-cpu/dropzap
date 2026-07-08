@@ -231,7 +231,7 @@ export default function Mp3ConverterPage() {
           <ul>
             <li>
               <strong>MP4</strong> — the most common format on the web. TikTok,
-              Instagram, YouTube, and screen recorder exports all save as MP4.
+              Instagram, and screen recorder exports all save as MP4.
             </li>
             <li>
               <strong>MKV</strong> — common for higher-quality archives, ripped
@@ -247,7 +247,7 @@ export default function Mp3ConverterPage() {
             </li>
             <li>
               <strong>WEBM</strong> — Google's open-source container, common
-              for Chrome screen recorders and YouTube downloads.
+              for Chrome screen recorders and browser-based recordings.
             </li>
             <li>
               <strong>FLV / WMV</strong> — older formats kept around for

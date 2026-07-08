@@ -169,6 +169,92 @@ export const devicePages: Record<string, DevicePage[]> = {
       dateModified: "2026-05-09",
     },
     {
+      slug: "ipad",
+      toolPath: "/instagram-downloader",
+      toolName: "Instagram Downloader",
+      variantLabel: "iPad",
+      metaTitle: "Download Instagram Reels on iPad — Safari Guide (2026)",
+      metaDescription:
+        "How to download Instagram Reels and photos on iPad using Safari. Save to Photos app without an app or login. Step-by-step guide for iPadOS 17+.",
+      keywords: [
+        "download instagram reels on ipad",
+        "instagram downloader ipad",
+        "save instagram reel to photos ipad",
+        "ipad instagram reel download",
+        "ig reel download safari ipad",
+      ],
+      h1: "How to Download Instagram Reels on iPad",
+      intro:
+        "iPad's larger screen makes browsing Instagram Reels more enjoyable, but the Instagram iPad app still lacks a built-in download button. DropZap works perfectly on iPad through Safari — no app installation, no Instagram login required. This guide covers the complete workflow for saving Instagram Reels, photos, and carousels directly to your iPad's Photos app.",
+      sections: [
+        {
+          heading: "iPad vs iPhone: what's different?",
+          html: `
+<p>The iPad download workflow is nearly identical to iPhone, with one key advantage: the larger screen makes it easier to manage ZIP files from carousel downloads and to organize downloaded media. iPadOS also has a more capable Files app with better folder management.</p>
+<p>Like iPhone, Safari downloads land in the Files app first, not directly in Photos. The Files → Photos move is still required, but iPad's Files app makes this easier with drag-and-drop and split-screen multitasking.</p>
+          `.trim(),
+        },
+        {
+          heading: "Step-by-step: Instagram Reel to iPad Photos",
+          html: `
+<ol>
+<li>Open the Instagram app on iPad, find the Reel or photo, tap the share arrow → <strong>Copy Link</strong>.</li>
+<li>Open <strong>Safari</strong> on iPad and go to <a href="/instagram-downloader">dropzap.digital/instagram-downloader</a>.</li>
+<li>Tap the URL field → <strong>Paste</strong>.</li>
+<li>Tap <strong>Download</strong>. The file saves to the Files app.</li>
+<li>Open <strong>Files</strong> → <strong>Downloads</strong> → tap-and-hold the file → <strong>Share</strong> → <strong>Save Video</strong> (or <strong>Save Image</strong>).</li>
+</ol>
+<p>For carousels, the ZIP opens automatically in Files. You can then save each photo individually to Photos, or use iPad's drag-and-drop to move multiple photos at once.</p>
+          `.trim(),
+        },
+        {
+          heading: "iPad-specific tips",
+          html: `
+<p><strong>Split-screen advantage</strong> — Open Safari in one half of the screen and Files in the other. This lets you download and organize media without switching apps constantly.</p>
+<p><strong>Drag-and-drop</strong> — After downloading, you can drag files directly from Files into Photos when both apps are in split-screen mode.</p>
+<p><strong>Apple Pencil</strong> — If you're using iPad with Apple Pencil, you can annotate downloaded Reels or photos in the Photos app before sharing.</p>
+          `.trim(),
+        },
+      ],
+      howToSteps: [
+        {
+          name: "Copy the Instagram link",
+          text: "In the Instagram app on iPad, tap the share arrow on the Reel or post, then Copy Link.",
+        },
+        {
+          name: "Open DropZap in Safari",
+          text: "Go to dropzap.digital/instagram-downloader in Safari on iPad.",
+        },
+        {
+          name: "Paste and Download",
+          text: "Paste the URL and tap Download. The file saves to the Files app.",
+        },
+        {
+          name: "Move to Photos",
+          text: "Open Files → Downloads, tap-and-hold the file, tap Share → Save Video/Image. Or use split-screen to drag directly to Photos.",
+        },
+      ],
+      faq: [
+        {
+          q: "Does DropZap work on iPad Pro and iPad Air?",
+          a: "Yes. DropZap works on all iPad models including iPad Pro, iPad Air, iPad mini, and standard iPad. The workflow is identical across all models.",
+        },
+        {
+          q: "Can I download Instagram Reels in landscape mode on iPad?",
+          a: "Yes. DropZap's interface adapts to iPad's orientation. You can download in either portrait or landscape mode.",
+        },
+        {
+          q: "Where do carousel ZIPs save on iPad?",
+          a: "ZIP files save to the Downloads folder in the Files app. iPadOS automatically extracts ZIPs when you tap them, revealing all the carousel slides.",
+        },
+      ],
+      relatedBlogPosts: [
+        "how-to-download-instagram-reels-on-iphone",
+        "how-to-download-instagram-carousel",
+      ],
+      dateModified: "2026-05-09",
+    },
+    {
       slug: "android",
       toolPath: "/instagram-downloader",
       toolName: "Instagram Downloader",
@@ -272,6 +358,280 @@ export const devicePages: Record<string, DevicePage[]> = {
         {
           q: "Can I download the audio from an Instagram Reel as MP3?",
           a: "Yes. Use DropZap's MP3 Converter tab on the homepage — paste the Reel URL and choose MP3 output. The converter extracts the audio track and saves it as a standalone MP3 file.",
+        },
+      ],
+      relatedBlogPosts: [
+        "how-to-download-instagram-reels-on-iphone",
+        "how-to-download-instagram-carousel",
+      ],
+      dateModified: "2026-05-09",
+    },
+    {
+      slug: "windows",
+      toolPath: "/instagram-downloader",
+      toolName: "Instagram Downloader",
+      variantLabel: "Windows",
+      metaTitle: "Download Instagram Reels on Windows PC — Browser Guide 2026",
+      metaDescription:
+        "Save Instagram Reels and photos on Windows PC using Chrome, Edge, or Firefox. No app, no login. Files save to Downloads folder. Step-by-step guide.",
+      keywords: [
+        "download instagram reels windows",
+        "instagram downloader windows pc",
+        "save instagram reel to computer",
+        "windows instagram reel download",
+        "ig reel download chrome windows",
+      ],
+      h1: "How to Download Instagram Reels on Windows PC",
+      intro:
+        "Windows PC users have the most straightforward Instagram download experience. Any modern browser — Chrome, Edge, Firefox, Brave — works with DropZap to save Instagram Reels, photos, and carousels directly to your Downloads folder. No app installation, no Instagram account required, and files are immediately accessible in File Explorer.",
+      sections: [
+        {
+          heading: "Why Windows is ideal for Instagram downloads",
+          html: `
+<p>Windows has no sandbox restrictions like iOS. Browser downloads go directly to your Downloads folder, which you can access instantly via File Explorer. There's no extra step to move files between apps — once a Reel downloads, it's ready to play, edit, or share.</p>
+<p>Windows also has native ZIP extraction, so Instagram carousel downloads (which come as ZIP files) open with a double-click. No third-party software needed.</p>
+          `.trim(),
+        },
+        {
+          heading: "Step-by-step: Instagram Reel to Windows PC",
+          html: `
+<ol>
+<li>Open Instagram in your browser (Chrome, Edge, Firefox) or use the Instagram app for Windows.</li>
+<li>Find the Reel or photo post, click the three-dot menu → <strong>Copy Link</strong>.</li>
+<li>Open <a href="/instagram-downloader">dropzap.digital/instagram-downloader</a> in your browser.</li>
+<li>Paste the URL and click <strong>Download</strong>.</li>
+<li>The file saves to your <strong>Downloads</strong> folder. Open File Explorer → Downloads to find it.</li>
+</ol>
+<p>For carousels, the ZIP file downloads to Downloads. Double-click it to extract all photos at once.</p>
+          `.trim(),
+        },
+        {
+          heading: "Browser compatibility on Windows",
+          html: `
+<p><strong>Google Chrome</strong> — Full support. Downloads to C:/Users/[YourName]/Downloads/.</p>
+<p><strong>Microsoft Edge</strong> — Full support. Same download location as Chrome.</p>
+<p><strong>Mozilla Firefox</strong> — Full support. Downloads to your configured download folder (usually Downloads).</p>
+<p><strong>Brave</strong> — Full support. Same workflow as Chrome.</p>
+<p>All browsers work identically with DropZap — no browser-specific limitations.</p>
+          `.trim(),
+        },
+      ],
+      howToSteps: [
+        {
+          name: "Copy the Instagram link",
+          text: "In Instagram (browser or Windows app), click the three-dot menu on the post, then Copy Link.",
+        },
+        {
+          name: "Open DropZap in browser",
+          text: "Go to dropzap.digital/instagram-downloader in Chrome, Edge, or Firefox on Windows.",
+        },
+        {
+          name: "Paste and Download",
+          text: "Paste the URL and click Download. The file saves to your Downloads folder.",
+        },
+        {
+          name: "Find the file",
+          text: "Open File Explorer → Downloads. The Reel or photo is ready to use. ZIPs extract with double-click.",
+        },
+      ],
+      faq: [
+        {
+          q: "Which browser works best on Windows for Instagram downloads?",
+          a: "All modern browsers work equally well. Chrome, Edge, Firefox, and Brave all support DropZap. Choose whichever browser you prefer — the experience is identical.",
+        },
+        {
+          q: "Where do Instagram downloads save on Windows?",
+          a: "By default, C:/Users/[YourName]/Downloads/. You can change this in your browser settings if you prefer a different location.",
+        },
+        {
+          q: "Can I download Instagram Reels using the Windows Instagram app?",
+          a: "Yes. The Windows Instagram app has a Copy Link option. Copy the link, then paste it into DropZap in your browser. The download happens in the browser, not the app.",
+        },
+        {
+          q: "Do I need to install any software on Windows?",
+          a: "No. DropZap is a website. No desktop software, no browser extensions, no Instagram app required.",
+        },
+      ],
+      relatedBlogPosts: [
+        "how-to-download-instagram-reels-on-iphone",
+        "how-to-download-instagram-carousel",
+      ],
+      dateModified: "2026-05-09",
+    },
+    {
+      slug: "mac",
+      toolPath: "/instagram-downloader",
+      toolName: "Instagram Downloader",
+      variantLabel: "Mac",
+      metaTitle: "Download Instagram Reels on Mac — Safari & Chrome Guide 2026",
+      metaDescription:
+        "Save Instagram Reels and photos on Mac using Safari or Chrome. No app, no login. Files save to Downloads folder. Step-by-step guide for macOS.",
+      keywords: [
+        "download instagram reels mac",
+        "instagram downloader macbook",
+        "save instagram reel to mac",
+        "mac instagram reel download",
+        "ig reel download safari mac",
+      ],
+      h1: "How to Download Instagram Reels on Mac",
+      intro:
+        "Mac users can download Instagram Reels, photos, and carousels directly to their Downloads folder using Safari, Chrome, or any other browser. DropZap works seamlessly on macOS — no app installation, no Instagram account required, and files are immediately accessible in Finder.",
+      sections: [
+        {
+          heading: "Mac browser options",
+          html: `
+<p><strong>Safari</strong> — Native browser, excellent privacy, full DropZap support. Downloads to ~/Downloads/.</p>
+<p><strong>Google Chrome</strong> — Full support, same workflow as Safari. Downloads to ~/Downloads/.</p>
+<p><strong>Firefox</strong> — Full support. Downloads to your configured download folder.</p>
+<p>All browsers work identically with DropZap on macOS.</p>
+          `.trim(),
+        },
+        {
+          heading: "Step-by-step: Instagram Reel to Mac",
+          html: `
+<ol>
+<li>Open Instagram in Safari or Chrome on your Mac.</li>
+<li>Find the Reel or photo post, click the three-dot menu → <strong>Copy Link</strong>.</li>
+<li>Open <a href="/instagram-downloader">dropzap.digital/instagram-downloader</a>.</li>
+<li>Paste the URL and click <strong>Download</strong>.</li>
+<li>The file saves to your <strong>Downloads</strong> folder. Open Finder → Downloads to access it.</li>
+</ol>
+<p>For carousels, double-click the ZIP file to extract all photos. macOS has built-in ZIP extraction.</p>
+          `.trim(),
+        },
+        {
+          heading: "Mac-specific tips",
+          html: `
+<p><strong>Quick Look</strong> — Press Spacebar on any downloaded file in Finder to preview it without opening an app.</p>
+<p><strong>Spotlight</strong> — Downloaded files are indexed by Spotlight. Press Cmd+Space and search for the filename to find it quickly.</p>
+<p><strong>AirDrop</strong> — After downloading, you can AirDrop the Reel or photo directly to your iPhone or iPad.</p>
+          `.trim(),
+        },
+      ],
+      howToSteps: [
+        {
+          name: "Copy the Instagram link",
+          text: "In Instagram on Mac (Safari or Chrome), click the three-dot menu on the post, then Copy Link.",
+        },
+        {
+          name: "Open DropZap in browser",
+          text: "Go to dropzap.digital/instagram-downloader in Safari or Chrome on Mac.",
+        },
+        {
+          name: "Paste and Download",
+          text: "Paste the URL and click Download. The file saves to your Downloads folder.",
+        },
+        {
+          name: "Find the file",
+          text: "Open Finder → Downloads. The file is ready to use. ZIPs extract with double-click.",
+        },
+      ],
+      faq: [
+        {
+          q: "Does DropZap work on Safari on Mac?",
+          a: "Yes. Safari on macOS has full DropZap support. The workflow is identical to Chrome or any other browser.",
+        },
+        {
+          q: "Where do Instagram downloads save on Mac?",
+          a: "By default, ~/Downloads/ (your home folder's Downloads). You can change this in your browser settings if preferred.",
+        },
+        {
+          q: "Can I download Instagram Reels on Mac using the Instagram app?",
+          a: "There is no official Instagram app for Mac. Use Instagram in Safari or Chrome, then copy the link to DropZap.",
+        },
+        {
+          q: "Do I need to install any software on Mac?",
+          a: "No. DropZap is a website. No desktop software, no browser extensions required.",
+        },
+      ],
+      relatedBlogPosts: [
+        "how-to-download-instagram-reels-on-iphone",
+        "how-to-download-instagram-carousel",
+      ],
+      dateModified: "2026-05-09",
+    },
+    {
+      slug: "chromebook",
+      toolPath: "/instagram-downloader",
+      toolName: "Instagram Downloader",
+      variantLabel: "Chromebook",
+      metaTitle: "Download Instagram Reels on Chromebook — Chrome OS Guide 2026",
+      metaDescription:
+        "Save Instagram Reels and photos on Chromebook using Chrome. No app, no login. Files save to Files app. Step-by-step guide for Chrome OS.",
+      keywords: [
+        "download instagram reels chromebook",
+        "instagram downloader chromebook",
+        "save instagram reel to chromebook",
+        "chromebook instagram reel download",
+        "ig reel download chrome os",
+      ],
+      h1: "How to Download Instagram Reels on Chromebook",
+      intro:
+        "Chromebooks run Chrome OS, which means you have the full power of Google Chrome for Instagram downloads. DropZap works perfectly on Chromebook — no Android app needed, no Linux container required. Just open Chrome, paste the Instagram link, and download Reels, photos, and carousels directly to your Files app.",
+      sections: [
+        {
+          heading: "Chromebook advantages for Instagram downloads",
+          html: `
+<p>Chromebooks have a streamlined file system that's easy to navigate. Downloads go to the Files app's Downloads folder, which you can access with a single click. Chrome OS also has built-in ZIP extraction, so Instagram carousel downloads open with a double-click.</p>
+<p>Because Chromebooks use the same Chrome browser as desktop, the DropZap experience is identical to Windows or Mac — no mobile-specific limitations.</p>
+          `.trim(),
+        },
+        {
+          heading: "Step-by-step: Instagram Reel to Chromebook",
+          html: `
+<ol>
+<li>Open Instagram in Chrome on your Chromebook.</li>
+<li>Find the Reel or photo post, click the three-dot menu → <strong>Copy Link</strong>.</li>
+<li>Open <a href="/instagram-downloader">dropzap.digital/instagram-downloader</a>.</li>
+<li>Paste the URL and click <strong>Download</strong>.</li>
+<li>The file saves to your <strong>Files</strong> app → <strong>Downloads</strong> folder.</li>
+</ol>
+<p>For carousels, double-click the ZIP in Files to extract all photos.</p>
+          `.trim(),
+        },
+        {
+          heading: "Chromebook-specific tips",
+          html: `
+<p><strong>Files app</strong> — All downloads appear in the Files app. You can organize them into folders, move them to Google Drive, or transfer them to external storage.</p>
+<p><strong>Google Drive integration</strong> — After downloading, you can move files to Google Drive for cloud storage and access on other devices.</p>
+<p><strong>Android apps</strong> — If your Chromebook supports Android apps, you can also use the Android Instagram app, then copy links to DropZap in Chrome.</p>
+          `.trim(),
+        },
+      ],
+      howToSteps: [
+        {
+          name: "Copy the Instagram link",
+          text: "In Instagram on Chromebook (Chrome), click the three-dot menu on the post, then Copy Link.",
+        },
+        {
+          name: "Open DropZap in Chrome",
+          text: "Go to dropzap.digital/instagram-downloader in Chrome on your Chromebook.",
+        },
+        {
+          name: "Paste and Download",
+          text: "Paste the URL and click Download. The file saves to the Files app.",
+        },
+        {
+          name: "Find the file",
+          text: "Open Files app → Downloads. The file is ready to use. ZIPs extract with double-click.",
+        },
+      ],
+      faq: [
+        {
+          q: "Does DropZap work on all Chromebooks?",
+          a: "Yes. DropZap works on all Chromebooks since they all run Chrome. No specific model requirements.",
+        },
+        {
+          q: "Where do Instagram downloads save on Chromebook?",
+          a: "To the Files app's Downloads folder. You can access it by clicking the Files icon in the shelf.",
+        },
+        {
+          q: "Can I use the Android Instagram app on Chromebook?",
+          a: "If your Chromebook supports Android apps (most newer models do), you can install the Instagram app from the Play Store. Copy links from the app to DropZap in Chrome.",
+        },
+        {
+          q: "Do I need to enable Linux on Chromebook?",
+          a: "No. DropZap works entirely in Chrome. No Linux container or Android app required.",
         },
       ],
       relatedBlogPosts: [
@@ -395,6 +755,92 @@ export const devicePages: Record<string, DevicePage[]> = {
       dateModified: "2026-05-09",
     },
     {
+      slug: "ipad",
+      toolPath: "/tiktok-downloader",
+      toolName: "TikTok Downloader",
+      variantLabel: "iPad",
+      metaTitle: "Download TikTok Without Watermark on iPad — Safari Guide 2026",
+      metaDescription:
+        "Save TikTok videos without watermark on iPad using Safari. No app, no login. Move to Photos app easily. Step-by-step iPadOS guide.",
+      keywords: [
+        "tiktok download ipad no watermark",
+        "tiktok downloader ipad",
+        "save tiktok to photos ipad",
+        "ipad tiktok video saver",
+        "tiktok no watermark ipad",
+      ],
+      h1: "Download TikTok Videos Without Watermark on iPad",
+      intro:
+        "iPad's larger screen makes managing downloaded TikTok videos easier than on iPhone. DropZap works perfectly on iPad through Safari — no app installation, no TikTok login required. Download clean, watermark-free TikTok videos and move them to your Photos app with drag-and-drop or split-screen multitasking.",
+      sections: [
+        {
+          heading: "iPad advantages for TikTok downloads",
+          html: `
+<p>The iPad download workflow is nearly identical to iPhone, with key advantages: the larger screen makes it easier to manage files, and iPadOS has better multitasking. You can have Safari and Files open in split-screen, downloading TikToks and organizing them without constantly switching apps.</p>
+<p>Like iPhone, Safari downloads land in the Files app first. But iPad's drag-and-drop makes the Files → Photos move much faster than tap-and-hold on iPhone.</p>
+          `.trim(),
+        },
+        {
+          heading: "Step-by-step: clean TikTok on iPad",
+          html: `
+<ol>
+<li>Open the TikTok app on iPad, find the video, tap the share arrow → <strong>Copy Link</strong>.</li>
+<li>Open <strong>Safari</strong> on iPad and go to <a href="/tiktok-downloader">dropzap.digital/tiktok-downloader</a>.</li>
+<li>Tap the URL field → <strong>Paste</strong>.</li>
+<li>Tap <strong>Download</strong>. The file saves to Files app.</li>
+<li>Open <strong>Files</strong> → <strong>Downloads</strong> → tap-and-hold the MP4 → <strong>Share</strong> → <strong>Save Video</strong>. Or use split-screen to drag to Photos.</li>
+</ol>
+<p>The result is a clean MP4 with no watermark, no TikTok logo, no @username overlay.</p>
+          `.trim(),
+        },
+        {
+          heading: "iPad-specific tips",
+          html: `
+<p><strong>Split-screen workflow</strong> — Open Safari in one half, Files in the other. Download TikToks in Safari, then drag them directly to Photos without switching apps.</p>
+<p><strong>Drag-and-drop</strong> — After downloading, you can drag the MP4 from Files directly into Photos when both apps are visible in split-screen.</p>
+<p><strong>Apple Pencil</strong> — If you're using iPad with Apple Pencil, you can annotate downloaded TikToks in the Photos app before sharing.</p>
+          `.trim(),
+        },
+      ],
+      howToSteps: [
+        {
+          name: "Copy the TikTok link",
+          text: "In the TikTok app on iPad, tap the share arrow on the video, then Copy Link.",
+        },
+        {
+          name: "Open DropZap in Safari",
+          text: "Go to dropzap.digital/tiktok-downloader in Safari on iPad.",
+        },
+        {
+          name: "Paste and Download",
+          text: "Paste the URL and tap Download. The file saves to Files app.",
+        },
+        {
+          name: "Move to Photos",
+          text: "Open Files → Downloads, tap-and-hold the MP4, tap Share → Save Video. Or use split-screen to drag to Photos.",
+        },
+      ],
+      faq: [
+        {
+          q: "Does DropZap work on all iPad models?",
+          a: "Yes. DropZap works on all iPad models including iPad Pro, iPad Air, iPad mini, and standard iPad. The workflow is identical across all models.",
+        },
+        {
+          q: "Can I download TikTok videos in landscape mode on iPad?",
+          a: "Yes. DropZap's interface adapts to iPad's orientation. You can download in either portrait or landscape mode.",
+        },
+        {
+          q: "Where do TikTok slideshow ZIPs save on iPad?",
+          a: "ZIP files save to the Downloads folder in Files. iPadOS automatically extracts ZIPs when you tap them, revealing all the slideshow images.",
+        },
+      ],
+      relatedBlogPosts: [
+        "how-to-download-tiktok-without-watermark",
+        "best-tiktok-downloader-no-watermark",
+      ],
+      dateModified: "2026-05-09",
+    },
+    {
       slug: "android",
       toolPath: "/tiktok-downloader",
       toolName: "TikTok Downloader",
@@ -495,6 +941,280 @@ export const devicePages: Record<string, DevicePage[]> = {
         {
           q: "Can I bulk-download multiple TikTok videos on Android?",
           a: "Yes. DropZap has a Bulk Downloader on the homepage. Paste multiple TikTok URLs (one per line) and the queue downloads them sequentially. All files land in the Downloads folder.",
+        },
+      ],
+      relatedBlogPosts: [
+        "how-to-download-tiktok-without-watermark",
+        "best-tiktok-downloader-no-watermark",
+      ],
+      dateModified: "2026-05-09",
+    },
+    {
+      slug: "windows",
+      toolPath: "/tiktok-downloader",
+      toolName: "TikTok Downloader",
+      variantLabel: "Windows",
+      metaTitle: "Download TikTok Without Watermark on Windows PC — Browser Guide 2026",
+      metaDescription:
+        "Save TikTok videos without watermark on Windows PC using Chrome, Edge, or Firefox. No app, no login. Files save to Downloads folder. Step-by-step guide.",
+      keywords: [
+        "tiktok download windows no watermark",
+        "tiktok downloader windows pc",
+        "save tiktok to computer",
+        "windows tiktok video saver",
+        "tiktok no watermark chrome windows",
+      ],
+      h1: "Download TikTok Without Watermark on Windows PC",
+      intro:
+        "Windows PC users have the most straightforward TikTok download experience. Any modern browser — Chrome, Edge, Firefox, Brave — works with DropZap to save clean, watermark-free TikTok videos directly to your Downloads folder. No app installation, no TikTok account required, and files are immediately accessible in File Explorer.",
+      sections: [
+        {
+          heading: "Why Windows is ideal for TikTok downloads",
+          html: `
+<p>Windows has no sandbox restrictions like iOS. Browser downloads go directly to your Downloads folder, which you can access instantly via File Explorer. There's no extra step to move files between apps — once a TikTok downloads, it's ready to play, edit, or share.</p>
+<p>Windows also has native ZIP extraction, so TikTok slideshow downloads (which come as ZIP files) open with a double-click. No third-party software needed.</p>
+          `.trim(),
+        },
+        {
+          heading: "Step-by-step: TikTok to Windows PC",
+          html: `
+<ol>
+<li>Open TikTok in your browser (Chrome, Edge, Firefox) or use the TikTok app for Windows.</li>
+<li>Find the video, click the share button → <strong>Copy Link</strong>.</li>
+<li>Open <a href="/tiktok-downloader">dropzap.digital/tiktok-downloader</a> in your browser.</li>
+<li>Paste the URL and click <strong>Download</strong>.</li>
+<li>The file saves to your <strong>Downloads</strong> folder. Open File Explorer → Downloads to find it.</li>
+</ol>
+<p>The result is a clean MP4 with no watermark, no TikTok logo, no @username overlay.</p>
+          `.trim(),
+        },
+        {
+          heading: "Browser compatibility on Windows",
+          html: `
+<p><strong>Google Chrome</strong> — Full support. Downloads to C:/Users/[YourName]/Downloads/.</p>
+<p><strong>Microsoft Edge</strong> — Full support. Same download location as Chrome.</p>
+<p><strong>Mozilla Firefox</strong> — Full support. Downloads to your configured download folder (usually Downloads).</p>
+<p><strong>Brave</strong> — Full support. Same workflow as Chrome.</p>
+<p>All browsers work identically with DropZap — no browser-specific limitations.</p>
+          `.trim(),
+        },
+      ],
+      howToSteps: [
+        {
+          name: "Copy the TikTok link",
+          text: "In TikTok (browser or Windows app), click the share button on the video, then Copy Link.",
+        },
+        {
+          name: "Open DropZap in browser",
+          text: "Go to dropzap.digital/tiktok-downloader in Chrome, Edge, or Firefox on Windows.",
+        },
+        {
+          name: "Paste and Download",
+          text: "Paste the URL and click Download. The file saves to your Downloads folder.",
+        },
+        {
+          name: "Find the file",
+          text: "Open File Explorer → Downloads. The clean MP4 is ready to use.",
+        },
+      ],
+      faq: [
+        {
+          q: "Which browser works best on Windows for TikTok downloads?",
+          a: "All modern browsers work equally well. Chrome, Edge, Firefox, and Brave all support DropZap. Choose whichever browser you prefer — the experience is identical.",
+        },
+        {
+          q: "Where do TikTok downloads save on Windows?",
+          a: "By default, C:/Users/[YourName]/Downloads/. You can change this in your browser settings if you prefer a different location.",
+        },
+        {
+          q: "Can I download TikTok videos using the Windows TikTok app?",
+          a: "Yes. The Windows TikTok app has a Copy Link option. Copy the link, then paste it into DropZap in your browser. The download happens in the browser, not the app.",
+        },
+        {
+          q: "Do I need to install any software on Windows?",
+          a: "No. DropZap is a website. No desktop software, no browser extensions, no TikTok app required.",
+        },
+      ],
+      relatedBlogPosts: [
+        "how-to-download-tiktok-without-watermark",
+        "best-tiktok-downloader-no-watermark",
+      ],
+      dateModified: "2026-05-09",
+    },
+    {
+      slug: "mac",
+      toolPath: "/tiktok-downloader",
+      toolName: "TikTok Downloader",
+      variantLabel: "Mac",
+      metaTitle: "Download TikTok Without Watermark on Mac — Safari & Chrome Guide 2026",
+      metaDescription:
+        "Save TikTok videos without watermark on Mac using Safari or Chrome. No app, no login. Files save to Downloads folder. Step-by-step guide for macOS.",
+      keywords: [
+        "tiktok download mac no watermark",
+        "tiktok downloader macbook",
+        "save tiktok to mac",
+        "mac tiktok video saver",
+        "tiktok no watermark safari mac",
+      ],
+      h1: "Download TikTok Without Watermark on Mac",
+      intro:
+        "Mac users can download clean, watermark-free TikTok videos directly to their Downloads folder using Safari, Chrome, or any other browser. DropZap works seamlessly on macOS — no app installation, no TikTok account required, and files are immediately accessible in Finder.",
+      sections: [
+        {
+          heading: "Mac browser options",
+          html: `
+<p><strong>Safari</strong> — Native browser, excellent privacy, full DropZap support. Downloads to ~/Downloads/.</p>
+<p><strong>Google Chrome</strong> — Full support, same workflow as Safari. Downloads to ~/Downloads/.</p>
+<p><strong>Firefox</strong> — Full support. Downloads to your configured download folder.</p>
+<p>All browsers work identically with DropZap on macOS.</p>
+          `.trim(),
+        },
+        {
+          heading: "Step-by-step: TikTok to Mac",
+          html: `
+<ol>
+<li>Open TikTok in Safari or Chrome on your Mac.</li>
+<li>Find the video, click the share button → <strong>Copy Link</strong>.</li>
+<li>Open <a href="/tiktok-downloader">dropzap.digital/tiktok-downloader</a>.</li>
+<li>Paste the URL and click <strong>Download</strong>.</li>
+<li>The file saves to your <strong>Downloads</strong> folder. Open Finder → Downloads to access it.</li>
+</ol>
+<p>The result is a clean MP4 with no watermark, no TikTok logo, no @username overlay.</p>
+          `.trim(),
+        },
+        {
+          heading: "Mac-specific tips",
+          html: `
+<p><strong>Quick Look</strong> — Press Spacebar on any downloaded TikTok in Finder to preview it without opening an app.</p>
+<p><strong>Spotlight</strong> — Downloaded files are indexed by Spotlight. Press Cmd+Space and search for the filename to find it quickly.</p>
+<p><strong>AirDrop</strong> — After downloading, you can AirDrop the TikTok directly to your iPhone or iPad.</p>
+          `.trim(),
+        },
+      ],
+      howToSteps: [
+        {
+          name: "Copy the TikTok link",
+          text: "In TikTok on Mac (Safari or Chrome), click the share button on the video, then Copy Link.",
+        },
+        {
+          name: "Open DropZap in browser",
+          text: "Go to dropzap.digital/tiktok-downloader in Safari or Chrome on Mac.",
+        },
+        {
+          name: "Paste and Download",
+          text: "Paste the URL and click Download. The file saves to your Downloads folder.",
+        },
+        {
+          name: "Find the file",
+          text: "Open Finder → Downloads. The clean MP4 is ready to use.",
+        },
+      ],
+      faq: [
+        {
+          q: "Does DropZap work on Safari on Mac?",
+          a: "Yes. Safari on macOS has full DropZap support. The workflow is identical to Chrome or any other browser.",
+        },
+        {
+          q: "Where do TikTok downloads save on Mac?",
+          a: "By default, ~/Downloads/ (your home folder's Downloads). You can change this in your browser settings if preferred.",
+        },
+        {
+          q: "Can I download TikTok videos on Mac using the TikTok app?",
+          a: "There is no official TikTok app for Mac. Use TikTok in Safari or Chrome, then copy the link to DropZap.",
+        },
+        {
+          q: "Do I need to install any software on Mac?",
+          a: "No. DropZap is a website. No desktop software, no browser extensions required.",
+        },
+      ],
+      relatedBlogPosts: [
+        "how-to-download-tiktok-without-watermark",
+        "best-tiktok-downloader-no-watermark",
+      ],
+      dateModified: "2026-05-09",
+    },
+    {
+      slug: "chromebook",
+      toolPath: "/tiktok-downloader",
+      toolName: "TikTok Downloader",
+      variantLabel: "Chromebook",
+      metaTitle: "Download TikTok Without Watermark on Chromebook — Chrome OS Guide 2026",
+      metaDescription:
+        "Save TikTok videos without watermark on Chromebook using Chrome. No app, no login. Files save to Files app. Step-by-step guide for Chrome OS.",
+      keywords: [
+        "tiktok download chromebook no watermark",
+        "tiktok downloader chromebook",
+        "save tiktok to chromebook",
+        "chromebook tiktok video saver",
+        "tiktok no watermark chrome os",
+      ],
+      h1: "Download TikTok Without Watermark on Chromebook",
+      intro:
+        "Chromebooks run Chrome OS, which means you have the full power of Google Chrome for TikTok downloads. DropZap works perfectly on Chromebook — no Android app needed, no Linux container required. Just open Chrome, paste the TikTok link, and download clean, watermark-free videos directly to your Files app.",
+      sections: [
+        {
+          heading: "Chromebook advantages for TikTok downloads",
+          html: `
+<p>Chromebooks have a streamlined file system that's easy to navigate. Downloads go to the Files app's Downloads folder, which you can access with a single click. Chrome OS also has built-in ZIP extraction, so TikTok slideshow downloads open with a double-click.</p>
+<p>Because Chromebooks use the same Chrome browser as desktop, the DropZap experience is identical to Windows or Mac — no mobile-specific limitations.</p>
+          `.trim(),
+        },
+        {
+          heading: "Step-by-step: TikTok to Chromebook",
+          html: `
+<ol>
+<li>Open TikTok in Chrome on your Chromebook.</li>
+<li>Find the video, click the share button → <strong>Copy Link</strong>.</li>
+<li>Open <a href="/tiktok-downloader">dropzap.digital/tiktok-downloader</a>.</li>
+<li>Paste the URL and click <strong>Download</strong>.</li>
+<li>The file saves to your <strong>Files</strong> app → <strong>Downloads</strong> folder.</li>
+</ol>
+<p>The result is a clean MP4 with no watermark, no TikTok logo, no @username overlay.</p>
+          `.trim(),
+        },
+        {
+          heading: "Chromebook-specific tips",
+          html: `
+<p><strong>Files app</strong> — All downloads appear in the Files app. You can organize them into folders, move them to Google Drive, or transfer them to external storage.</p>
+<p><strong>Google Drive integration</strong> — After downloading, you can move files to Google Drive for cloud storage and access on other devices.</p>
+<p><strong>Android apps</strong> — If your Chromebook supports Android apps, you can also use the Android TikTok app, then copy links to DropZap in Chrome.</p>
+          `.trim(),
+        },
+      ],
+      howToSteps: [
+        {
+          name: "Copy the TikTok link",
+          text: "In TikTok on Chromebook (Chrome), click the share button on the video, then Copy Link.",
+        },
+        {
+          name: "Open DropZap in Chrome",
+          text: "Go to dropzap.digital/tiktok-downloader in Chrome on your Chromebook.",
+        },
+        {
+          name: "Paste and Download",
+          text: "Paste the URL and click Download. The file saves to the Files app.",
+        },
+        {
+          name: "Find the file",
+          text: "Open Files app → Downloads. The clean MP4 is ready to use.",
+        },
+      ],
+      faq: [
+        {
+          q: "Does DropZap work on all Chromebooks?",
+          a: "Yes. DropZap works on all Chromebooks since they all run Chrome. No specific model requirements.",
+        },
+        {
+          q: "Where do TikTok downloads save on Chromebook?",
+          a: "To the Files app's Downloads folder. You can access it by clicking the Files icon in the shelf.",
+        },
+        {
+          q: "Can I use the Android TikTok app on Chromebook?",
+          a: "If your Chromebook supports Android apps (most newer models do), you can install the TikTok app from the Play Store. Copy links from the app to DropZap in Chrome.",
+        },
+        {
+          q: "Do I need to enable Linux on Chromebook?",
+          a: "No. DropZap works entirely in Chrome. No Linux container or Android app required.",
         },
       ],
       relatedBlogPosts: [
@@ -623,6 +1343,635 @@ export const devicePages: Record<string, DevicePage[]> = {
       relatedBlogPosts: [
         "reddit-video-no-sound-fix",
       ],
+      dateModified: "2026-05-09",
+    },
+    {
+      slug: "windows",
+      toolPath: "/reddit-video-downloader",
+      toolName: "Reddit Video Downloader",
+      variantLabel: "Windows",
+      metaTitle: "Download Reddit Videos With Sound on Windows PC — Browser Guide 2026",
+      metaDescription:
+        "Save Reddit videos with audio on Windows PC using Chrome, Edge, or Firefox. Automatic DASH audio merge. No silent downloads. Step-by-step guide.",
+      keywords: [
+        "reddit video downloader windows",
+        "download reddit video windows pc",
+        "reddit video with sound windows",
+        "windows reddit video saver",
+        "reddit dash merge windows",
+      ],
+      h1: "Download Reddit Videos With Sound on Windows PC",
+      intro:
+        "Windows PC users get the best Reddit video download experience. DropZap automatically merges Reddit's separate audio and video streams into a single MP4 with full sound — no manual FFmpeg commands, no silent files. Works in Chrome, Edge, Firefox, or any browser.",
+      sections: [
+        {
+          heading: "Why Windows is ideal for Reddit video downloads",
+          html: `
+<p>Windows has no sandbox restrictions. Browser downloads go directly to your Downloads folder, accessible instantly via File Explorer. DropZap's server-side FFmpeg merge runs in the background, so you get a single MP4 with both audio and video tracks in 5-10 seconds.</p>
+<p>Windows also has native ZIP extraction for Reddit album downloads, and VLC or any media player can play the merged MP4s without codec issues.</p>
+          `.trim(),
+        },
+        {
+          heading: "Step-by-step: Reddit video to Windows with sound",
+          html: `
+<ol>
+<li>Open the Reddit post in your browser (Chrome, Edge, Firefox).</li>
+<li>Click <strong>Share</strong> → <strong>Copy Link</strong>.</li>
+<li>Go to <a href="/reddit-video-downloader">dropzap.digital/reddit-video-downloader</a>.</li>
+<li>Paste the URL and click <strong>Download</strong>.</li>
+<li>The merged MP4 with full audio saves to your Downloads folder.</li>
+</ol>
+          `.trim(),
+        },
+      ],
+      howToSteps: [
+        {
+          name: "Copy the Reddit link",
+          text: "In your browser on Windows, click Share → Copy Link on the Reddit post.",
+        },
+        {
+          name: "Open DropZap",
+          text: "Go to dropzap.digital/reddit-video-downloader in Chrome, Edge, or Firefox.",
+        },
+        {
+          name: "Paste and Download",
+          text: "Paste the URL and click Download. DropZap merges audio and video automatically.",
+        },
+        {
+          name: "Find the file",
+          text: "Open File Explorer → Downloads. The merged MP4 with sound is ready to play.",
+        },
+      ],
+      faq: [
+        {
+          q: "Which browser works best on Windows for Reddit video downloads?",
+          a: "All modern browsers work equally well. Chrome, Edge, Firefox, and Brave all support DropZap with identical functionality.",
+        },
+        {
+          q: "Where do Reddit videos save on Windows?",
+          a: "By default, C:/Users/[YourName]/Downloads/. You can change this in your browser settings.",
+        },
+        {
+          q: "Do I need to install FFmpeg on Windows?",
+          a: "No. DropZap runs FFmpeg server-side. You just download the merged MP4 directly.",
+        },
+      ],
+      relatedBlogPosts: [
+        "reddit-video-no-sound-fix",
+      ],
+      dateModified: "2026-05-09",
+    },
+    {
+      slug: "mac",
+      toolPath: "/reddit-video-downloader",
+      toolName: "Reddit Video Downloader",
+      variantLabel: "Mac",
+      metaTitle: "Download Reddit Videos With Sound on Mac — Safari & Chrome Guide 2026",
+      metaDescription:
+        "Save Reddit videos with audio on Mac using Safari or Chrome. Automatic DASH audio merge. No silent downloads. Step-by-step macOS guide.",
+      keywords: [
+        "reddit video downloader mac",
+        "download reddit video macbook",
+        "reddit video with sound mac",
+        "mac reddit video saver",
+        "reddit dash merge mac",
+      ],
+      h1: "Download Reddit Videos With Sound on Mac",
+      intro:
+        "Mac users can download Reddit videos with automatic audio merge using Safari, Chrome, or any browser. DropZap handles the DASH audio/video merge server-side, so you get a single MP4 with full sound — no manual work required.",
+      sections: [
+        {
+          heading: "Mac browser options",
+          html: `
+<p><strong>Safari</strong> — Full support, excellent privacy. Downloads to ~/Downloads/.</p>
+<p><strong>Chrome</strong> — Full support, same workflow as Safari. Downloads to ~/Downloads/.</p>
+<p><strong>Firefox</strong> — Full support. Downloads to your configured download folder.</p>
+          `.trim(),
+        },
+        {
+          heading: "Step-by-step: Reddit video to Mac with sound",
+          html: `
+<ol>
+<li>Open the Reddit post in Safari or Chrome on Mac.</li>
+<li>Click <strong>Share</strong> → <strong>Copy Link</strong>.</li>
+<li>Go to <a href="/reddit-video-downloader">dropzap.digital/reddit-video-downloader</a>.</li>
+<li>Paste the URL and click <strong>Download</strong>.</li>
+<li>The merged MP4 with full audio saves to your Downloads folder.</li>
+</ol>
+          `.trim(),
+        },
+      ],
+      howToSteps: [
+        {
+          name: "Copy the Reddit link",
+          text: "In Safari or Chrome on Mac, click Share → Copy Link on the Reddit post.",
+        },
+        {
+          name: "Open DropZap",
+          text: "Go to dropzap.digital/reddit-video-downloader in Safari or Chrome.",
+        },
+        {
+          name: "Paste and Download",
+          text: "Paste the URL and click Download. DropZap merges audio and video automatically.",
+        },
+        {
+          name: "Find the file",
+          text: "Open Finder → Downloads. The merged MP4 with sound is ready to play.",
+        },
+      ],
+      faq: [
+        {
+          q: "Does DropZap work on Safari on Mac?",
+          a: "Yes. Safari on macOS has full DropZap support with identical workflow to Chrome.",
+        },
+        {
+          q: "Where do Reddit videos save on Mac?",
+          a: "By default, ~/Downloads/ (your home folder's Downloads). Change in browser settings if preferred.",
+        },
+        {
+          q: "Can I AirDrop downloaded Reddit videos from Mac to iPhone?",
+          a: "Yes. After downloading, right-click the MP4 in Finder → Share → AirDrop to your iPhone.",
+        },
+      ],
+      relatedBlogPosts: [
+        "reddit-video-no-sound-fix",
+      ],
+      dateModified: "2026-05-09",
+    },
+  ],
+
+  // ===================================================================
+  // /twitter-video-downloader/[device]
+  // ===================================================================
+  "/twitter-video-downloader": [
+    {
+      slug: "windows",
+      toolPath: "/twitter-video-downloader",
+      toolName: "Twitter Downloader",
+      variantLabel: "Windows",
+      metaTitle: "Download Twitter/X Videos on Windows PC — Browser Guide 2026",
+      metaDescription:
+        "Save Twitter videos and GIFs on Windows PC using Chrome, Edge, or Firefox. No app, no login. Files save to Downloads folder. Step-by-step guide.",
+      keywords: [
+        "twitter video downloader windows",
+        "download twitter video windows pc",
+        "twitter gif download windows",
+        "x video downloader windows",
+        "twitter video saver chrome windows",
+      ],
+      h1: "Download Twitter/X Videos on Windows PC",
+      intro:
+        "Windows PC users can download Twitter videos and GIFs directly to their Downloads folder using any modern browser. DropZap works with Chrome, Edge, Firefox, and Brave — no app installation, no Twitter login required. Videos save as MP4, GIFs save as MP4 with animation preserved.",
+      sections: [
+        {
+          heading: "Why Windows is ideal for Twitter video downloads",
+          html: `
+<p>Windows has no sandbox restrictions like iOS. Browser downloads go directly to your Downloads folder, accessible instantly via File Explorer. There's no extra step to move files between apps — once a Twitter video downloads, it's ready to play, edit, or share.</p>
+<p>Windows also has native ZIP extraction for Twitter media downloads that come as archives, and VLC or any media player can play the downloaded MP4s without codec issues.</p>
+          `.trim(),
+        },
+        {
+          heading: "Step-by-step: Twitter video to Windows PC",
+          html: `
+<ol>
+<li>Open Twitter/X in your browser (Chrome, Edge, Firefox).</li>
+<li>Find the tweet with the video or GIF, click the share icon → <strong>Copy link</strong>.</li>
+<li>Go to <a href="/twitter-video-downloader">dropzap.digital/twitter-video-downloader</a>.</li>
+<li>Paste the URL and click <strong>Download</strong>.</li>
+<li>The file saves to your <strong>Downloads</strong> folder. Open File Explorer → Downloads to find it.</li>
+</ol>
+<p>Twitter GIFs download as MP4 files with animation preserved — this is the native format Twitter uses for GIF uploads.</p>
+          `.trim(),
+        },
+      ],
+      howToSteps: [
+        {
+          name: "Copy the Twitter link",
+          text: "In Twitter/X on Windows, click the share icon on the tweet, then Copy link.",
+        },
+        {
+          name: "Open DropZap",
+          text: "Go to dropzap.digital/twitter-video-downloader in Chrome, Edge, or Firefox.",
+        },
+        {
+          name: "Paste and Download",
+          text: "Paste the URL and click Download. The file saves to your Downloads folder.",
+        },
+        {
+          name: "Find the file",
+          text: "Open File Explorer → Downloads. The MP4 is ready to use.",
+        },
+      ],
+      faq: [
+        {
+          q: "Which browser works best on Windows for Twitter video downloads?",
+          a: "All modern browsers work equally well. Chrome, Edge, Firefox, and Brave all support DropZap with identical functionality.",
+        },
+        {
+          q: "Where do Twitter videos save on Windows?",
+          a: "By default, C:/Users/[YourName]/Downloads/. You can change this in your browser settings.",
+        },
+        {
+          q: "Do Twitter GIFs download as actual GIF files?",
+          a: "Twitter stores GIFs as MP4 files with animation preserved. DropZap returns the MP4 format, which is higher quality and smaller file size than GIF.",
+        },
+      ],
+      relatedBlogPosts: [
+        "download-twitter-gif",
+      ],
+      dateModified: "2026-05-09",
+    },
+    {
+      slug: "mac",
+      toolPath: "/twitter-video-downloader",
+      toolName: "Twitter Downloader",
+      variantLabel: "Mac",
+      metaTitle: "Download Twitter/X Videos on Mac — Safari & Chrome Guide 2026",
+      metaDescription:
+        "Save Twitter videos and GIFs on Mac using Safari or Chrome. No app, no login. Files save to Downloads folder. Step-by-step macOS guide.",
+      keywords: [
+        "twitter video downloader mac",
+        "download twitter video macbook",
+        "twitter gif download mac",
+        "x video downloader mac",
+        "twitter video saver safari mac",
+      ],
+      h1: "Download Twitter/X Videos on Mac",
+      intro:
+        "Mac users can download Twitter videos and GIFs directly to their Downloads folder using Safari, Chrome, or any browser. DropZap works seamlessly on macOS — no app installation, no Twitter login required, and files are immediately accessible in Finder.",
+      sections: [
+        {
+          heading: "Mac browser options",
+          html: `
+<p><strong>Safari</strong> — Full support, excellent privacy. Downloads to ~/Downloads/.</p>
+<p><strong>Chrome</strong> — Full support, same workflow as Safari. Downloads to ~/Downloads/.</p>
+<p><strong>Firefox</strong> — Full support. Downloads to your configured download folder.</p>
+          `.trim(),
+        },
+        {
+          heading: "Step-by-step: Twitter video to Mac",
+          html: `
+<ol>
+<li>Open Twitter/X in Safari or Chrome on Mac.</li>
+<li>Find the tweet, click the share icon → <strong>Copy link</strong>.</li>
+<li>Go to <a href="/twitter-video-downloader">dropzap.digital/twitter-video-downloader</a>.</li>
+<li>Paste the URL and click <strong>Download</strong>.</li>
+<li>The file saves to your <strong>Downloads</strong> folder. Open Finder → Downloads to access it.</li>
+</ol>
+          `.trim(),
+        },
+      ],
+      howToSteps: [
+        {
+          name: "Copy the Twitter link",
+          text: "In Twitter/X on Mac (Safari or Chrome), click the share icon on the tweet, then Copy link.",
+        },
+        {
+          name: "Open DropZap",
+          text: "Go to dropzap.digital/twitter-video-downloader in Safari or Chrome.",
+        },
+        {
+          name: "Paste and Download",
+          text: "Paste the URL and click Download. The file saves to your Downloads folder.",
+        },
+        {
+          name: "Find the file",
+          text: "Open Finder → Downloads. The MP4 is ready to use.",
+        },
+      ],
+      faq: [
+        {
+          q: "Does DropZap work on Safari on Mac?",
+          a: "Yes. Safari on macOS has full DropZap support with identical workflow to Chrome.",
+        },
+        {
+          q: "Where do Twitter videos save on Mac?",
+          a: "By default, ~/Downloads/ (your home folder's Downloads). Change in browser settings if preferred.",
+        },
+        {
+          q: "Can I AirDrop downloaded Twitter videos from Mac to iPhone?",
+          a: "Yes. After downloading, right-click the MP4 in Finder → Share → AirDrop to your iPhone.",
+        },
+      ],
+      relatedBlogPosts: [
+        "download-twitter-gif",
+      ],
+      dateModified: "2026-05-09",
+    },
+  ],
+
+  // ===================================================================
+  // /facebook-video-downloader/[device]
+  // ===================================================================
+  "/facebook-video-downloader": [
+    {
+      slug: "windows",
+      toolPath: "/facebook-video-downloader",
+      toolName: "Facebook Downloader",
+      variantLabel: "Windows",
+      metaTitle: "Download Facebook Videos on Windows PC — Browser Guide 2026",
+      metaDescription:
+        "Save Facebook videos, Reels, and Watch videos on Windows PC using Chrome, Edge, or Firefox. No app, no login. Files save to Downloads folder. Step-by-step guide.",
+      keywords: [
+        "facebook video downloader windows",
+        "download facebook video windows pc",
+        "facebook reel download windows",
+        "facebook watch download windows",
+        "fb video saver chrome windows",
+      ],
+      h1: "Download Facebook Videos on Windows PC",
+      intro:
+        "Windows PC users can download Facebook videos, Reels, and Watch videos directly to their Downloads folder using any modern browser. DropZap works with Chrome, Edge, Firefox, and Brave — no app installation, no Facebook login required. Videos save as MP4 at source quality.",
+      sections: [
+        {
+          heading: "Why Windows is ideal for Facebook video downloads",
+          html: `
+<p>Windows has no sandbox restrictions like iOS. Browser downloads go directly to your Downloads folder, accessible instantly via File Explorer. There's no extra step to move files between apps — once a Facebook video downloads, it's ready to play, edit, or share.</p>
+<p>Windows also has native ZIP extraction for Facebook album downloads, and VLC or any media player can play the downloaded MP4s without codec issues.</p>
+          `.trim(),
+        },
+        {
+          heading: "Step-by-step: Facebook video to Windows PC",
+          html: `
+<ol>
+<li>Open Facebook in your browser (Chrome, Edge, Firefox) or use the Facebook app for Windows.</li>
+<li>Find the video, Reel, or Watch video, right-click → <strong>Copy link address</strong>.</li>
+<li>Go to <a href="/facebook-video-downloader">dropzap.digital/facebook-video-downloader</a>.</li>
+<li>Paste the URL and click <strong>Download</strong>.</li>
+<li>The file saves to your <strong>Downloads</strong> folder. Open File Explorer → Downloads to find it.</li>
+</ol>
+<p>DropZap supports Facebook Reels, regular videos, Watch videos, and fb.watch short URLs.</p>
+          `.trim(),
+        },
+      ],
+      howToSteps: [
+        {
+          name: "Copy the Facebook link",
+          text: "In Facebook on Windows, right-click the video and choose Copy link address, or use the share menu.",
+        },
+        {
+          name: "Open DropZap",
+          text: "Go to dropzap.digital/facebook-video-downloader in Chrome, Edge, or Firefox.",
+        },
+        {
+          name: "Paste and Download",
+          text: "Paste the URL and click Download. The file saves to your Downloads folder.",
+        },
+        {
+          name: "Find the file",
+          text: "Open File Explorer → Downloads. The MP4 is ready to use.",
+        },
+      ],
+      faq: [
+        {
+          q: "Which browser works best on Windows for Facebook video downloads?",
+          a: "All modern browsers work equally well. Chrome, Edge, Firefox, and Brave all support DropZap with identical functionality.",
+        },
+        {
+          q: "Where do Facebook videos save on Windows?",
+          a: "By default, C:/Users/[YourName]/Downloads/. You can change this in your browser settings.",
+        },
+        {
+          q: "Does DropZap support Facebook Reels on Windows?",
+          a: "Yes. DropZap downloads Facebook Reels as MP4 files at source quality. The workflow is identical to regular Facebook videos.",
+        },
+      ],
+      relatedBlogPosts: [
+        "facebook-reel-downloader",
+      ],
+      dateModified: "2026-05-09",
+    },
+    {
+      slug: "mac",
+      toolPath: "/facebook-video-downloader",
+      toolName: "Facebook Downloader",
+      variantLabel: "Mac",
+      metaTitle: "Download Facebook Videos on Mac — Safari & Chrome Guide 2026",
+      metaDescription:
+        "Save Facebook videos, Reels, and Watch videos on Mac using Safari or Chrome. No app, no login. Files save to Downloads folder. Step-by-step macOS guide.",
+      keywords: [
+        "facebook video downloader mac",
+        "download facebook video macbook",
+        "facebook reel download mac",
+        "facebook watch download mac",
+        "fb video saver safari mac",
+      ],
+      h1: "Download Facebook Videos on Mac",
+      intro:
+        "Mac users can download Facebook videos, Reels, and Watch videos directly to their Downloads folder using Safari, Chrome, or any browser. DropZap works seamlessly on macOS — no app installation, no Facebook login required, and files are immediately accessible in Finder.",
+      sections: [
+        {
+          heading: "Mac browser options",
+          html: `
+<p><strong>Safari</strong> — Full support, excellent privacy. Downloads to ~/Downloads/.</p>
+<p><strong>Chrome</strong> — Full support, same workflow as Safari. Downloads to ~/Downloads/.</p>
+<p><strong>Firefox</strong> — Full support. Downloads to your configured download folder.</p>
+          `.trim(),
+        },
+        {
+          heading: "Step-by-step: Facebook video to Mac",
+          html: `
+<ol>
+<li>Open Facebook in Safari or Chrome on Mac.</li>
+<li>Find the video, Reel, or Watch video, right-click → <strong>Copy link address</strong>.</li>
+<li>Go to <a href="/facebook-video-downloader">dropzap.digital/facebook-video-downloader</a>.</li>
+<li>Paste the URL and click <strong>Download</strong>.</li>
+<li>The file saves to your <strong>Downloads</strong> folder. Open Finder → Downloads to access it.</li>
+</ol>
+          `.trim(),
+        },
+      ],
+      howToSteps: [
+        {
+          name: "Copy the Facebook link",
+          text: "In Facebook on Mac (Safari or Chrome), right-click the video and choose Copy link address.",
+        },
+        {
+          name: "Open DropZap",
+          text: "Go to dropzap.digital/facebook-video-downloader in Safari or Chrome.",
+        },
+        {
+          name: "Paste and Download",
+          text: "Paste the URL and click Download. The file saves to your Downloads folder.",
+        },
+        {
+          name: "Find the file",
+          text: "Open Finder → Downloads. The MP4 is ready to use.",
+        },
+      ],
+      faq: [
+        {
+          q: "Does DropZap work on Safari on Mac?",
+          a: "Yes. Safari on macOS has full DropZap support with identical workflow to Chrome.",
+        },
+        {
+          q: "Where do Facebook videos save on Mac?",
+          a: "By default, ~/Downloads/ (your home folder's Downloads). Change in browser settings if preferred.",
+        },
+        {
+          q: "Can I AirDrop downloaded Facebook videos from Mac to iPhone?",
+          a: "Yes. After downloading, right-click the MP4 in Finder → Share → AirDrop to your iPhone.",
+        },
+      ],
+      relatedBlogPosts: [
+        "facebook-reel-downloader",
+      ],
+      dateModified: "2026-05-09",
+    },
+  ],
+
+  // ===================================================================
+  // /pinterest-video-downloader/[device]
+  // ===================================================================
+  "/pinterest-video-downloader": [
+    {
+      slug: "windows",
+      toolPath: "/pinterest-video-downloader",
+      toolName: "Pinterest Downloader",
+      variantLabel: "Windows",
+      metaTitle: "Download Pinterest Videos on Windows PC — Browser Guide 2026",
+      metaDescription:
+        "Save Pinterest video pins and Idea Pins on Windows PC using Chrome, Edge, or Firefox. No app, no login. Files save to Downloads folder. Step-by-step guide.",
+      keywords: [
+        "pinterest video downloader windows",
+        "download pinterest video windows pc",
+        "pinterest idea pin download windows",
+        "pinterest video saver windows",
+        "pinterest pin download chrome windows",
+      ],
+      h1: "Download Pinterest Videos on Windows PC",
+      intro:
+        "Windows PC users can download Pinterest video pins and Idea Pins directly to their Downloads folder using any modern browser. DropZap works with Chrome, Edge, Firefox, and Brave — no app installation, no Pinterest login required. Videos save as MP4 at original resolution.",
+      sections: [
+        {
+          heading: "Why Windows is ideal for Pinterest video downloads",
+          html: `
+<p>Windows has no sandbox restrictions like iOS. Browser downloads go directly to your Downloads folder, accessible instantly via File Explorer. There's no extra step to move files between apps — once a Pinterest video downloads, it's ready to play, edit, or share.</p>
+<p>Windows also has native ZIP extraction for Pinterest carousel downloads, and VLC or any media player can play the downloaded MP4s without codec issues.</p>
+          `.trim(),
+        },
+        {
+          heading: "Step-by-step: Pinterest video to Windows PC",
+          html: `
+<ol>
+<li>Open Pinterest in your browser (Chrome, Edge, Firefox).</li>
+<li>Find the video pin or Idea Pin, right-click → <strong>Copy link address</strong>.</li>
+<li>Go to <a href="/pinterest-video-downloader">dropzap.digital/pinterest-video-downloader</a>.</li>
+<li>Paste the URL and click <strong>Download</strong>.</li>
+<li>The file saves to your <strong>Downloads</strong> folder. Open File Explorer → Downloads to find it.</li>
+</ol>
+<p>DropZap returns video pins at original upload resolution (often 1080-2400px), much higher than the feed-display version.</p>
+          `.trim(),
+        },
+      ],
+      howToSteps: [
+        {
+          name: "Copy the Pinterest link",
+          text: "In Pinterest on Windows, right-click the video pin or Idea Pin and choose Copy link address.",
+        },
+        {
+          name: "Open DropZap",
+          text: "Go to dropzap.digital/pinterest-video-downloader in Chrome, Edge, or Firefox.",
+        },
+        {
+          name: "Paste and Download",
+          text: "Paste the URL and click Download. The file saves to your Downloads folder.",
+        },
+        {
+          name: "Find the file",
+          text: "Open File Explorer → Downloads. The MP4 is ready to use.",
+        },
+      ],
+      faq: [
+        {
+          q: "Which browser works best on Windows for Pinterest video downloads?",
+          a: "All modern browsers work equally well. Chrome, Edge, Firefox, and Brave all support DropZap with identical functionality.",
+        },
+        {
+          q: "Where do Pinterest videos save on Windows?",
+          a: "By default, C:/Users/[YourName]/Downloads/. You can change this in your browser settings.",
+        },
+        {
+          q: "Does DropZap support Pinterest Idea Pins on Windows?",
+          a: "Yes. DropZap downloads Pinterest Idea Pins as MP4 files at original resolution. The workflow is identical to regular video pins.",
+        },
+      ],
+      relatedBlogPosts: [],
+      dateModified: "2026-05-09",
+    },
+    {
+      slug: "mac",
+      toolPath: "/pinterest-video-downloader",
+      toolName: "Pinterest Downloader",
+      variantLabel: "Mac",
+      metaTitle: "Download Pinterest Videos on Mac — Safari & Chrome Guide 2026",
+      metaDescription:
+        "Save Pinterest video pins and Idea Pins on Mac using Safari or Chrome. No app, no login. Files save to Downloads folder. Step-by-step macOS guide.",
+      keywords: [
+        "pinterest video downloader mac",
+        "download pinterest video macbook",
+        "pinterest idea pin download mac",
+        "pinterest video saver mac",
+        "pinterest pin download safari mac",
+      ],
+      h1: "Download Pinterest Videos on Mac",
+      intro:
+        "Mac users can download Pinterest video pins and Idea Pins directly to their Downloads folder using Safari, Chrome, or any browser. DropZap works seamlessly on macOS — no app installation, no Pinterest login required, and files are immediately accessible in Finder.",
+      sections: [
+        {
+          heading: "Mac browser options",
+          html: `
+<p><strong>Safari</strong> — Full support, excellent privacy. Downloads to ~/Downloads/.</p>
+<p><strong>Chrome</strong> — Full support, same workflow as Safari. Downloads to ~/Downloads/.</p>
+<p><strong>Firefox</strong> — Full support. Downloads to your configured download folder.</p>
+          `.trim(),
+        },
+        {
+          heading: "Step-by-step: Pinterest video to Mac",
+          html: `
+<ol>
+<li>Open Pinterest in Safari or Chrome on Mac.</li>
+<li>Find the video pin or Idea Pin, right-click → <strong>Copy link address</strong>.</li>
+<li>Go to <a href="/pinterest-video-downloader">dropzap.digital/pinterest-video-downloader</a>.</li>
+<li>Paste the URL and click <strong>Download</strong>.</li>
+<li>The file saves to your <strong>Downloads</strong> folder. Open Finder → Downloads to access it.</li>
+</ol>
+          `.trim(),
+        },
+      ],
+      howToSteps: [
+        {
+          name: "Copy the Pinterest link",
+          text: "In Pinterest on Mac (Safari or Chrome), right-click the video pin or Idea Pin and choose Copy link address.",
+        },
+        {
+          name: "Open DropZap",
+          text: "Go to dropzap.digital/pinterest-video-downloader in Safari or Chrome.",
+        },
+        {
+          name: "Paste and Download",
+          text: "Paste the URL and click Download. The file saves to your Downloads folder.",
+        },
+        {
+          name: "Find the file",
+          text: "Open Finder → Downloads. The MP4 is ready to use.",
+        },
+      ],
+      faq: [
+        {
+          q: "Does DropZap work on Safari on Mac?",
+          a: "Yes. Safari on macOS has full DropZap support with identical workflow to Chrome.",
+        },
+        {
+          q: "Where do Pinterest videos save on Mac?",
+          a: "By default, ~/Downloads/ (your home folder's Downloads). Change in browser settings if preferred.",
+        },
+        {
+          q: "Can I AirDrop downloaded Pinterest videos from Mac to iPhone?",
+          a: "Yes. After downloading, right-click the MP4 in Finder → Share → AirDrop to your iPhone.",
+        },
+      ],
+      relatedBlogPosts: [],
       dateModified: "2026-05-09",
     },
   ],

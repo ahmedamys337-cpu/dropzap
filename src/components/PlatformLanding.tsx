@@ -1,5 +1,3 @@
-"use client";
-
 import { ThemeToggle } from "@/components/ThemeToggle";
 import AdBanner from "@/components/AdBanner";
 import Breadcrumbs from "@/components/Breadcrumbs";
@@ -119,7 +117,6 @@ export default function PlatformLanding({ platform, children }: PlatformLandingP
           <div className="flex items-center gap-4">
             <nav className="hidden sm:flex gap-4 text-sm text-muted-foreground">
               <a href="/" className="hover:text-foreground transition-colors">Home</a>
-              <a href="/youtube-downloader" className="hover:text-foreground transition-colors">YouTube</a>
               <a href="/tiktok-downloader" className="hover:text-foreground transition-colors">TikTok</a>
               <a href="/tiktok-to-mp3" className="hover:text-foreground transition-colors">TikTok MP3</a>
               <a href="/instagram-downloader" className="hover:text-foreground transition-colors">Instagram</a>
@@ -366,7 +363,6 @@ export default function PlatformLanding({ platform, children }: PlatformLandingP
         <h2 className="text-xl font-bold text-center mb-6">Download From Other Platforms</h2>
         <div className="flex flex-wrap justify-center gap-3">
           {[
-            { name: "YouTube", href: "/youtube-downloader", color: "bg-red-600" },
             { name: "TikTok", href: "/tiktok-downloader", color: "bg-gradient-to-r from-cyan-500 to-pink-500" },
             { name: "TikTok to MP3", href: "/tiktok-to-mp3", color: "bg-gradient-to-r from-emerald-500 to-pink-500" },
             { name: "Instagram", href: "/instagram-downloader", color: "bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500" },
@@ -405,7 +401,6 @@ export default function PlatformLanding({ platform, children }: PlatformLandingP
             </div>
             <nav aria-label="Footer navigation" className="flex flex-wrap gap-5 text-xs text-muted-foreground">
               <a href="/" className="hover:text-foreground transition-colors">Home</a>
-              <a href="/youtube-downloader" className="hover:text-foreground transition-colors">YouTube</a>
               <a href="/tiktok-downloader" className="hover:text-foreground transition-colors">TikTok</a>
               <a href="/tiktok-to-mp3" className="hover:text-foreground transition-colors">TikTok to MP3</a>
               <a href="/instagram-downloader" className="hover:text-foreground transition-colors">Instagram</a>

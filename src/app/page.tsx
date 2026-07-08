@@ -1,75 +1,14 @@
-"use client";
-
 import Image from "next/image";
 import dynamic from "next/dynamic";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import AdBanner from "@/components/AdBanner";
-import TrustBar from "@/components/TrustBar";
-import SupportedPlatforms from "@/components/SupportedPlatforms";
-import CitableFacts from "@/components/CitableFacts";
+import { Zap } from "lucide-react";
 
-// Instagram is the default tab so we keep it as a static import — its
-// code must be in the initial bundle to render on first paint without
-// flashing a skeleton. Every OTHER downloader is code-split via
-// next/dynamic: the chunk only downloads when the user clicks that
-// tab. This cut the homepage's unused-JS budget by ~317 KiB in the
-// May-12 PageSpeed audit.
-import InstagramDownloader from "@/components/InstagramDownloader";
-
-// Inline skeleton matching the downloader card height to keep CLS at 0
-// while the lazy chunk loads. Re-used across all dynamic tabs.
-const TabSkeleton = () => (
-  <div className="h-40 animate-pulse rounded-lg bg-foreground/[0.04]" />
-);
-
-const ThumbnailDownloader = dynamic(
-  () => import("@/components/ThumbnailDownloader"),
-  { loading: TabSkeleton, ssr: false },
-);
-const TwitterDownloader = dynamic(
-  () => import("@/components/TwitterDownloader"),
-  { loading: TabSkeleton, ssr: false },
-);
-const TikTokDownloader = dynamic(
-  () => import("@/components/TikTokDownloader"),
-  { loading: TabSkeleton, ssr: false },
-);
-const TikTokToMp3 = dynamic(
-  () => import("@/components/TikTokToMp3"),
-  { loading: TabSkeleton, ssr: false },
-);
-const Mp3Converter = dynamic(
-  () => import("@/components/Mp3Converter"),
-  { loading: TabSkeleton, ssr: false },
-);
-const RedditDownloader = dynamic(
-  () => import("@/components/RedditDownloader"),
-  { loading: TabSkeleton, ssr: false },
-);
-const FacebookDownloader = dynamic(
-  () => import("@/components/FacebookDownloader"),
-  { loading: TabSkeleton, ssr: false },
-);
-const PinterestDownloader = dynamic(
-  () => import("@/components/PinterestDownloader"),
-  { loading: TabSkeleton, ssr: false },
-);
-const ThreadsDownloader = dynamic(
-  () => import("@/components/ThreadsDownloader"),
-  { loading: TabSkeleton, ssr: false },
-);
-import {
-  Zap,
-  Image as ImageIcon,
-  Instagram,
-  Twitter,
-  Music2,
-  FileAudio,
-  MessageSquare,
-  Facebook,
-  AtSign,
-} from "lucide-react";
+// Dynamic imports for code splitting and reduced initial bundle size
+const ThemeToggle = dynamic(() => import("@/components/ThemeToggle").then(m => m.ThemeToggle), { ssr: false });
+const AdBanner = dynamic(() => import("@/components/AdBanner"), { ssr: false });
+const TrustBar = dynamic(() => import("@/components/TrustBar"), { ssr: false });
+const SupportedPlatforms = dynamic(() => import("@/components/SupportedPlatforms"), { ssr: false });
+const CitableFacts = dynamic(() => import("@/components/CitableFacts"), { ssr: false });
+const HomeTabs = dynamic(() => import("@/components/HomeTabs"), { ssr: false });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital";
 const SITE_DESCRIPTION =
@@ -101,7 +40,6 @@ const homeJsonLd = {
         "YouTube thumbnail downloader",
         "Video to MP3 converter",
       ],
-      aggregateRating: { "@type": "AggregateRating", ratingValue: "4.8", ratingCount: "2847", bestRating: "5", worstRating: "1" },
     },
     {
       "@type": "HowTo",
@@ -133,14 +71,6 @@ const homeJsonLd = {
 };
 
 export default function Home() {
-  // Download history was removed at user request — the panel often confused
-  // people into thinking previous failed attempts were still pending. We
-  // keep the handler signature as a noop so child Downloader components
-  // don't have to change their prop contracts.
-  const handleDownload = (_title: string, _url: string, _type: string) => {
-    void _title; void _url; void _type;
-  };
-
   return (
     <main role="main" className="min-h-screen gradient-bg animate-gradient">
       <script
@@ -208,281 +138,7 @@ export default function Home() {
 
       {/* Main Content */}
       <div className="max-w-6xl mx-auto px-4 py-8">
-        <Tabs defaultValue="instagram" className="space-y-6">
-          <div className="overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
-            {/*
-              Each tab uses a shared base that gives:
-                - a low-opacity background + border that is visible in BOTH light
-                  and dark themes (black-tinted in light, white-tinted in dark)
-                - a lift-on-hover micro-interaction (translate + scale + shadow)
-              Each tab then layers on its own platform color for the hover and
-              active states so hovering Instagram turns pink/orange, hovering
-              Facebook turns blue, etc. — matching the active appearance.
-            */}
-            <TabsList className="glass-strong h-auto p-1.5 gap-1 flex w-max lg:w-full justify-start">
-              <TabsTrigger
-                value="thumbnail"
-                className="lg:flex-1 gap-1.5 px-2.5 py-1.5 text-xs font-medium cursor-pointer rounded-md bg-foreground/[0.06] border border-foreground/15 hover:bg-orange-500 hover:text-white hover:border-orange-500 hover:-translate-y-0.5 hover:scale-105 hover:shadow-lg hover:shadow-orange-500/40 data-[state=active]:bg-orange-500 data-[state=active]:border-orange-500 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-orange-500/30 transition-all duration-300 ease-out"
-              >
-                <ImageIcon className="h-3.5 w-3.5" />
-                <span>Thumbnails</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="instagram"
-                className="lg:flex-1 group gap-1.5 px-2.5 py-1.5 text-xs font-medium cursor-pointer rounded-md bg-foreground/[0.06] border border-foreground/15 hover:bg-gradient-to-r hover:from-purple-600 hover:via-pink-600 hover:to-orange-500 hover:text-white hover:border-transparent hover:-translate-y-0.5 hover:scale-105 hover:shadow-lg hover:shadow-pink-600/40 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:via-pink-600 data-[state=active]:to-orange-500 data-[state=active]:border-transparent data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-pink-600/30 transition-all duration-300 ease-out"
-              >
-                <Instagram className="h-3.5 w-3.5" />
-                <span>Instagram</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="twitter"
-                className="lg:flex-1 gap-1.5 px-2.5 py-1.5 text-xs font-medium cursor-pointer rounded-md bg-foreground/[0.06] border border-foreground/15 hover:bg-black hover:text-white hover:border-black hover:-translate-y-0.5 hover:scale-105 hover:shadow-lg hover:shadow-black/40 data-[state=active]:bg-black data-[state=active]:border-black data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-black/40 transition-all duration-300 ease-out"
-              >
-                <Twitter className="h-3.5 w-3.5" />
-                <span>Twitter/X</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="tiktok"
-                className="lg:flex-1 gap-1.5 px-2.5 py-1.5 text-xs font-medium cursor-pointer rounded-md bg-foreground/[0.06] border border-foreground/15 hover:bg-gradient-to-r hover:from-cyan-500 hover:to-pink-500 hover:text-white hover:border-transparent hover:-translate-y-0.5 hover:scale-105 hover:shadow-lg hover:shadow-pink-500/40 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-pink-500 data-[state=active]:border-transparent data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-pink-500/30 transition-all duration-300 ease-out"
-              >
-                <Music2 className="h-3.5 w-3.5" />
-                <span>TikTok</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="tiktok-mp3"
-                className="lg:flex-1 gap-1.5 px-2.5 py-1.5 text-xs font-medium cursor-pointer rounded-md bg-foreground/[0.06] border border-foreground/15 hover:bg-gradient-to-r hover:from-emerald-500 hover:to-pink-500 hover:text-white hover:border-transparent hover:-translate-y-0.5 hover:scale-105 hover:shadow-lg hover:shadow-pink-500/40 data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-pink-500 data-[state=active]:border-transparent data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-pink-500/30 transition-all duration-300 ease-out"
-              >
-                <FileAudio className="h-3.5 w-3.5" />
-                <span>TikTok to MP3</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="reddit"
-                className="lg:flex-1 gap-1.5 px-2.5 py-1.5 text-xs font-medium cursor-pointer rounded-md bg-foreground/[0.06] border border-foreground/15 hover:bg-orange-600 hover:text-white hover:border-orange-600 hover:-translate-y-0.5 hover:scale-105 hover:shadow-lg hover:shadow-orange-600/40 data-[state=active]:bg-orange-600 data-[state=active]:border-orange-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-orange-600/30 transition-all duration-300 ease-out"
-              >
-                <MessageSquare className="h-3.5 w-3.5" />
-                <span>Reddit</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="facebook"
-                className="lg:flex-1 gap-1.5 px-2.5 py-1.5 text-xs font-medium cursor-pointer rounded-md bg-foreground/[0.06] border border-foreground/15 hover:bg-blue-600 hover:text-white hover:border-blue-600 hover:-translate-y-0.5 hover:scale-105 hover:shadow-lg hover:shadow-blue-600/40 data-[state=active]:bg-blue-600 data-[state=active]:border-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-blue-600/30 transition-all duration-300 ease-out"
-              >
-                <Facebook className="h-3.5 w-3.5" />
-                <span>Facebook</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="pinterest"
-                className="lg:flex-1 gap-1.5 px-2.5 py-1.5 text-xs font-medium cursor-pointer rounded-md bg-foreground/[0.06] border border-foreground/15 hover:bg-gradient-to-r hover:from-red-600 hover:to-rose-600 hover:text-white hover:border-transparent hover:-translate-y-0.5 hover:scale-105 hover:shadow-lg hover:shadow-red-600/40 data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-rose-600 data-[state=active]:border-transparent data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-red-600/30 transition-all duration-300 ease-out"
-              >
-                <ImageIcon className="h-3.5 w-3.5" />
-                <span>Pinterest</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="threads"
-                className="lg:flex-1 gap-1.5 px-2.5 py-1.5 text-xs font-medium cursor-pointer rounded-md bg-foreground/[0.06] border border-foreground/15 hover:bg-gradient-to-r hover:from-zinc-800 hover:to-zinc-900 hover:text-white hover:border-transparent hover:-translate-y-0.5 hover:scale-105 hover:shadow-lg hover:shadow-black/50 data-[state=active]:bg-gradient-to-r data-[state=active]:from-zinc-800 data-[state=active]:to-zinc-900 data-[state=active]:border-transparent data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-black/40 transition-all duration-300 ease-out"
-              >
-                <AtSign className="h-3.5 w-3.5" />
-                <span>Threads</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="mp3"
-                className="lg:flex-1 gap-1.5 px-2.5 py-1.5 text-xs font-medium cursor-pointer rounded-md bg-foreground/[0.06] border border-foreground/15 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 hover:-translate-y-0.5 hover:scale-105 hover:shadow-lg hover:shadow-emerald-600/40 data-[state=active]:bg-emerald-600 data-[state=active]:border-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-emerald-600/30 transition-all duration-300 ease-out"
-              >
-                <FileAudio className="h-3.5 w-3.5" />
-                <span>Video to MP3</span>
-              </TabsTrigger>
-            </TabsList>
-          </div>
-
-          <div className="space-y-6">
-            <div>
-              {/* Each TabsContent now owns its own card so we can color-code
-                  the left-edge accent stripe + hover shadow per platform.
-                  Standard wrapper class string applied to all is hoisted into
-                  `cardBase` for grep-friendliness; per-platform accents stack
-                  on top via the `border-l-<color>` + `hover:shadow-<color>/N`
-                  classes.
-                  Note: Tailwind needs each color class spelled out somewhere
-                  so the JIT keeps it in the bundle — they're inlined per tab
-                  rather than templated to keep that guarantee. */}
-                <TabsContent value="thumbnail" className="mt-0">
-                  <div className="glass rounded-2xl p-6 space-y-4 border-l-4 border-l-orange-500 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-orange-500/30">
-                    <div className="flex items-center gap-3 pb-2 border-b border-orange-500/20">
-                      <div className="shrink-0 h-10 w-10 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-lg shadow-orange-500/30">
-                        <ImageIcon className="h-5 w-5 text-white" />
-                      </div>
-                      <div>
-                        <h2 className="text-xl font-bold">YouTube Thumbnail Downloader</h2>
-                        <p className="text-sm text-muted-foreground">
-                          Download thumbnails in all available sizes
-                        </p>
-                      </div>
-                    </div>
-                    <ThumbnailDownloader />
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="instagram" className="mt-0">
-                  <div className="glass rounded-2xl p-6 space-y-4 border-l-4 border-l-pink-600 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-pink-600/30">
-                    <div className="flex items-center gap-3 pb-2 border-b border-pink-600/20">
-                      <div className="shrink-0 h-10 w-10 rounded-lg bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500 flex items-center justify-center shadow-lg shadow-pink-600/30">
-                        <Instagram className="h-5 w-5 text-white" />
-                      </div>
-                      <div>
-                        <h2 className="text-xl font-bold">Instagram Downloader</h2>
-                        <p className="text-sm text-muted-foreground">
-                          Download Reels, photos, and carousel posts in original quality
-                        </p>
-                      </div>
-                    </div>
-                    <InstagramDownloader onDownload={handleDownload} />
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="twitter" className="mt-0">
-                  <div className="glass rounded-2xl p-6 space-y-4 border-l-4 border-l-sky-500 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-sky-500/30">
-                    <div className="flex items-center gap-3 pb-2 border-b border-sky-500/20">
-                      <div className="shrink-0 h-10 w-10 rounded-lg bg-gradient-to-br from-sky-500 to-zinc-900 flex items-center justify-center shadow-lg shadow-sky-500/30 border border-white/20">
-                        <Twitter className="h-5 w-5 text-white" />
-                      </div>
-                      <div>
-                        <h2 className="text-xl font-bold">Twitter/X Video Downloader</h2>
-                        <p className="text-sm text-muted-foreground">
-                          Download videos from Twitter/X posts
-                        </p>
-                      </div>
-                    </div>
-                    <TwitterDownloader onDownload={handleDownload} />
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="tiktok" className="mt-0">
-                  <div className="glass rounded-2xl p-6 space-y-4 border-l-4 border-l-pink-500 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-pink-500/30">
-                    <div className="flex items-center gap-3 pb-2 border-b border-pink-500/20">
-                      <div className="shrink-0 h-10 w-10 rounded-lg bg-gradient-to-br from-cyan-500 to-pink-500 flex items-center justify-center shadow-lg shadow-pink-500/30">
-                        <Music2 className="h-5 w-5 text-white" />
-                      </div>
-                      <div>
-                        <h2 className="text-xl font-bold">TikTok Downloader</h2>
-                        <p className="text-sm text-muted-foreground">
-                          Download TikTok videos without watermark
-                        </p>
-                      </div>
-                    </div>
-                    <TikTokDownloader onDownload={handleDownload} />
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="tiktok-mp3" className="mt-0">
-                  <div className="glass rounded-2xl p-6 space-y-4 border-l-4 border-l-emerald-500 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/30">
-                    <div className="flex items-center gap-3 pb-2 border-b border-emerald-500/20">
-                      <div className="shrink-0 h-10 w-10 rounded-lg bg-gradient-to-br from-emerald-500 to-pink-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
-                        <FileAudio className="h-5 w-5 text-white" />
-                      </div>
-                      <div>
-                        <h2 className="text-xl font-bold">TikTok to MP3 Converter</h2>
-                        <p className="text-sm text-muted-foreground">
-                          Convert TikTok videos to MP3 audio
-                        </p>
-                      </div>
-                    </div>
-                    <TikTokToMp3 onDownload={handleDownload} />
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="reddit" className="mt-0">
-                  <div className="glass rounded-2xl p-6 space-y-4 border-l-4 border-l-orange-600 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-orange-600/30">
-                    <div className="flex items-center gap-3 pb-2 border-b border-orange-600/20">
-                      <div className="shrink-0 h-10 w-10 rounded-lg bg-gradient-to-br from-orange-600 to-red-600 flex items-center justify-center shadow-lg shadow-orange-600/30">
-                        <MessageSquare className="h-5 w-5 text-white" />
-                      </div>
-                      <div>
-                        <h2 className="text-xl font-bold">Reddit Video Downloader</h2>
-                        <p className="text-sm text-muted-foreground">
-                          Download Reddit videos with audio merged
-                        </p>
-                      </div>
-                    </div>
-                    <RedditDownloader onDownload={handleDownload} />
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="facebook" className="mt-0">
-                  <div className="glass rounded-2xl p-6 space-y-4 border-l-4 border-l-blue-600 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-600/30">
-                    <div className="flex items-center gap-3 pb-2 border-b border-blue-600/20">
-                      <div className="shrink-0 h-10 w-10 rounded-lg bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/30">
-                        <Facebook className="h-5 w-5 text-white" />
-                      </div>
-                      <div>
-                        <h2 className="text-xl font-bold">Facebook Video &amp; Photo Downloader</h2>
-                        <p className="text-sm text-muted-foreground">
-                          Download Facebook videos, Reels, and photo posts in HD
-                        </p>
-                      </div>
-                    </div>
-                    <FacebookDownloader onDownload={handleDownload} />
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="pinterest" className="mt-0">
-                  <div className="glass rounded-2xl p-6 space-y-4 border-l-4 border-l-rose-500 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-rose-500/30">
-                    <div className="flex items-center gap-3 pb-2 border-b border-rose-500/20">
-                      <div className="shrink-0 h-10 w-10 rounded-lg bg-gradient-to-br from-red-600 to-rose-600 flex items-center justify-center shadow-lg shadow-red-600/30">
-                        <ImageIcon className="h-5 w-5 text-white" />
-                      </div>
-                      <div>
-                        <h2 className="text-xl font-bold">Pinterest Downloader</h2>
-                        <p className="text-sm text-muted-foreground">
-                          Download Pinterest pin images and videos in original quality
-                        </p>
-                      </div>
-                    </div>
-                    <PinterestDownloader onDownload={handleDownload} />
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="threads" className="mt-0">
-                  <div className="glass rounded-2xl p-6 space-y-4 border-l-4 border-l-zinc-700 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/40">
-                    <div className="flex items-center gap-3 pb-2 border-b border-zinc-500/20">
-                      <div className="shrink-0 h-10 w-10 rounded-lg bg-gradient-to-br from-zinc-800 to-zinc-900 flex items-center justify-center shadow-lg shadow-black/40 border border-white/10">
-                        <AtSign className="h-5 w-5 text-white" />
-                      </div>
-                      <div>
-                        <h2 className="text-xl font-bold">Threads Downloader</h2>
-                        <p className="text-sm text-muted-foreground">
-                          Download Threads videos and images from public posts
-                        </p>
-                      </div>
-                    </div>
-                    <ThreadsDownloader onDownload={handleDownload} />
-                  </div>
-                </TabsContent>
-
-
-                <TabsContent value="mp3" className="mt-0">
-                  <div className="glass rounded-2xl p-6 space-y-4 border-l-4 border-l-emerald-600 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-600/30">
-                    <div className="flex items-center gap-3 pb-2 border-b border-emerald-600/20">
-                      <div className="shrink-0 h-10 w-10 rounded-lg bg-gradient-to-br from-emerald-600 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-600/30">
-                        <FileAudio className="h-5 w-5 text-white" />
-                      </div>
-                      <div>
-                        <h2 className="text-xl font-bold">Video to MP3 Converter</h2>
-                        <p className="text-sm text-muted-foreground">
-                          Upload a video file and convert it to MP3 audio
-                        </p>
-                      </div>
-                    </div>
-                    <Mp3Converter />
-                  </div>
-                </TabsContent>
-            </div>
-
-            {/* Inline ad slot — used to live in the right sidebar; moves here
-                now that the sidebar is gone so we keep the impression. */}
-            <div>
-              <AdBanner slot="sidebar" />
-            </div>
-          </div>
-        </Tabs>
+        <HomeTabs />
       </div>
 
       {/* SEO: Features Section */}
@@ -576,6 +232,84 @@ export default function Home() {
          Google AI Overviews. */}
       <CitableFacts />
 
+      {/* SEO: Tool Comparison Table — compares DropZap with top competitors
+         on key features. Helps users understand why DropZap is the best choice
+         and provides valuable content for comparison queries. */}
+      <section className="max-w-6xl mx-auto px-4 py-12" aria-labelledby="comparison-heading">
+        <h2 id="comparison-heading" className="text-2xl sm:text-3xl font-bold text-center mb-2">
+          DropZap vs Competitors
+        </h2>
+        <p className="text-center text-muted-foreground text-sm mb-8">
+          See how DropZap compares to other popular downloaders.
+        </p>
+        <div className="overflow-x-auto glass rounded-xl p-4">
+          <table className="w-full text-sm min-w-[600px]">
+            <thead>
+              <tr className="border-b border-border/50">
+                <th className="text-left py-3 px-2 font-semibold">Feature</th>
+                <th className="text-center py-3 px-2 font-semibold bg-blue-600/10 text-blue-400 rounded">DropZap</th>
+                <th className="text-center py-3 px-2 font-semibold">SnapTik</th>
+                <th className="text-center py-3 px-2 font-semibold">ssstik</th>
+                <th className="text-center py-3 px-2 font-semibold">SaveFrom</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-b border-border/30">
+                <td className="py-3 px-2 text-muted-foreground">Price</td>
+                <td className="py-3 px-2 text-center font-semibold text-green-400">Free</td>
+                <td className="py-3 px-2 text-center text-red-400">$4.99-$9.99/mo</td>
+                <td className="py-3 px-2 text-center text-green-400">Free</td>
+                <td className="py-3 px-2 text-center text-green-400">Free</td>
+              </tr>
+              <tr className="border-b border-border/30">
+                <td className="py-3 px-2 text-muted-foreground">Daily Limit</td>
+                <td className="py-3 px-2 text-center font-semibold text-green-400">None</td>
+                <td className="py-3 px-2 text-center text-red-400">Yes</td>
+                <td className="py-3 px-2 text-center text-red-400">Yes</td>
+                <td className="py-3 px-2 text-center text-red-400">Yes</td>
+              </tr>
+              <tr className="border-b border-border/30">
+                <td className="py-3 px-2 text-muted-foreground">Ads</td>
+                <td className="py-3 px-2 text-center font-semibold text-green-400">Minimal</td>
+                <td className="py-3 px-2 text-center text-yellow-400">Medium</td>
+                <td className="py-3 px-2 text-center text-red-400">Heavy</td>
+                <td className="py-3 px-2 text-center text-red-400">Heavy</td>
+              </tr>
+              <tr className="border-b border-border/30">
+                <td className="py-3 px-2 text-muted-foreground">Platforms</td>
+                <td className="py-3 px-2 text-center font-semibold text-green-400">7</td>
+                <td className="py-3 px-2 text-center text-red-400">1 (TikTok)</td>
+                <td className="py-3 px-2 text-center text-red-400">1 (TikTok)</td>
+                <td className="py-3 px-2 text-center text-yellow-400">YouTube+</td>
+              </tr>
+              <tr className="border-b border-border/30">
+                <td className="py-3 px-2 text-muted-foreground">Bulk Download</td>
+                <td className="py-3 px-2 text-center font-semibold text-green-400">Yes</td>
+                <td className="py-3 px-2 text-center text-red-400">No</td>
+                <td className="py-3 px-2 text-center text-red-400">No</td>
+                <td className="py-3 px-2 text-center text-red-400">No</td>
+              </tr>
+              <tr>
+                <td className="py-3 px-2 text-muted-foreground">Watermark Removal</td>
+                <td className="py-3 px-2 text-center font-semibold text-green-400">Yes</td>
+                <td className="py-3 px-2 text-center text-yellow-400">Paid only</td>
+                <td className="py-3 px-2 text-center text-green-400">Yes</td>
+                <td className="py-3 px-2 text-center text-red-400">No</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div className="text-center mt-6 space-x-4">
+          <a href="/compare" className="text-sm text-purple-400 hover:underline">
+            View full comparison →
+          </a>
+          <span className="text-muted-foreground">|</span>
+          <a href="/blog/getting-started-with-dropzap" className="text-sm text-purple-400 hover:underline">
+            Getting started guide →
+          </a>
+        </div>
+      </section>
+
       {/* SEO: FAQ — 10 visible Q&As, mirrors the FAQPage JSON-LD in
          layout.tsx. AI engines cross-check visible vs structured FAQs
          and demote pages where the two diverge, so both lists must
@@ -596,7 +330,7 @@ export default function Home() {
             },
             {
               q: "What platforms does DropZap support?",
-              a: "DropZap supports Instagram (Reels, photos, and carousels), TikTok, Twitter/X, Facebook, Reddit (with sound), Pinterest, and Threads. You can also convert videos to MP3 and grab YouTube thumbnails.",
+              a: "DropZap supports Instagram (Reels, photos, and carousels), TikTok, Twitter/X, Facebook, Reddit (with sound), Pinterest, and Threads. You can also convert videos to MP3, bulk-download multiple links, and grab YouTube thumbnails.",
             },
             {
               q: "Do I need to install anything?",
@@ -654,6 +388,13 @@ export default function Home() {
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[
+            { href: "/blog/dropzap-vs-ssstik", label: "DropZap vs ssstik", desc: "Which TikTok downloader is better? Full 2026 comparison.", tag: "Comparison" },
+            { href: "/blog/dropzap-vs-savefrom", label: "DropZap vs SaveFrom", desc: "Video downloader comparison — which tool to use?", tag: "Comparison" },
+            { href: "/blog/top-10-tiktok-downloaders-2026", label: "Top 10 TikTok Downloaders 2026", desc: "Best TikTok downloaders ranked. DropZap #1 for free.", tag: "Comparison" },
+            { href: "/blog/best-instagram-reels-downloader-2026", label: "Best Instagram Reels Downloaders", desc: "Top Instagram downloaders compared. DropZap wins.", tag: "Comparison" },
+            { href: "/blog/instagram-reel-not-downloading-fix", label: "Instagram Reel Not Downloading", desc: "10 fixes for Instagram Reel download errors.", tag: "Troubleshooting" },
+            { href: "/blog/tiktok-watermark-still-there-fix", label: "TikTok Watermark Still There", desc: "Why watermarks persist and how to fix it.", tag: "Troubleshooting" },
+            { href: "/blog/reddit-video-no-sound-fix", label: "Reddit Video No Sound", desc: "Fix silent Reddit videos with automatic audio merge.", tag: "Troubleshooting" },
             { href: "/free-tiktok-downloader", label: "Free TikTok Downloader", desc: "100% free TikTok downloader — no watermark, no signup, no limit.", tag: "Tool" },
             { href: "/tiktok-watermark-remover", label: "TikTok Watermark Remover", desc: "Remove TikTok logo from videos for free. No app, no software.", tag: "Tool" },
             { href: "/tiktok-sound-downloader", label: "TikTok Sound Downloader", desc: "Extract audio from TikTok videos as MP3. No watermark, no limit.", tag: "Tool" },
@@ -671,7 +412,6 @@ export default function Home() {
             { href: "/blog/tiktok-downloader-pc-laptop", label: "TikTok Downloader for PC", desc: "Save TikTok videos on Windows or Mac — no software, no extension, works in any browser.", tag: "Tutorial" },
             { href: "/blog/how-to-save-tiktok-to-camera-roll", label: "Save TikTok to Camera Roll", desc: "No watermark. Step-by-step for iPhone and Android with screenshots.", tag: "Tutorial" },
             { href: "/blog/best-tiktok-downloader-2026", label: "Best TikTok Downloader 2026", desc: "We tested 10 TikTok downloaders — here's the best free option.", tag: "Comparison" },
-            { href: "/blog/best-instagram-downloader-2026", label: "Best Instagram Downloader 2026", desc: "We tested 8 Instagram downloaders — here's the best free option.", tag: "Comparison" },
             { href: "/blog/how-to-download-youtube-thumbnail", label: "YouTube Thumbnail Guide", desc: "Download YouTube thumbnails in HD (maxresdefault). Free, no login.", tag: "Tutorial" },
             { href: "/blog/how-to-download-twitter-gifs", label: "Twitter GIF Downloader", desc: "Download Twitter/X GIFs as MP4. Step-by-step guide.", tag: "Tutorial" },
           ].map((g) => (

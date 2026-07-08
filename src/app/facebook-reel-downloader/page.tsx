@@ -43,12 +43,6 @@ const jsonLd = {
       offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
       description:
         "Free Facebook Reels downloader. Saves Reels as MP4 at original quality. No login, no watermark, no daily limit. Works on iPhone, Android, PC, and Mac.",
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: "4.7",
-        ratingCount: "1245",
-        bestRating: "5",
-      },
     },
     {
       "@type": "HowTo",

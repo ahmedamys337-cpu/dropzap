@@ -114,7 +114,6 @@ export default function ProgrammaticPage({ params }: Props) {
       <footer className="py-10 border-t border-border/50">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <div className="flex flex-wrap justify-center gap-3 mb-6 text-xs text-muted-foreground">
-            <Link href="/youtube-downloader" className="hover:text-foreground transition-colors">YouTube</Link>
             <Link href="/tiktok-downloader" className="hover:text-foreground transition-colors">TikTok</Link>
             <Link href="/instagram-downloader" className="hover:text-foreground transition-colors">Instagram</Link>
             <Link href="/twitter-video-downloader" className="hover:text-foreground transition-colors">Twitter/X</Link>

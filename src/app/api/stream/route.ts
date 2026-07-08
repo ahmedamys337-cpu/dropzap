@@ -6,16 +6,10 @@ import { tmpdir } from "os";
 import { join } from "path";
 import { randomUUID } from "crypto";
 import {
-  getYoutubeStreamAuthArgs,
-  getVideoInfo,
-  pickYoutubeFormats,
-  HAS_YOUTUBE_PROXY,
-  getYoutubeProxyUrl,
-  type PickedFormat,
   getGenericCookiesArgs,
   getProxyArgs,
 } from "@/lib/ytdlp";
-import { resolveViaCobalt, isCobaltConfigured } from "@/lib/cobalt";
+import { resolveViaCobalt } from "@/lib/cobalt";
 import { fetchInstagramVideoUrl } from "@/lib/instagram";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
@@ -46,119 +40,6 @@ function runYtDlp(args: string[], timeoutMs = 90000): Promise<{ code: number; st
   });
 }
 
-// Format the http_headers from yt-dlp into the single-blob string ffmpeg's
-// -headers option expects. ffmpeg auto-supplies User-Agent if missing, so a
-// missing http_headers field is fine.
-function ffmpegHeaderBlob(h?: Record<string, string>): string {
-  if (!h) return "";
-  return Object.entries(h)
-    .map(([k, v]) => `${k}: ${v}`)
-    .join("\r\n") + "\r\n";
-}
-
-// Live-streaming muxer. Pipes ffmpeg stdout directly to the HTTP response so
-// the browser's download UI pops up immediately on the first byte instead of
-// after the full server-side download completes. Tradeoffs:
-//   • No Content-Length (unknown total before muxing finishes) → browser shows
-//     "X MB downloaded" without a percentage. Acceptable.
-//   • Fragmented mp4 (frag_keyframe+empty_moov+default_base_moof) is required
-//     because we can't seek back to write the moov atom on a pipe. Plays in
-//     every modern player (Chrome/Firefox/Safari/VLC/Win11 Movies & TV); fails
-//     only on very old players (e.g. Win7 Windows Media Player).
-//   • When HAS_YOUTUBE_PROXY is true, googlevideo URLs are IP-locked to the
-//     proxy IP — pass it via -http_proxy so ffmpeg fetches succeed.
-function runFfmpegStream(
-  picked: { video: PickedFormat | null; audio: PickedFormat | null },
-  audioOnly: boolean,
-  safeName: string,
-  proxyUrl: string | undefined,
-): Response {
-  const args: string[] = ["-loglevel", "error"];
-
-  // Per-input options (-headers, -http_proxy) must precede their -i.
-  const pushInput = (f: PickedFormat) => {
-    const headers = ffmpegHeaderBlob(f.http_headers);
-    if (headers) args.push("-headers", headers);
-    if (proxyUrl) args.push("-http_proxy", proxyUrl);
-    args.push("-i", f.url);
-  };
-
-  if (audioOnly) {
-    if (!picked.audio) throw new Error("no audio format");
-    pushInput(picked.audio);
-    // MP3 is naturally streamable — no special muxer flags needed.
-    args.push("-vn", "-c:a", "libmp3lame", "-q:a", "2", "-f", "mp3", "pipe:1");
-  } else if (picked.video?.combined) {
-    // Combined progressive stream (e.g. itag 18 360p) — audio is already
-    // muxed into the URL. Single input, copy both streams, no -map needed.
-    pushInput(picked.video);
-    args.push(
-      "-c", "copy",
-      "-movflags", "frag_keyframe+empty_moov+default_base_moof",
-      "-f", "mp4",
-      "pipe:1",
-    );
-  } else {
-    if (!picked.video || !picked.audio) throw new Error("missing v/a format");
-    pushInput(picked.video);
-    pushInput(picked.audio);
-    args.push(
-      "-map", "0:v:0",
-      "-map", "1:a:0",
-      "-c", "copy",
-      // Streamable mp4 — moov atom written first, body chunked into fragments
-      // so the file plays while still being written.
-      "-movflags", "frag_keyframe+empty_moov+default_base_moof",
-      "-f", "mp4",
-      "pipe:1",
-    );
-  }
-
-  const t0 = Date.now();
-  const tag = audioOnly ? "audio" : "video";
-  const proc = spawn("ffmpeg", args, { stdio: ["ignore", "pipe", "pipe"] });
-  let stderr = "";
-  let bytesOut = 0;
-  let firstByteAt = 0;
-  proc.stderr?.on("data", (c) => { stderr += c.toString(); });
-  proc.on("close", (code) => {
-    const dt = Date.now() - t0;
-    const ttfb = firstByteAt ? firstByteAt - t0 : -1;
-    if (code !== 0) console.warn(`[ffmpeg-stream:${tag}] stderr:`, stderr.slice(0, 500));
-  });
-
-  const webStream = new ReadableStream({
-    start(controller) {
-      proc.stdout!.on("data", (c: Buffer) => {
-        if (!firstByteAt) {
-          firstByteAt = Date.now();
-        }
-        bytesOut += c.length;
-        try { controller.enqueue(new Uint8Array(c)); } catch {}
-      });
-      proc.stdout!.on("end", () => {
-        try { controller.close(); } catch {}
-      });
-      proc.stdout!.on("error", () => {
-        try { controller.close(); } catch {}
-      });
-    },
-    cancel() {
-      try { proc.kill("SIGKILL"); } catch {}
-    },
-  });
-
-  return new Response(webStream, {
-    status: 200,
-    headers: {
-      "Content-Type": audioOnly ? "audio/mpeg" : "video/mp4",
-      "Content-Disposition": `attachment; filename="${safeName}"`,
-      "Cache-Control": "no-store",
-      "X-Accel-Buffering": "no",
-    },
-  });
-}
-
 export async function GET(request: NextRequest) {
   const ip = getClientIp(request);
   const limit = rateLimit(ip);
@@ -178,6 +59,10 @@ export async function GET(request: NextRequest) {
   }
 
   const isYoutube = /youtu(?:\.be|be\.com)/i.test(url);
+  if (isYoutube) {
+    return new Response("YouTube video downloads are disabled.", { status: 400 });
+  }
+
   const isInstagram = (() => { try { return /(?:^|\.)instagram\.com$/i.test(new URL(url).hostname); } catch { return false; } })();
 
   // ---------- format selector ----------
@@ -213,97 +98,6 @@ export async function GET(request: NextRequest) {
   const ext = audio ? "mp3" : "mp4";
   const safeName =
     filename.replace(/[^\w\s.-]/g, "").trim() || `download.${ext}`;
-
-  // =========================================================================
-  // YOUTUBE PATH 1 — cobalt.tools (preferred)
-  //
-  // Cobalt's hosted infrastructure handles YouTube's anti-bot extraction,
-  // returning a direct download URL we can redirect the user's browser to.
-  // The file flows cobalt → user; our server just relays a small JSON call.
-  // This bypasses every problem we hit running yt-dlp from a datacenter IP
-  // (cookie geo-mismatch, PO-token gating, format-list thinning), and the
-  // user gets full HD reliably.
-  //
-  // Fallback chain on failure: PATH 2 (yt-dlp ffmpeg streaming) → PATH 3
-  // (yt-dlp temp-file). User never sees an error if any backend works.
-  // =========================================================================
-  if (isYoutube && isCobaltConfigured()) {
-    try {
-      const t0 = Date.now();
-      const cap = heightParam && /^\d+$/.test(heightParam)
-        ? Math.min(1080, parseInt(heightParam, 10))
-        : 1080;
-      // Cobalt only accepts these specific quality strings.
-      const videoQuality = (
-        cap >= 1080 ? "1080" :
-        cap >= 720  ? "720"  :
-        cap >= 480  ? "480"  :
-        cap >= 360  ? "360"  : "360"
-      ) as "1080" | "720" | "480" | "360";
-
-      const r = await resolveViaCobalt({
-        url,
-        audio,
-        videoQuality,
-        audioFormat: audio ? "mp3" : undefined,
-      });
-
-      if (r) {
-        // 302 redirect the browser straight to cobalt. The Content-Disposition
-        // header on cobalt's response already triggers a download; the
-        // attachment_filename query param ensures our preferred name wins.
-        const target = new URL(r.url);
-        // Some cobalt instances accept ?filename= overrides on tunnel URLs.
-        if (!target.searchParams.has("filename")) {
-          target.searchParams.set("filename", safeName);
-        }
-        return Response.redirect(target.toString(), 302);
-      }
-      console.warn(`[stream] cobalt returned no usable response in ${Date.now() - t0}ms; falling back`);
-    } catch (e: any) {
-      console.warn("[stream] cobalt error, falling back to yt-dlp:", e.message);
-    }
-  }
-
-  // =========================================================================
-  // YOUTUBE PATH 2 — yt-dlp + ffmpeg stdout piped straight to the browser
-  //
-  // The browser's download UI pops up on the first byte (vs. waiting for the
-  // server to download + merge the entire file before sending). Total time
-  // also drops because we pipeline server-download with client-write instead
-  // of doing them sequentially.
-  //
-  // Proxy passthrough: googlevideo.com signed URLs are IP-locked to the
-  // extracting IP. When HAS_YOUTUBE_PROXY is true we pass the same proxy to
-  // ffmpeg via -http_proxy so the fetch succeeds; when it's false (cookies-
-  // only or unproxied setup) the URL is bound to the server's IP and ffmpeg
-  // fetches direct, saving any proxy bandwidth.
-  //
-  // We only fall back to the yt-dlp temp-file path if format selection or
-  // ffmpeg startup fails — the streaming path covers ~all real videos.
-  // =========================================================================
-  if (isYoutube) {
-    try {
-      const info = await getVideoInfo(url);
-      const heightCap = heightParam && /^\d+$/.test(heightParam)
-        ? Math.min(1080, parseInt(heightParam, 10))
-        : 1080;
-      const picked = pickYoutubeFormats(info, heightCap, audio);
-
-      // Stream when:
-      //   audio-only request: need a pure audio pick.
-      //   video request: need either (video + audio) or a combined stream.
-      const canStream = audio
-        ? !!picked.audio
-        : !!picked.video && (!!picked.audio || !!picked.video.combined);
-      if (canStream) {
-        const proxyUrl = HAS_YOUTUBE_PROXY ? getYoutubeProxyUrl() : undefined;
-        return runFfmpegStream(picked, audio, safeName, proxyUrl);
-      }
-    } catch (e: any) {
-      console.warn("[stream] streaming ffmpeg path failed, falling back to yt-dlp:", e.message);
-    }
-  }
 
   // =========================================================================
   // INSTAGRAM PATH — hybrid fallback chain
@@ -438,29 +232,11 @@ export async function GET(request: NextRequest) {
       "--no-playlist",
       "--no-part",
       "--socket-timeout", "30",
-      // Download 8 DASH fragments in parallel. This is the single biggest
-      // speed win for YouTube HD downloads: the video and audio streams are
-      // delivered in hundreds of small fragments, and serializing them over
-      // a residential proxy was the root cause of the 2-5 minute wait.
+      // Download 8 DASH fragments in parallel to speed up platforms that
+      // deliver video and audio as fragmented streams.
       "--concurrent-fragments", "8",
       "-f", fmtArg,
     ];
-
-    // --------------------------------------------------------------------
-    // BANDWIDTH OPTIMIZATION (critical for paid residential proxies)
-    // yt-dlp's default internal downloader routes fragment downloads
-    // through --proxy too. For a 50 MB video that means 50 MB of proxy
-    // bandwidth per download. Since the actual googlevideo.com CDN is not
-    // IP-gated (signed URLs work from any IP), we use ffmpeg as the
-    // external downloader and deliberately do NOT pass the proxy to it.
-    // Result: yt-dlp still uses the proxy for the small metadata calls
-    // (signature, manifest) while ffmpeg pulls the media bytes directly
-    // from googlevideo.com. Typical savings: ~98% of proxy bandwidth.
-    // --------------------------------------------------------------------
-    if (isYoutube) {
-      args.push("--external-downloader", "ffmpeg");
-      args.push("--external-downloader-args", "ffmpeg:-loglevel error");
-    }
 
     if (audio) {
       args.push(
@@ -473,14 +249,6 @@ export async function GET(request: NextRequest) {
       // write a proper moov atom, so the file plays in every player
       // including Windows default ones.
       args.push("--merge-output-format", "mp4");
-    }
-
-    if (isYoutube) {
-      args.push(
-        "--extractor-args",
-        "youtube:player_client=tv_embedded,android,ios,mweb,web,default",
-      );
-      args.push(...getYoutubeStreamAuthArgs());
     }
 
     let { code, stderr } = await runYtDlp(args);

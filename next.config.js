@@ -28,13 +28,11 @@ const nextConfig = {
       ? { exclude: ["error", "warn"] }
       : false,
   },
-  // Permanent redirects for programmatic SEO pages we removed.
+  // Permanent redirects for removed programmatic SEO pages.
   //
-  // The 44 YouTube /download/youtube-* slugs were de-listed because their
-  // CTA pointed to /youtube-downloader (which 308s to /), causing Google
-  // to read each page as a dead-end and tank the entire cluster's
-  // quality score. The non-YouTube slugs we trimmed (carousel devices,
-  // year-tagged variants, etc.) are similarly retired.
+  // Retired slugs (carousel devices, year-tagged variants, etc.) are
+  // redirected so any residual link equity flows to the homepage or
+  // blog instead of producing 404s.
   //
   // 308 instead of 404 because:
   //   • preserves any residual link equity to the homepage;
@@ -44,15 +42,9 @@ const nextConfig = {
   async redirects() {
     return [
       // Catch every /download/youtube-* and any other now-removed
-      // long-tail variant we no longer ship. Wildcard the rest under
-      // /download by checking against the live list at request time
-      // would require middleware — for static SEO removal a coarse
-      // redirect is correct.
+      // long-tail variant we no longer ship.
       { source: '/download/youtube-:rest*', destination: '/', permanent: true },
-      // 4 blog posts deleted in May 2026 because their CTAs all linked
-      // to /youtube-downloader (which 308s to /). Their old slugs may
-      // still be in GSC's index — redirecting to /blog preserves link
-      // equity instead of returning a soft-404 stream.
+      // Retired blog posts that may still be indexed in GSC.
       { source: '/blog/how-to-download-youtube-videos-2026', destination: '/blog', permanent: true },
       { source: '/blog/youtube-to-mp3-converter-guide', destination: '/blog', permanent: true },
       { source: '/blog/download-youtube-shorts', destination: '/blog', permanent: true },

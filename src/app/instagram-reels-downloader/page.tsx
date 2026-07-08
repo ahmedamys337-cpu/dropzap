@@ -43,12 +43,6 @@ const jsonLd = {
       offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
       description:
         "Free Instagram Reels downloader. Saves Reels as MP4 at original quality. No login, no watermark, no daily limit. Works on iPhone, Android, PC, and Mac.",
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: "4.8",
-        ratingCount: "2156",
-        bestRating: "5",
-      },
     },
     {
       "@type": "HowTo",

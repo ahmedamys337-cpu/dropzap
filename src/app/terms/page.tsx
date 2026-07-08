@@ -41,7 +41,7 @@ export default function TermsPage() {
           <h2 className="text-lg font-semibold text-foreground mb-2">3. Copyright Compliance</h2>
           <p>
             Users are solely responsible for ensuring their use of downloaded content complies with
-            applicable copyright laws and the terms of service of the source platforms (YouTube, Instagram,
+            applicable copyright laws and the terms of service of the source platforms (Instagram,
             TikTok, Facebook, Twitter/X, Reddit, Pinterest, Threads, and others). DropZap does not endorse
             or facilitate copyright infringement.
           </p>

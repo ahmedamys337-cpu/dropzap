@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { platforms, SITE_URL, SITE_NAME } from "@/lib/seo-data";
 import { buildArticle, buildBreadcrumbList, buildSoftwareApplication } from "@/lib/schemas";
-import PlatformPageClient from "@/components/PlatformPageClient";
+import PlatformLanding from "@/components/PlatformLanding";
+import PlatformDownloader from "@/components/PlatformDownloader";
 
 const p = platforms.tiktok;
 
@@ -38,7 +39,7 @@ const jsonLd = {
       description: p.description,
       isPartOf: { "@id": `${SITE_URL}/#website` },
     },
-    buildSoftwareApplication(p, { ratingValue: "4.9", ratingCount: "4126" }),
+    buildSoftwareApplication(p),
     {
       "@type": "HowTo",
       name: `How to download ${p.name} videos with ${SITE_NAME}`,
@@ -74,7 +75,9 @@ export default function TikTokDownloaderPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <PlatformPageClient platform={p} platformKey="tiktok" />
+      <PlatformLanding platform={p}>
+        <PlatformDownloader platformKey="tiktok" />
+      </PlatformLanding>
     </>
   );
 }

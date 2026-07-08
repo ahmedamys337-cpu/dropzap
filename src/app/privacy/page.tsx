@@ -41,7 +41,7 @@ export default function PrivacyPage() {
         <section>
           <h2 className="text-lg font-semibold text-foreground mb-2">3. Third-Party Services</h2>
           <p>
-            Downloaded media is fetched from third-party platforms (YouTube, Instagram, TikTok,
+            Downloaded media is fetched from third-party platforms (Instagram, TikTok,
             Twitter/X). Your requests are subject to those platforms&apos; own privacy policies. DropZap
             acts only as a client-side tool.
           </p>

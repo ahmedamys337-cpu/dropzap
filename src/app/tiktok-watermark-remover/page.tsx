@@ -43,12 +43,6 @@ const jsonLd = {
       offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
       description:
         "Free TikTok watermark remover. Downloads TikTok videos from the source before the watermark is applied, so the MP4 has no TikTok logo or username overlay. No app, no signup.",
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: "4.8",
-        ratingCount: "1923",
-        bestRating: "5",
-      },
     },
     {
       "@type": "HowTo",

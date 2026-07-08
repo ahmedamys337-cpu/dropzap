@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { platforms, SITE_URL, SITE_NAME } from "@/lib/seo-data";
 import { buildArticle, buildBreadcrumbList, buildSoftwareApplication } from "@/lib/schemas";
-import PlatformPageClient from "@/components/PlatformPageClient";
+import PlatformLanding from "@/components/PlatformLanding";
+import PlatformDownloader from "@/components/PlatformDownloader";
 
 const p = platforms.instagram;
 
@@ -38,7 +39,7 @@ const jsonLd = {
       description: p.description,
       isPartOf: { "@id": `${SITE_URL}/#website` },
     },
-    buildSoftwareApplication(p, { ratingValue: "4.9", ratingCount: "3284" }),
+    buildSoftwareApplication(p),
     {
       "@type": "HowTo",
       name: `How to download ${p.name} videos with ${SITE_NAME}`,
@@ -71,7 +72,9 @@ export default function InstagramDownloaderPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <PlatformPageClient platform={p} platformKey="instagram" />
+      <PlatformLanding platform={p}>
+        <PlatformDownloader platformKey="instagram" />
+      </PlatformLanding>
     </>
   );
 }

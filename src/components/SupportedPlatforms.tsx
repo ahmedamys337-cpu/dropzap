@@ -29,7 +29,7 @@ const rows: Row[] = [
   { platform: "Reddit", href: "/reddit-video-downloader", downloads: "Videos with sound (MP4)" },
   { platform: "Pinterest", downloads: "Images (JPG), Videos (MP4)" },
   { platform: "Threads", downloads: "Videos (MP4), Images (JPG)" },
-  { platform: "YouTube Thumbnails", downloads: "All sizes (JPG)" },
+  { platform: "YouTube Thumbnails", href: "/", downloads: "All sizes (JPG)" },
   { platform: "MP3 Converter", href: "/mp3-converter", downloads: "Any video file → MP3" },
 ];
 

@@ -77,26 +77,6 @@ export default function YearPageTemplate({ data }: Props) {
         applicationCategory: "MultimediaApplication",
         operatingSystem: "Web, iOS, Android, Windows, macOS",
         offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-        aggregateRating: {
-          "@type": "AggregateRating",
-          ratingValue: tool.rating,
-          bestRating: 5,
-          ratingCount: 1000 + tool.rank * 137,
-        },
-        review: {
-          "@type": "Review",
-          author: {
-            "@type": "Organization",
-            name: "DropZap Editorial Team",
-          },
-          datePublished: data.dateModified,
-          reviewRating: {
-            "@type": "Rating",
-            ratingValue: tool.rating,
-            bestRating: 5,
-          },
-          reviewBody: tool.review,
-        },
       },
     })),
   };

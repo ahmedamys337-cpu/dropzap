@@ -43,12 +43,6 @@ const jsonLd = {
       offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
       description:
         "100% free TikTok video downloader. Removes TikTok watermark automatically. No signup, no subscription, no daily limit. Works on iPhone, Android, PC, and Mac.",
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: "4.9",
-        ratingCount: "2847",
-        bestRating: "5",
-      },
     },
     {
       "@type": "HowTo",

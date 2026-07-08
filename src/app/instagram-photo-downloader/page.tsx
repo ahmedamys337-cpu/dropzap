@@ -43,12 +43,6 @@ const jsonLd = {
       offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
       description:
         "Free Instagram photo downloader. Saves photos as JPG at original resolution. No login, no watermark, no daily limit. Works on iPhone, Android, PC, and Mac.",
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: "4.7",
-        ratingCount: "1892",
-        bestRating: "5",
-      },
     },
     {
       "@type": "HowTo",

@@ -48,7 +48,7 @@ export default function DmcaPage() {
             DropZap respects the intellectual property rights of others and expects its
             users to do the same. Users are solely responsible for ensuring that any
             content they download complies with applicable copyright laws and the terms
-            of service of the source platform (YouTube, Instagram, TikTok, Twitter/X,
+            of service of the source platform (Instagram, TikTok, Twitter/X,
             Facebook, Reddit).
           </p>
         </section>
@@ -59,21 +59,10 @@ export default function DmcaPage() {
           </h2>
           <p>
             Because DropZap does not host content, DMCA takedown requests should be
-            directed to the platform that hosts the content (YouTube, Instagram, etc.),
+            directed to the platform that hosts the content (Instagram, TikTok, etc.),
             not to DropZap. Each platform has its own DMCA reporting process:
           </p>
           <ul className="list-disc pl-6 mt-3 space-y-1">
-            <li>
-              <strong>YouTube:</strong>{" "}
-              <a
-                href="https://www.youtube.com/copyright_complaint_form"
-                className="text-foreground underline"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                youtube.com/copyright_complaint_form
-              </a>
-            </li>
             <li>
               <strong>Instagram / Facebook:</strong>{" "}
               <a

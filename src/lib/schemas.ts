@@ -52,7 +52,7 @@ export function buildArticle(platform: PlatformSEO) {
     headline: platform.title,
     description: platform.description,
     url,
-    datePublished: "2025-01-01",
+    datePublished: "2026-01-01",
     dateModified: new Date().toISOString().slice(0, 10),
     author: {
       "@type": "Organization",
@@ -87,26 +87,18 @@ export function buildBreadcrumbItems(platformName: string, slug: string) {
 }
 
 /**
- * SoftwareApplication / WebApplication schema with aggregateRating.
+ * SoftwareApplication / WebApplication schema.
  *
  * Why both @type entries: WebApplication is the more specific subtype
  * AI engines (Perplexity, ChatGPT Search, Google AI Overviews) prefer,
  * but SoftwareApplication is what Google's Rich Results test validates
- * against for star-rating eligibility. Listing both as an array
- * satisfies both validators.
+ * against. Listing both as an array satisfies both validators.
  *
- * The aggregateRating is what unlocks ★★★★★ in SERP snippets — the
- * single highest-leverage CTR boost available on a tool page once the
- * page is already ranking. Ratings are seeded from the homepage entity
- * and per-tool review counts grow naturally with each ad-supported
- * crawl cycle.
+ * Note: aggregateRating is intentionally omitted until a genuine review
+ * mechanism is in place. Fake ratings violate Google's structured data
+ * guidelines and can trigger manual actions.
  */
-export function buildSoftwareApplication(platform: PlatformSEO, opts: {
-  ratingValue?: string;
-  ratingCount?: string;
-}) {
-  const ratingValue = opts.ratingValue ?? "4.8";
-  const ratingCount = opts.ratingCount ?? "1247";
+export function buildSoftwareApplication(platform: PlatformSEO) {
   const url = `${SITE_URL}/${platform.slug}`;
 
   return {
@@ -128,13 +120,6 @@ export function buildSoftwareApplication(platform: PlatformSEO, opts: {
       price: "0",
       priceCurrency: "USD",
       availability: "https://schema.org/InStock",
-    },
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue,
-      ratingCount,
-      bestRating: "5",
-      worstRating: "1",
     },
     publisher: {
       "@type": "Organization",

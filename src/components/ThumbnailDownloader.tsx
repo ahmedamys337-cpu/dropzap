@@ -155,6 +155,7 @@ export default function ThumbnailDownloader() {
                 width={hero.width}
                 height={hero.height}
                 className="w-full h-auto"
+                priority
               />
               <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-orange-500 to-red-500 px-3 py-1 text-xs font-semibold text-white shadow-lg">
                 <Sparkles className="h-3 w-3" />
@@ -196,6 +197,7 @@ export default function ThumbnailDownloader() {
                       width={thumb.width}
                       height={thumb.height}
                       className="w-full aspect-video object-cover"
+                      loading="lazy"
                     />
                     <div className="p-3 flex flex-col gap-2 flex-1">
                       <div>

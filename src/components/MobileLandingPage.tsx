@@ -49,11 +49,6 @@ export default function MobileLandingPage({ data }: Props) {
         price: "0",
         priceCurrency: "USD",
       },
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: "4.8",
-        ratingCount: "1247",
-      },
       featureList: data.platformLinks.map((p) => p.label).join(", "),
       browserRequirements: "Requires JavaScript and a modern browser",
     },

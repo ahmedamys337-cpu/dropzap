@@ -9,11 +9,6 @@
 //   produces a genuinely different page (different intro, different
 //   section ordering, platform-specific tip, slug-specific FAQ).
 //
-// YouTube is intentionally absent: /youtube-downloader currently 308s to
-// /, so any /download/youtube-* page would CTA into a redirect — Google
-// reads that as a dead end and de-indexes the whole cluster. Restore
-// these once YouTube downloads work again.
-//
 // Each page is built statically at build time via generateStaticParams
 // in @/app/download/[slug]/page.tsx, so adding/removing slugs is free at
 // runtime — only the build manifest changes.

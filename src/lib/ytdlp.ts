@@ -3,7 +3,6 @@ import { promisify } from "util";
 import { writeFileSync, readFileSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
-import { getYoutubeInfoViaPiped, extractYoutubeVideoId } from "./youtube-piped";
 
 const execFileAsync = promisify(execFile);
 
@@ -149,21 +148,6 @@ export function getProxyArgs(): string[] {
   return ["--proxy", proxy];
 }
 
-// Always send cookies + proxy together. Render's datacenter IPs are bot-
-// flagged and get blocked even with cookies; the rotating residential
-// proxy bypasses the IP block, and cookies authenticate the request to
-// unlock the full HD format ladder. CRITICAL: cookies must be exported
-// from a Google account that was signed-in via the same geo as the proxy
-// (USA), otherwise YouTube anti-fraud sees a geo-mismatch and returns
-// "Requested format is not available" with an empty format list.
-export function getYoutubeAuthArgs(): string[] {
-  return [...getCookiesArgs(), ...getProxyArgs()];
-}
-
-export function getYoutubeStreamAuthArgs(): string[] {
-  return [...getCookiesArgs(), ...getProxyArgs()];
-}
-
 // In-memory cache for video info (5 min TTL)
 type CacheEntry = { data: any; expires: number };
 const infoCache = new Map<string, CacheEntry>();
@@ -189,211 +173,25 @@ function cacheSet(key: string, data: any) {
   infoCache.set(key, { data, expires: Date.now() + CACHE_TTL_MS });
 }
 
-// Fast YouTube extraction flags. --no-check-formats skips per-URL HEAD
-// validation (saves several seconds on long format ladders).
-//
-// Player-client choice (the single biggest factor in whether HD comes back):
-//   With cookies: mediaconnect first — in production it's the only client
-//     that consistently returns the full HD ladder through a residential
-//     proxy. android/tv_embedded stay as in-call fallbacks so age-gated
-//     content still resolves without bouncing to recovery.
-//   Without cookies: tv_embedded first (lightweight, no PO-token) then
-//     android, tv_simply, mediaconnect.
-// 'web' is deliberately omitted everywhere: it requires a PO-token even
-// with cookies, and a cookies/proxy geo mismatch makes it return "Requested
-// format is not available".
-const YT_FAST_ARGS = [
-  "--no-check-certificates",
-  "--no-warnings",
-  "--no-playlist",
-  "--skip-download",
-  "--no-check-formats",
-  "--socket-timeout", "30",
-  "--extractor-args",
-  cookiesFilePath
-    ? "youtube:player_client=mediaconnect,android,tv_embedded"
-    : "youtube:player_client=tv_embedded,android,tv_simply,mediaconnect",
-];
-
-// If a residential proxy is configured, we can hit YouTube directly via yt-dlp.
-// Public Piped/Invidious instances are mostly dead so skip them in that case.
-const HAS_PROXY = proxyList.length > 0;
-
-// Whether YouTube extraction goes through a residential proxy. When true,
-// every signed googlevideo.com URL we receive is IP-locked to the proxy
-// (YouTube embeds the requesting IP in the URL signature), so we MUST
-// download those URLs through the same proxy. The direct-ffmpeg fast path
-// in /api/stream uses this flag to decide whether to skip itself and let
-// the yt-dlp temp-file path handle the download (which routes through the
-// proxy correctly).
-export const HAS_YOUTUBE_PROXY = HAS_PROXY;
-
-// Returns a random proxy URL for routing media fetches (e.g. ffmpeg -http_proxy)
-// through the same residential IP yt-dlp used to extract the URL. googlevideo.com
-// signed URLs are IP-locked to the extracting IP, so ffmpeg fetching them direct
-// from the server will 403; routing through the proxy unlocks them.
-export function getYoutubeProxyUrl(): string | undefined {
-  if (proxyList.length === 0) return undefined;
-  return proxyList[Math.floor(Math.random() * proxyList.length)];
-}
-
 export async function getVideoInfo(url: string): Promise<any> {
   const cached = cacheGet(url);
   if (cached) return cached;
 
-  const isYoutube = !!extractYoutubeVideoId(url);
+  const { stdout, stderr } = await execFileAsync("yt-dlp", [
+    url,
+    "--dump-single-json",
+    "--no-check-certificates",
+    "--no-warnings",
+    "--no-playlist",
+    "--skip-download",
+    "--no-check-formats",
+    "--socket-timeout", "30",
+    ...getGenericCookiesArgs(),
+    ...getProxyArgs(),
+  ], { timeout: 45000, maxBuffer: 10 * 1024 * 1024 });
+  if (stderr) console.error("[yt-dlp stderr]", stderr.slice(0, 500));
 
-  // Only fall back to Piped/Invidious if NO proxy is configured.
-  // With a proxy, direct yt-dlp is faster and more reliable.
-  if (isYoutube && !HAS_PROXY) {
-    try {
-      const data = await getYoutubeInfoViaPiped(url);
-      cacheSet(url, data);
-      return data;
-    } catch (e: any) {
-      console.warn("[yt-dlp] Piped fallback failed, trying yt-dlp:", e.message);
-    }
-  }
-
-  // Default path: yt-dlp (works for all non-YouTube + as YouTube fallback).
-  // We swallow exec errors HERE so a hard failure on the primary call
-  // (e.g. "Requested format is not available" when YouTube blocks the
-  // response entirely) still falls through to the recovery chain below.
-  // If everything down to Piped also fails, we re-throw the saved error.
-  let data: any = { formats: [] };
-  let primaryError: any = null;
-  try {
-    const { stdout, stderr } = await execFileAsync("yt-dlp", [
-      url,
-      "--dump-single-json",
-      ...YT_FAST_ARGS,
-      ...getYoutubeAuthArgs(),
-    ], { timeout: 45000, maxBuffer: 10 * 1024 * 1024 });
-    if (stderr) console.error("[yt-dlp stderr]", stderr.slice(0, 500));
-    data = JSON.parse(stdout);
-  } catch (e: any) {
-    primaryError = e;
-    console.warn(
-      `[yt-dlp] Primary call failed for ${url}: ${e.message?.slice(0, 200)}`
-    );
-  }
-
-  // Recovery chain for thin format lists. YouTube has been steadily
-  // hardening format extraction against cloud-IP / non-attested clients;
-  // the fast primary call above frequently returns just itag 18 (360p
-  // progressive) — or sometimes 144/240/360 with NO HD — even for videos
-  // that publicly offer full HD. We trigger the recovery chain whenever
-  // the primary response is thin (<2 heights) OR is missing any HD format
-  // (no height >= 720), so users don't end up stuck at 360p when cookies
-  // or alternate clients could unlock 720p+.
-  // Always run recovery when the primary returned a thin format ladder.
-  // We previously gated recovery on !HAS_PROXY (assuming proxy+cookies
-  // always returned full HD), but YouTube has tightened format gating to
-  // the point that even cookies+proxy frequently returns just itag 18
-  // (360p progressive). Skipping recovery in that case stranded users at
-  // 360p, so we now always race alt-clients on thin responses.
-  const needsRecovery =
-    countUniqueHeights(data.formats) < 2 || !hasHdFormat(data.formats);
-  if (isYoutube && needsRecovery) {
-    // Helper: run a single retry with a given player_client. Returns the
-    // parsed info on success, or null on failure / non-HD result.
-    const runRetry = async (label: string, extraArgs: string[]) => {
-      try {
-        const retry = await execFileAsync("yt-dlp", [
-          url,
-          "--dump-single-json",
-          "--no-check-certificates",
-          "--no-warnings",
-          "--no-playlist",
-          "--skip-download",
-          "--no-check-formats",
-          "--socket-timeout", "30",
-          ...extraArgs,
-        ], { timeout: 45000, maxBuffer: 10 * 1024 * 1024 });
-        const parsed = JSON.parse(retry.stdout);
-        const h = countUniqueHeights(parsed.formats);
-        const hd = hasHdFormat(parsed.formats);
-        return { label, data: parsed, heights: h, hasHd: hd };
-      } catch (e: any) {
-        console.warn(`[yt-dlp] ${label} retry failed:`, e.message?.slice(0, 200));
-        return null;
-      }
-    };
-
-    // PARALLEL RECOVERY: race alternate clients that send a different
-    // attestation fingerprint than the primary call. First one to return
-    // HD wins.
-    //
-    // We deliberately exclude any client the primary already tried so the
-    // recovery list adds fresh signal instead of repeating failures: when
-    // cookies are present the primary chain is mediaconnect→android→
-    // tv_embedded, so recovery only adds ios/mweb/tv_simply.
-    const altClients = cookiesFilePath
-      ? ["ios", "mweb", "tv_simply"]
-      : ["ios", "mweb", "mediaconnect", "tv_simply"];
-    const altPromises = altClients.map((c) =>
-      runRetry(`alt-clients:${c}`, [
-        "--extractor-args", `youtube:player_client=${c}`,
-        ...getCookiesArgs(),
-        ...getProxyArgs(),
-      ]),
-    );
-    const altResults = await Promise.all(altPromises);
-    // Pick the best result: prefer HD, then by height count.
-    const successful = altResults
-      .filter((r): r is NonNullable<typeof r> => r !== null)
-      .sort((a, b) => {
-        if (a.hasHd !== b.hasHd) return a.hasHd ? -1 : 1;
-        return b.heights - a.heights;
-      });
-    if (successful.length > 0) {
-      const best = successful[0];
-      const currentH = countUniqueHeights(data.formats);
-      const currentHd = hasHdFormat(data.formats);
-      if (best.heights > currentH || (best.hasHd && !currentHd)) {
-        data = best.data;
-      }
-    }
-
-    // Attempt C: Piped / Invidious public instances. Independent code
-    // path — doesn't hit YouTube directly so cloud-IP gating doesn't
-    // apply. Public instances are mostly dead and add 5-15s of timeout
-    // even on fast failure, so skip entirely when a proxy is available
-    // (yt-dlp + proxy is faster and more reliable than any public Piped).
-    if (
-      !HAS_PROXY &&
-      (countUniqueHeights(data.formats) < 2 || !hasHdFormat(data.formats))
-    ) {
-      try {
-        const pipedData = await getYoutubeInfoViaPiped(url);
-        const pipedHeights = countUniqueHeights(pipedData.formats);
-        const pipedHasHd = hasHdFormat(pipedData.formats);
-        if (
-          pipedHeights > countUniqueHeights(data.formats) ||
-          (pipedHasHd && !hasHdFormat(data.formats))
-        ) {
-          data = pipedData;
-        }
-      } catch (e: any) {
-        console.warn(`[piped] fallback failed:`, e.message);
-      }
-    }
-  }
-
-  // If everything failed AND the primary call originally threw, propagate
-  // that error so the API surface returns a meaningful message instead
-  // of pretending success with zero formats.
-  if (primaryError && countUniqueHeights(data.formats) === 0) {
-    const msg: string = primaryError.message || "";
-    if (msg.includes("Sign in to confirm") || msg.includes("bot")) {
-      console.error(
-        "[yt-dlp] Bot-check hit on all clients — server IP is flagged by YouTube. "
-        + "Change Render region to Frankfurt/Singapore or re-add YOUTUBE_PROXIES."
-      );
-    }
-    throw primaryError;
-  }
-
+  const data = JSON.parse(stdout);
   cacheSet(url, data);
   return data;
 }
@@ -446,7 +244,7 @@ export type PickedFormat = {
   combined?: boolean;
 };
 
-export function pickYoutubeFormats(
+export function pickFormats(
   info: any,
   heightCap: number | null,
   audioOnly: boolean,
@@ -529,7 +327,8 @@ export async function getVideoInfoSkipDownload(url: string): Promise<any> {
     "--skip-download",
     "--no-check-formats",
     "--socket-timeout", "20",
-    ...getYoutubeAuthArgs(),
+    ...getGenericCookiesArgs(),
+    ...getProxyArgs(),
   ], { timeout: 30000, maxBuffer: 10 * 1024 * 1024 });
 
   const data = JSON.parse(stdout);
