@@ -519,15 +519,21 @@ async function handleDownload(url: string): Promise<Response> {
       const igUrls = await fetchInstagramImageUrls(url);
       if (igUrls && igUrls.length > 0) {
         const downloaded: string[] = [];
-        for (let i = 0; i < igUrls.length; i++) {
+        // Download images in parallel for faster carousel downloads
+        const downloadPromises = igUrls.map(async (igUrl, i) => {
           const base = join(workDir, String(i + 1).padStart(2, "0"));
           try {
-            const { ext } = await fetchToFile(igUrls[i], base);
-            downloaded.push(`${String(i + 1).padStart(2, "0")}${ext}`);
+            const { ext } = await fetchToFile(igUrl, base);
+            return `${String(i + 1).padStart(2, "0")}${ext}`;
           } catch (e: any) {
             console.warn(`[photos:instagram] image ${i + 1} fetch failed:`, e?.message);
+            return null;
           }
-        }
+        });
+        const results = await Promise.all(downloadPromises);
+        results.forEach((result) => {
+          if (result) downloaded.push(result);
+        });
         if (downloaded.length > 0) {
           if (downloaded.length === 1) {
             return streamSingleImage(join(workDir, downloaded[0]), downloaded[0], platform, cleanup);
@@ -633,15 +639,21 @@ async function handleDownload(url: string): Promise<Response> {
         }
 
         const downloaded: string[] = [];
-        for (let i = 0; i < unique.length; i++) {
+        // Download images in parallel for faster album downloads
+        const downloadPromises = unique.map(async (url, i) => {
           const base = join(workDir, String(i + 1).padStart(2, "0"));
           try {
-            const { ext } = await fetchToFile(unique[i], base);
-            downloaded.push(`${String(i + 1).padStart(2, "0")}${ext}`);
+            const { ext } = await fetchToFile(url, base);
+            return `${String(i + 1).padStart(2, "0")}${ext}`;
           } catch (e: any) {
             console.warn(`[photos:facebook] image ${i + 1} fetch failed:`, e?.message);
+            return null;
           }
-        }
+        });
+        const results = await Promise.all(downloadPromises);
+        results.forEach((result) => {
+          if (result) downloaded.push(result);
+        });
         if (downloaded.length === 1) {
           return streamSingleImage(join(workDir, downloaded[0]), downloaded[0], platform, cleanup);
         }
@@ -785,15 +797,21 @@ async function handleDownload(url: string): Promise<Response> {
 
     // Download each image URL into workDir with a stable index prefix.
     const downloaded: string[] = [];
-    for (let i = 0; i < imageUrls.length; i++) {
+    // Download images in parallel for faster carousel downloads
+    const downloadPromises = imageUrls.map(async (url, i) => {
       const base = join(workDir, String(i + 1).padStart(2, "0"));
       try {
-        const { ext } = await fetchToFile(imageUrls[i], base);
-        downloaded.push(`${String(i + 1).padStart(2, "0")}${ext}`);
+        const { ext } = await fetchToFile(url, base);
+        return `${String(i + 1).padStart(2, "0")}${ext}`;
       } catch (e: any) {
         console.warn(`[photos:${platform}] image ${i + 1} fetch failed:`, e?.message);
+        return null;
       }
-    }
+    });
+    const results = await Promise.all(downloadPromises);
+    results.forEach((result) => {
+      if (result) downloaded.push(result);
+    });
 
     if (downloaded.length === 0) {
       cleanup();
