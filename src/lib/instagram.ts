@@ -135,6 +135,8 @@ async function fetchInstagramPublicJson(
 ): Promise<{ images: string[]; video: string | null } | null> {
   const url = `https://www.instagram.com/p/${shortcode}/?__a=1&__d=dis`;
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000); // 10 second timeout
     const res = await fetch(url, {
       headers: {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -144,7 +146,9 @@ async function fetchInstagramPublicJson(
         ...(cookieHeader ? { Cookie: cookieHeader } : {}),
       },
       redirect: "follow",
+      signal: controller.signal,
     });
+    clearTimeout(timeout);
     if (!res.ok) return null;
     const text = await res.text();
     let json: any = null;
@@ -204,7 +208,10 @@ async function fetchInstagramPrivateMedia(
 
   for (const apiUrl of apiUrls) {
     try {
-      const res = await fetch(apiUrl, { headers, redirect: "follow" });
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000); // 10 second timeout per API endpoint
+      const res = await fetch(apiUrl, { headers, redirect: "follow", signal: controller.signal });
+      clearTimeout(timeout);
       if (!res.ok) continue;
       let text = "";
       try { text = await res.text(); } catch { continue; }
@@ -265,11 +272,10 @@ async function fetchInstagramMedia(
     return { ...publicJson, source: "public-json" };
   }
 
-  // 3. Web scrape
-  const scraped = await scrapeInstagramPage(postUrl, cookieHeader);
-  if (scraped && (scraped.images.length > 0 || scraped.video)) {
-    return { ...scraped, source: "web-scrape" };
-  }
+  // 3. Web scrape - skip this for carousels to avoid slow scraping
+  // Web scraping is slow and often fails for carousels, so we skip it
+  // to improve performance. If the first two methods fail, we return null
+  // and let the yt-dlp fallback handle it.
 
   return null;
 }

@@ -456,25 +456,34 @@ async function fetchFacebookImageUrl(postUrl: string): Promise<FbPhotoResult> {
 }
 
 async function fetchToFile(url: string, dest: string): Promise<{ ext: string }> {
-  const res = await fetch(url, {
-    headers: {
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
-      "Accept": "image/avif,image/webp,image/png,image/jpeg,*/*",
-    },
-  });
-  if (!res.ok) throw new Error(`fetch ${res.status}`);
-  const ct = res.headers.get("content-type") || "";
-  const ext = ct.includes("png") ? ".png"
-    : ct.includes("webp") ? ".webp"
-    : ct.includes("heic") ? ".heic"
-    : ".jpg";
-  // Plain arrayBuffer→writeFile avoids the Node version sensitivity of
-  // Readable.fromWeb (which was undefined under our Render runtime even
-  // though the docs say it landed in 17). Carousel images are small (a
-  // few MB max) so buffering is fine.
-  const buf = Buffer.from(await res.arrayBuffer());
-  await writeFile(dest + ext, buf);
-  return { ext };
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000); // 30 second timeout per image
+  try {
+    const res = await fetch(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+        "Accept": "image/avif,image/webp,image/png,image/jpeg,*/*",
+      },
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    if (!res.ok) throw new Error(`fetch ${res.status}`);
+    const ct = res.headers.get("content-type") || "";
+    const ext = ct.includes("png") ? ".png"
+      : ct.includes("webp") ? ".webp"
+      : ct.includes("heic") ? ".heic"
+      : ".jpg";
+    // Plain arrayBuffer→writeFile avoids the Node version sensitivity of
+    // Readable.fromWeb (which was undefined under our Render runtime even
+    // though the docs say it landed in 17). Carousel images are small (a
+    // few MB max) so buffering is fine.
+    const buf = Buffer.from(await res.arrayBuffer());
+    await writeFile(dest + ext, buf);
+    return { ext };
+  } catch (e: any) {
+    clearTimeout(timeout);
+    throw e;
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -516,10 +525,14 @@ async function handleDownload(url: string): Promise<Response> {
     // (no display_url). Bypassing it with the private mobile API is
     // dramatically faster and actually returns full carousel data.
     if (platform === "instagram") {
+      console.time("[photos:instagram] fetchInstagramImageUrls");
       const igUrls = await fetchInstagramImageUrls(url);
+      console.timeEnd("[photos:instagram] fetchInstagramImageUrls");
       if (igUrls && igUrls.length > 0) {
+        console.log(`[photos:instagram] Found ${igUrls.length} images, downloading in parallel`);
         const downloaded: string[] = [];
         // Download images in parallel for faster carousel downloads
+        console.time("[photos:instagram] parallel image downloads");
         const downloadPromises = igUrls.map(async (igUrl, i) => {
           const base = join(workDir, String(i + 1).padStart(2, "0"));
           try {
@@ -531,14 +544,19 @@ async function handleDownload(url: string): Promise<Response> {
           }
         });
         const results = await Promise.all(downloadPromises);
+        console.timeEnd("[photos:instagram] parallel image downloads");
         results.forEach((result) => {
           if (result) downloaded.push(result);
         });
+        console.log(`[photos:instagram] Successfully downloaded ${downloaded.length}/${igUrls.length} images`);
         if (downloaded.length > 0) {
           if (downloaded.length === 1) {
             return streamSingleImage(join(workDir, downloaded[0]), downloaded[0], platform, cleanup);
           }
-          return streamZip(workDir, downloaded, platform, cleanup);
+          console.time("[photos:instagram] zip creation");
+          const result = await streamZip(workDir, downloaded, platform, cleanup);
+          console.timeEnd("[photos:instagram] zip creation");
+          return result;
         }
         // Fell through (all image fetches failed) → try yt-dlp below.
       }
