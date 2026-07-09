@@ -7,9 +7,22 @@ const SITE_URL =
 
 export const metadata: Metadata = {
   alternates: { canonical: `${SITE_URL}/about` },
-  title: "About DropZap — Free Social Media Video Downloader",
+  title: "About DropZap — Free Video Downloader for Instagram, TikTok, Twitter, Facebook",
   description:
-    "Learn about DropZap, the free, fast, and privacy-friendly online video downloader for Instagram, TikTok, Twitter/X, Facebook, Reddit, Pinterest, and Threads. No signup, no watermark, 100% browser-based.",
+    "DropZap is the best free video downloader for Instagram, TikTok, Twitter/X, Facebook, Reddit, Pinterest, and Threads. No signup, no watermark, no daily limit. Fast, private, and browser-based.",
+  keywords: [
+    "about dropzap",
+    "free video downloader",
+    "instagram downloader",
+    "tiktok downloader",
+    "twitter video downloader",
+    "facebook video downloader",
+    "reddit video downloader",
+    "pinterest downloader",
+    "threads downloader",
+    "no watermark downloader",
+    "social media downloader",
+  ],
   robots: { index: true, follow: true },
 };
 

@@ -133,6 +133,8 @@ export const platforms: Record<string, PlatformSEO> = {
       "how to convert tiktok to mp3", "tiktok to mp3 converter no limit", "tiktok to mp3 free online",
       "tiktok audio download without watermark", "tiktok sound download mp3", "tiktok music download mp3",
       "best tiktok to mp3 converter", "tiktok to mp3 converter that works", "tiktok to mp3 no signup",
+      "tiktok sound download", "downloadable tiktok sounds", "tiktok downloader voice",
+      "tik tok sound download", "how to download sound from tiktok", "tiktok to mp3 converter",
     ],
     color: "emerald-500",
     gradient: "from-cyan-500 to-pink-500",

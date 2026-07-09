@@ -6,9 +6,9 @@ import TikTokSection from "./TikTokSection";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital";
 
 export const metadata: Metadata = {
-  title: "TikTok Watermark Remover — Remove TikTok Logo Free (2026)",
+  title: "TikTok Watermark Remover — Remove TikTok Logo Free Online (2026)",
   description:
-    "Remove TikTok watermark from videos for free. Download clean TikTok videos without the logo or username. No app, no signup. Works on iPhone, Android, PC.",
+    "Remove TikTok watermark from videos online for free. Download clean TikTok videos without the logo or username. No app, no signup. Works on iPhone, Android, PC. Best free TikTok watermark remover.",
   keywords: [
     "tiktok watermark remover",
     "remove tiktok watermark",
@@ -18,14 +18,20 @@ export const metadata: Metadata = {
     "remove tiktok watermark without app",
     "how to remove tiktok watermark",
     "tiktok logo remover",
+    "tiktok name remover",
+    "tiktok mark remover",
+    "tiktok tag remover",
+    "watermark remover tiktok",
+    "tiktok remover",
+    "how to remove tiktok watermark",
   ],
   alternates: { canonical: `${SITE_URL}/tiktok-watermark-remover` },
   openGraph: {
     type: "website",
     url: `${SITE_URL}/tiktok-watermark-remover`,
-    title: "TikTok Watermark Remover — Remove TikTok Logo Free",
+    title: "TikTok Watermark Remover — Remove TikTok Logo Free Online",
     description:
-      "Remove TikTok watermark from videos for free. Download clean TikTok videos without the logo or username. No app, no signup.",
+      "Remove TikTok watermark from videos online for free. Download clean TikTok videos without the logo or username. No app, no signup. Best free TikTok watermark remover.",
     images: [{ url: "/opengraph-image", width: 1200, height: 630 }],
   },
 };
