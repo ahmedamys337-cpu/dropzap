@@ -157,6 +157,15 @@ export default function SimpleDownloader({
       URL.revokeObjectURL(objectUrl);
     }, 1000);
     setPhase("downloaded");
+
+    // Track successful download in Google Analytics
+    if (typeof window !== "undefined" && (window as any).gtag) {
+      (window as any).gtag("event", "download_complete", {
+        event_category: "engagement",
+        event_label: platform,
+        value: 1,
+      });
+    }
   };
 
   const start = () => {

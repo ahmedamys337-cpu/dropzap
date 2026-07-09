@@ -2,6 +2,14 @@
 
 import { Progress } from "@/components/ui/progress";
 import { Loader2, CheckCircle2, XCircle, Download, Merge } from "lucide-react";
+import { useEffect } from "react";
+
+// Extend Window interface to include gtag
+declare global {
+  interface Window {
+    gtag?: (...args: any[]) => void;
+  }
+}
 
 interface DownloadProgressProps {
   status: string;
@@ -10,9 +18,21 @@ interface DownloadProgressProps {
   eta: string;
   fileSize: string;
   error?: string;
+  platform?: string;
 }
 
-export default function DownloadProgress({ status, progress, speed, eta, fileSize, error }: DownloadProgressProps) {
+export default function DownloadProgress({ status, progress, speed, eta, fileSize, error, platform }: DownloadProgressProps) {
+  // Track successful downloads in Google Analytics
+  useEffect(() => {
+    if (status === "done" && typeof window !== "undefined" && window.gtag) {
+      window.gtag("event", "download_complete", {
+        event_category: "engagement",
+        event_label: platform || "unknown",
+        value: 1,
+      });
+    }
+  }, [status, platform]);
+
   if (status === "idle") return null;
 
   return (
