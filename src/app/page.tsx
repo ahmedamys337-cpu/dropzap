@@ -192,6 +192,47 @@ export default function Home() {
         </div>
       </section>
 
+      {/* SEO: Quick Links to Tool Pages */}
+      <section className="max-w-6xl mx-auto px-4 py-12" aria-labelledby="tools-heading">
+        <h2 id="tools-heading" className="text-2xl sm:text-3xl font-bold text-center mb-8">
+          Popular Download Tools
+        </h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          <a href="/instagram-downloader" className="glass rounded-xl p-4 hover:bg-white/10 transition-colors text-center">
+            <h3 className="font-bold text-sm mb-1">Instagram Downloader</h3>
+            <p className="text-xs text-muted-foreground">Reels, Photos & Carousels</p>
+          </a>
+          <a href="/tiktok-downloader" className="glass rounded-xl p-4 hover:bg-white/10 transition-colors text-center">
+            <h3 className="font-bold text-sm mb-1">TikTok Downloader</h3>
+            <p className="text-xs text-muted-foreground">No Watermark</p>
+          </a>
+          <a href="/twitter-video-downloader" className="glass rounded-xl p-4 hover:bg-white/10 transition-colors text-center">
+            <h3 className="font-bold text-sm mb-1">Twitter/X Downloader</h3>
+            <p className="text-xs text-muted-foreground">Videos & GIFs</p>
+          </a>
+          <a href="/facebook-video-downloader" className="glass rounded-xl p-4 hover:bg-white/10 transition-colors text-center">
+            <h3 className="font-bold text-sm mb-1">Facebook Downloader</h3>
+            <p className="text-xs text-muted-foreground">Videos & Reels</p>
+          </a>
+          <a href="/reddit-video-downloader" className="glass rounded-xl p-4 hover:bg-white/10 transition-colors text-center">
+            <h3 className="font-bold text-sm mb-1">Reddit Downloader</h3>
+            <p className="text-xs text-muted-foreground">Videos with Sound</p>
+          </a>
+          <a href="/pinterest-video-downloader" className="glass rounded-xl p-4 hover:bg-white/10 transition-colors text-center">
+            <h3 className="font-bold text-sm mb-1">Pinterest Downloader</h3>
+            <p className="text-xs text-muted-foreground">Images & Videos</p>
+          </a>
+          <a href="/tiktok-to-mp3" className="glass rounded-xl p-4 hover:bg-white/10 transition-colors text-center">
+            <h3 className="font-bold text-sm mb-1">TikTok to MP3</h3>
+            <p className="text-xs text-muted-foreground">Audio Converter</p>
+          </a>
+          <a href="/mp3-converter" className="glass rounded-xl p-4 hover:bg-white/10 transition-colors text-center">
+            <h3 className="font-bold text-sm mb-1">MP3 Converter</h3>
+            <p className="text-xs text-muted-foreground">Video to Audio</p>
+          </a>
+        </div>
+      </section>
+
       {/* SEO: How To */}
       <section className="max-w-6xl mx-auto px-4 py-12" aria-labelledby="howto-heading">
         <h2 id="howto-heading" className="text-2xl sm:text-3xl font-bold text-center mb-8">
