@@ -105,6 +105,7 @@ export default function AdsterraAds() {
         src="https://pl30087662.effectivecpmnetwork.com/65/f9/20/65f920d880821ea5435bf95e085e0b30.js"
         strategy="afterInteractive"
       />
+      {/* TEMPORARILY DISABLED: Redirecting ad causing bad first-time user experience
       <div id="container-5bc8ac44c319f4229556e677c20a528d" className="min-h-[90px] min-w-[320px] max-w-[728px] w-full mx-auto overflow-hidden" />
       <Script
         async
@@ -112,6 +113,7 @@ export default function AdsterraAds() {
         src="https://pl30087663.effectivecpmnetwork.com/5bc8ac44c319f4229556e677c20a528d/invoke.js"
         strategy="afterInteractive"
       />
+      */}
       <div ref={containerRef} className="adsterra-banners flex flex-wrap justify-center items-center gap-3 p-3 w-full" />
     </>
   );
