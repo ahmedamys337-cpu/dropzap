@@ -5236,7 +5236,7 @@ https://facebook.com/user/videos/456/</pre>
     description:
       "SnapTik's free tier now adds a watermark instead of removing one. Here is why SnapTik went paid and which free alternatives work in 2026.",
     date: "2026-06-30",
-    dateModified: "2026-06-30",
+    dateModified: "2026-07-11",
     keywords: [
       "snaptik now paid",
       "snaptik charges money",
@@ -5245,6 +5245,8 @@ https://facebook.com/user/videos/456/</pre>
       "snaptik not free anymore",
       "cancel snaptik subscription",
       "best free tiktok downloader no subscription",
+      "snaptik down",
+      "snaptik not working",
     ],
     category: "News",
     readTime: "6 min read",
@@ -5287,7 +5289,10 @@ https://facebook.com/user/videos/456/</pre>
 <p>TikMate offers a sideloaded Android app (not on Play Store) that allows quick saves from the share sheet. The web version works too. Heavier ads than the top two options, but no paywall.</p>
 
 <h2>The real cost of a free downloader going paid</h2>
-<p>SnapTik's move to a subscription model is a reminder to use tools that are transparent about their business model from the start. DropZap's revenue comes from minimal banner ads — no subscription, no freemium bait, no sudden paywall. The download flow will never require payment.</p>`,
+<p>SnapTik's move to a subscription model is a reminder to use tools that are transparent about their business model from the start. DropZap's revenue comes from minimal banner ads — no subscription, no freemium bait, no sudden paywall. The download flow will never require payment.</p>
+
+<h2>DropZap extras: browser extension + SnapTik status check</h2>
+<p>DropZap also offers a free <a href="/extension">browser extension</a> that adds a "Download with DropZap" button directly on TikTok, Instagram, Facebook, X, Reddit, Pinterest and Threads pages. No copy-paste needed. If you ever wonder whether SnapTik itself is down or just blocked on your network, check our live <a href="/is-snaptik-down">SnapTik status page</a>.</p>`,
     faq: [
       {
         q: "Is SnapTik free in 2026?",

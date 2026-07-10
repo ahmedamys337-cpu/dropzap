@@ -42,6 +42,7 @@ fb.html
 *.html
 !public/**/*.html
 !src/**/*.html
+!extension/**/*.html
 
 # cookie files - NEVER commit; contain auth sessions
 cookies*.txt

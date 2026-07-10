@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { safeFilename } from "@/lib/download";
+import { addDownloadHistory } from "@/lib/download-history";
 import AdCountdown from "@/components/AdCountdown";
 import DownloadSuccessActions from "@/components/DownloadSuccessActions";
+import DownloadErrorFallback from "@/components/DownloadErrorFallback";
 import { Download, Loader2, Clipboard, X, CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
 
 /**
@@ -158,6 +160,15 @@ export default function SimpleDownloader({
       URL.revokeObjectURL(objectUrl);
     }, 1000);
     setPhase("downloaded");
+
+    // Save to local history so users can re-download later.
+    addDownloadHistory({
+      title: `${platform} ${mediaTypeLabel}`,
+      url,
+      platform,
+      type: mediaTypeLabel,
+      filename: name,
+    });
 
     // Track successful download in Google Analytics
     if (typeof window !== "undefined" && (window as any).gtag) {
@@ -376,12 +387,15 @@ export default function SimpleDownloader({
 
       {/* Error banner — shows server error text so user knows exactly what failed. */}
       {isError && errorMsg && (
-        <div className="flex items-start gap-3 rounded-lg border-2 border-red-500/50 bg-red-500/15 dark:bg-red-500/10 px-4 py-3 animate-in fade-in slide-in-from-top-2 duration-300">
-          <AlertCircle className="h-5 w-5 text-red-700 dark:text-red-300 flex-shrink-0 mt-0.5" />
-          <div className="text-sm">
-            <p className="font-semibold text-red-800 dark:text-red-200">Download failed</p>
-            <p className="text-xs text-red-700/90 dark:text-red-300/90 mt-0.5">{errorMsg}</p>
+        <div className="space-y-2">
+          <div className="flex items-start gap-3 rounded-lg border-2 border-red-500/50 bg-red-500/15 dark:bg-red-500/10 px-4 py-3 animate-in fade-in slide-in-from-top-2 duration-300">
+            <AlertCircle className="h-5 w-5 text-red-700 dark:text-red-300 flex-shrink-0 mt-0.5" />
+            <div className="text-sm">
+              <p className="font-semibold text-red-800 dark:text-red-200">Download failed</p>
+              <p className="text-xs text-red-700/90 dark:text-red-300/90 mt-0.5">{errorMsg}</p>
+            </div>
           </div>
+          <DownloadErrorFallback platform={platform} url={url} errorMessage={errorMsg} />
         </div>
       )}
 
@@ -399,7 +413,7 @@ export default function SimpleDownloader({
               </p>
             </div>
           </div>
-          <DownloadSuccessActions platform={platform} />
+          <DownloadSuccessActions platform={platform} url={url} />
         </div>
       )}
 

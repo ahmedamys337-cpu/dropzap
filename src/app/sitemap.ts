@@ -45,6 +45,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { slug: "tiktok-sound-downloader", priority: 0.85 as const },
     { slug: "facebook-reel-downloader", priority: 0.85 as const },
     { slug: "extension", priority: 0.85 as const },
+    { slug: "history", priority: 0.75 as const },
+    { slug: "bulk-video-downloader", priority: 0.85 as const },
+    { slug: "is-snaptik-down", priority: 0.75 as const },
+    { slug: "is-ssstik-down", priority: 0.75 as const },
+    { slug: "is-musicallydown-down", priority: 0.75 as const },
+    { slug: "is-savefrom-down", priority: 0.75 as const },
+    { slug: "tiktok-trending-sounds", priority: 0.75 as const },
     { slug: "tools", priority: 0.8 as const },
     { slug: "compare", priority: 0.8 as const },
   ];
@@ -77,6 +84,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date("2026-06-30"),
       changeFrequency: "monthly" as const,
       priority: p.priority,
+    })),
+    // Country-specific commercial landing pages.
+    ...["in", "id", "br", "de", "ph"].map((country) => ({
+      url: `${baseUrl}/${country}/video-downloader`,
+      lastModified: new Date("2026-07-11"),
+      changeFrequency: "weekly" as const,
+      priority: 0.85 as const,
     })),
     // MP3 converter — dedicated page for the high-volume "video to mp3"
     // query family. Tool already exists; the dedicated URL gives Google
