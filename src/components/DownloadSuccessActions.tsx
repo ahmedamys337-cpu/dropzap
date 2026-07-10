@@ -39,9 +39,14 @@ export default function DownloadSuccessActions({ platform, url }: Props) {
 
   useEffect(() => {
     if (!url) return;
-    // Generate the short code client-side so it works without a backend round-trip.
-    const code = encodeShortUrl(dropzapLink);
-    setShortUrl(`${siteUrl}/d/${code}`);
+    try {
+      // Generate the short code client-side so it works without a backend round-trip.
+      const code = encodeShortUrl(dropzapLink);
+      setShortUrl(`${siteUrl}/d/${code}`);
+    } catch {
+      // Fallback to the full DropZap link if encoding fails for any reason.
+      setShortUrl(dropzapLink);
+    }
   }, [url, dropzapLink, siteUrl]);
 
   const shareText = `I just downloaded a ${platform} video with DropZap — no watermark, no signup, free.`;

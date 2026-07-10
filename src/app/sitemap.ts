@@ -47,6 +47,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { slug: "extension", priority: 0.85 as const },
     { slug: "history", priority: 0.75 as const },
     { slug: "bulk-video-downloader", priority: 0.85 as const },
+    { slug: "thumbnail-downloader", priority: 0.85 as const },
     { slug: "is-snaptik-down", priority: 0.75 as const },
     { slug: "is-ssstik-down", priority: 0.75 as const },
     { slug: "is-musicallydown-down", priority: 0.75 as const },

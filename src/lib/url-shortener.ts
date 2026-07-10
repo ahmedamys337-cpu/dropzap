@@ -6,22 +6,39 @@
 // media share links (~60 chars) the short code is ~80 chars. We still call it
 // a "short link" because the domain is short and the link is shareable.
 
-export function encodeShortUrl(originalUrl: string): string {
-  // base64url encoding avoids / and + which would break the slug.
-  return Buffer.from(originalUrl, "utf8")
-    .toString("base64url")
-    .replace(/=+$/, "");
+function base64UrlEncode(str: string): string {
+  // Works in both Node and browser by using built-in btoa + manual base64url.
+  const base64 = typeof Buffer !== "undefined"
+    ? Buffer.from(str, "utf8").toString("base64")
+    : btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) => String.fromCharCode(Number("0x" + p1))));
+  return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
-export function decodeShortUrl(shortCode: string): string | null {
+function base64UrlDecode(str: string): string | null {
   try {
-    // Restore padding if needed.
-    const padding = shortCode.length % 4 === 0 ? "" : "=".repeat(4 - (shortCode.length % 4));
-    const decoded = Buffer.from(shortCode + padding, "base64url").toString("utf8");
-    // Basic validation.
-    if (!decoded.startsWith("http://") && !decoded.startsWith("https://")) return null;
-    return decoded;
+    const base64 = str.replace(/-/g, "+").replace(/_/g, "/");
+    const padding = base64.length % 4 === 0 ? "" : "=".repeat(4 - (base64.length % 4));
+    if (typeof Buffer !== "undefined") {
+      return Buffer.from(base64 + padding, "base64").toString("utf8");
+    }
+    return decodeURIComponent(
+      atob(base64 + padding)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
+    );
   } catch {
     return null;
   }
+}
+
+export function encodeShortUrl(originalUrl: string): string {
+  return base64UrlEncode(originalUrl);
+}
+
+export function decodeShortUrl(shortCode: string): string | null {
+  const decoded = base64UrlDecode(shortCode);
+  if (!decoded) return null;
+  if (!decoded.startsWith("http://") && !decoded.startsWith("https://")) return null;
+  return decoded;
 }

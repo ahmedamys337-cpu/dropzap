@@ -233,6 +233,10 @@ export default function Home() {
             <h3 className="font-bold text-sm mb-1">MP3 Converter</h3>
             <p className="text-xs text-muted-foreground">Video to Audio</p>
           </a>
+          <a href="/thumbnail-downloader" className="glass rounded-xl p-4 hover:bg-white/10 transition-colors text-center">
+            <h3 className="font-bold text-sm mb-1">Thumbnail Downloader</h3>
+            <p className="text-xs text-muted-foreground">TikTok, IG, YouTube Covers</p>
+          </a>
         </div>
       </section>
 
