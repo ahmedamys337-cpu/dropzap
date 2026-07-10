@@ -69,34 +69,70 @@ async function scrapeInstagramPage(
       if (!res.ok) continue;
       const html = await res.text();
 
-      // Strategy 1: Look for high-res image URLs in the page's JSON blobs.
+      // Strategy 1: Extract embedded JSON data blocks (new IG format uses
+      // xdt_shortcode_media, additionalData, and __typename fields).
+      const embeddedJsonRe = /<script[^>]*type=["']text\/javascript["'][^>]*>([\s\S]*?)<\/script>/gi;
+      const jsonCandidates: any[] = [];
+      for (const m of html.matchAll(embeddedJsonRe)) {
+        const script = m[1].trim();
+        if (!script || script.length < 20) continue;
+        if (script.includes("xdt_shortcode_media") || script.includes("shortcode_media") || script.includes("\"GraphImage\"")) {
+          try {
+            const jsonText = script.replace(/^[^\{]*/, "").replace(/;\s*$/, "");
+            const parsed = JSON.parse(jsonText);
+            jsonCandidates.push(parsed);
+          } catch {}
+        }
+      }
+      for (const parsed of jsonCandidates) {
+        const media =
+          parsed?.xdt_shortcode_media ||
+          parsed?.shortcode_media ||
+          parsed?.graphql?.shortcode_media ||
+          parsed?.media ||
+          parsed?.entry_data?.PostPage?.[0]?.graphql?.shortcode_media;
+        if (media) {
+          const edges = media.edge_sidecar_to_children?.edges;
+          if (Array.isArray(edges)) {
+            for (const edge of edges) {
+              const node = edge?.node;
+              if (node?.__typename === "GraphImage" && node?.display_url) images.push(node.display_url);
+              if (node?.__typename === "GraphVideo" && node?.video_url) video = node.video_url;
+            }
+          }
+          if (images.length === 0 && media.display_url) images.push(media.display_url);
+          if (!video && media.video_url) video = media.video_url;
+        }
+      }
+
+      // Strategy 2: Look for high-res image URLs in the page's JSON blobs.
       const displayUrlRe = /"display_url"\s*:\s*"(https?:\\?\/\\?\/[^"]+)"/gi;
       for (const m of html.matchAll(displayUrlRe)) {
         const u = m[1].replace(/\\u0026/g, "&").replace(/\\\//g, "/");
-        if (/scontent/i.test(u) && /\.(jpg|jpeg|png|webp)/i.test(u)) {
+        if (/(scontent|cdninstagram)/i.test(u) && /\.(jpg|jpeg|png|webp)/i.test(u)) {
           images.push(u);
         }
       }
 
-      // Strategy 2: og:image meta tag (single image posts)
+      // Strategy 3: og:image meta tag (single image posts)
       const ogMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
       if (ogMatch) {
         const u = ogMatch[1].replace(/&amp;/g, "&");
-        if (/scontent/i.test(u)) images.push(u);
+        if (/(scontent|cdninstagram)/i.test(u)) images.push(u);
       }
 
-      // Strategy 3: Look for image_versions2 candidates in embedded JSON
+      // Strategy 4: Look for image_versions2 candidates in embedded JSON
       const candidatesRe = /"candidates"\s*:\s*\[\s*\{\s*"width"\s*:\s*\d+\s*,\s*"height"\s*:\s*\d+\s*,\s*"url"\s*:\s*"(https?:[^"]+)"/gi;
       for (const m of html.matchAll(candidatesRe)) {
         const u = m[1].replace(/\\u0026/g, "&").replace(/\\\//g, "/");
-        if (/scontent/i.test(u) && !images.includes(u)) images.push(u);
+        if (/(scontent|cdninstagram)/i.test(u) && !images.includes(u)) images.push(u);
       }
 
-      // Strategy 4: Extract a direct video URL from embedded JSON or og:video
+      // Strategy 5: Extract a direct video URL from embedded JSON or og:video
       const videoUrlRe = /"video_url"\s*:\s*"(https?:\\?\/\\?\/[^"]+)"/gi;
       for (const m of html.matchAll(videoUrlRe)) {
         const u = m[1].replace(/\\u0026/g, "&").replace(/\\\//g, "/");
-        if (/scontent|cdninstagram/i.test(u)) {
+        if (/(scontent|cdninstagram)/i.test(u)) {
           video = u;
           break;
         }
@@ -106,7 +142,7 @@ async function scrapeInstagramPage(
           || html.match(/<meta[^>]+property=["']og:video:url["'][^>]+content=["']([^"']+)["']/i);
         if (ogVideo) {
           const u = ogVideo[1].replace(/&amp;/g, "&");
-          if (/scontent|cdninstagram/i.test(u)) video = u;
+          if (/(scontent|cdninstagram)/i.test(u)) video = u;
         }
       }
 
@@ -251,11 +287,21 @@ async function fetchInstagramMedia(
       if (Array.isArray(s.video_versions) && s.video_versions.length > 0) {
         video = s.video_versions[0]?.url || null;
       }
+
+      // Try several places Instagram puts the full-resolution image URL.
       const candidates = s?.image_versions2?.candidates;
-      if (Array.isArray(candidates) && candidates.length > 0) {
-        const top = candidates[0]?.url;
-        if (typeof top === "string" && /^https?:\/\//.test(top)) images.push(top);
+      let img: string | undefined =
+        s?.display_uri ||
+        s?.display_url ||
+        s?.image_versions2?.additional_candidates?.igtv_first_frame?.url ||
+        (Array.isArray(candidates) && candidates[0]?.url);
+      if (!img && Array.isArray(s?.thumbnails) && s.thumbnails.length > 0) {
+        img = s.thumbnails[s.thumbnails.length - 1]?.url;
       }
+      if (!img && typeof s?.thumbnail === "string") {
+        img = s.thumbnail;
+      }
+      if (typeof img === "string" && /^https?:\/\//.test(img)) images.push(img);
     }
 
     if (images.length > 0 || video) {
@@ -272,10 +318,15 @@ async function fetchInstagramMedia(
     return { ...publicJson, source: "public-json" };
   }
 
-  // 3. Web scrape - skip this for carousels to avoid slow scraping
-  // Web scraping is slow and often fails for carousels, so we skip it
-  // to improve performance. If the first two methods fail, we return null
-  // and let the yt-dlp fallback handle it.
+  // 3. Web scrape - fallback when APIs fail or are blocked.
+  // Instagram's private API and public JSON endpoints are increasingly
+  // rate-limited and change response shape. The page HTML still embeds
+  // image URLs (display_url, candidates, og:image) for public posts, so
+  // scraping is a useful last-resort for photos.
+  const scraped = await scrapeInstagramPage(postUrl, cookieHeader);
+  if (scraped && (scraped.images.length > 0 || scraped.video)) {
+    return { ...scraped, source: "web-scrape" };
+  }
 
   return null;
 }

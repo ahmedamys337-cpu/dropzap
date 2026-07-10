@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { spawn } from "child_process";
-import { createReadStream } from "fs";
+import { createReadStream, createWriteStream } from "fs";
 import { mkdir, stat, rm, writeFile, readdir } from "fs/promises";
 import { tmpdir } from "os";
 import { join } from "path";
@@ -473,12 +473,43 @@ async function fetchToFile(url: string, dest: string): Promise<{ ext: string }> 
       : ct.includes("webp") ? ".webp"
       : ct.includes("heic") ? ".heic"
       : ".jpg";
-    // Plain arrayBuffer→writeFile avoids the Node version sensitivity of
-    // Readable.fromWeb (which was undefined under our Render runtime even
-    // though the docs say it landed in 17). Carousel images are small (a
-    // few MB max) so buffering is fine.
-    const buf = Buffer.from(await res.arrayBuffer());
-    await writeFile(dest + ext, buf);
+
+    // Stream the response body directly to disk. This avoids buffering
+    // the entire image in memory, which is critical for carousels and
+    // prevents the Render memory-limit crashes we were seeing.
+    const filePath = dest + ext;
+    if (res.body) {
+      const fileStream = createWriteStream(filePath);
+      await new Promise<void>((resolve, reject) => {
+        const reader = res.body!.getReader();
+        const write = () => {
+          reader.read().then(({ done, value }) => {
+            if (done) {
+              fileStream.end(() => resolve());
+              return;
+            }
+            if (value) {
+              fileStream.write(value, (err: Error | null | undefined) => {
+                if (err) {
+                  reject(err);
+                  return;
+                }
+                write();
+              });
+            } else {
+              write();
+            }
+          }).catch((err) => {
+            reject(err);
+          });
+        };
+        write();
+      });
+    } else {
+      // Fallback for environments without a response body stream.
+      const buf = Buffer.from(await res.arrayBuffer());
+      await writeFile(filePath, buf);
+    }
     return { ext };
   } catch (e: any) {
     clearTimeout(timeout);
