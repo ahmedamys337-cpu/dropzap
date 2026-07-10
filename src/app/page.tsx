@@ -9,6 +9,7 @@ const TrustBar = dynamic(() => import("@/components/TrustBar"), { ssr: false });
 const SupportedPlatforms = dynamic(() => import("@/components/SupportedPlatforms"), { ssr: false });
 const CitableFacts = dynamic(() => import("@/components/CitableFacts"), { ssr: false });
 const HomeTabs = dynamic(() => import("@/components/HomeTabs"), { ssr: false });
+const CompetitorBanner = dynamic(() => import("@/components/CompetitorBanner"), { ssr: false });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital";
 const SITE_DESCRIPTION =
@@ -105,8 +106,10 @@ export default function Home() {
         </div>
       </header>
 
+      <CompetitorBanner />
+
       {/* Hero / SEO H1 */}
-      <section className="max-w-6xl mx-auto px-4 pt-10 pb-4 text-center">
+      <section className="max-w-6xl mx-auto px-4 pt-6 pb-4 text-center">
         <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight">
           <span className="bg-gradient-to-r from-blue-500 via-purple-600 to-pink-500 bg-clip-text text-transparent">
             DropZap

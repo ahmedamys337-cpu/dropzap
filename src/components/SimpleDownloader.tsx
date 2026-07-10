@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { safeFilename } from "@/lib/download";
 import AdCountdown from "@/components/AdCountdown";
+import DownloadSuccessActions from "@/components/DownloadSuccessActions";
 import { Download, Loader2, Clipboard, X, CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
 
 /**
@@ -386,16 +387,19 @@ export default function SimpleDownloader({
 
       {/* Persistent confirmation banner */}
       {isDone && (
-        <div className="flex items-center gap-3 rounded-lg border-2 border-emerald-500/50 bg-emerald-500/15 dark:bg-emerald-500/10 px-4 py-3 animate-in fade-in slide-in-from-top-2 duration-300">
-          <CheckCircle2 className="h-5 w-5 text-emerald-700 dark:text-emerald-300 flex-shrink-0" />
-          <div className="text-sm">
-            <p className="font-semibold text-emerald-800 dark:text-emerald-200">
-              Your video is downloaded!
-            </p>
-            <p className="text-xs text-emerald-700/90 dark:text-emerald-300/90">
-              Check your browser&apos;s download bar. Click ✕ on the URL field to download another.
-            </p>
+        <div className="space-y-4">
+          <div className="flex items-center gap-3 rounded-lg border-2 border-emerald-500/50 bg-emerald-500/15 dark:bg-emerald-500/10 px-4 py-3 animate-in fade-in slide-in-from-top-2 duration-300">
+            <CheckCircle2 className="h-5 w-5 text-emerald-700 dark:text-emerald-300 flex-shrink-0" />
+            <div className="text-sm">
+              <p className="font-semibold text-emerald-800 dark:text-emerald-200">
+                Your video is downloaded!
+              </p>
+              <p className="text-xs text-emerald-700/90 dark:text-emerald-300/90">
+                Check your browser&apos;s download bar, then share DropZap or add it to your home screen.
+              </p>
+            </div>
           </div>
+          <DownloadSuccessActions platform={platform} />
         </div>
       )}
 

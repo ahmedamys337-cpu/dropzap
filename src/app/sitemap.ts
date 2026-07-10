@@ -44,6 +44,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { slug: "pinterest-video-downloader", priority: 0.85 as const },
     { slug: "tiktok-sound-downloader", priority: 0.85 as const },
     { slug: "facebook-reel-downloader", priority: 0.85 as const },
+    { slug: "extension", priority: 0.85 as const },
     { slug: "tools", priority: 0.8 as const },
     { slug: "compare", priority: 0.8 as const },
   ];
