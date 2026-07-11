@@ -33,41 +33,50 @@ export default function QRCodeGenerator({ url, size = 180 }: Props) {
   };
 
   return (
-    <div className="space-y-3">
-      {!show ? (
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-auto py-2.5 flex flex-col items-center gap-1.5 border-white/10 bg-white/5 hover:bg-white/10 w-full"
-          onClick={() => setShow(true)}
+    <>
+      <button
+        onClick={() => setShow(true)}
+        className="group flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-3.5 text-center transition-all hover:bg-white/10 hover:border-purple-500/30 hover:shadow-lg hover:shadow-purple-600/10 active:scale-[0.98] w-full"
+      >
+        <div className="h-10 w-10 rounded-full bg-orange-500/20 flex items-center justify-center transition-colors group-hover:bg-orange-500/30">
+          <QrCode className="h-5 w-5 text-orange-400" />
+        </div>
+        <span className="text-xs font-semibold">Show QR Code</span>
+      </button>
+
+      {show && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+          onClick={() => setShow(false)}
         >
-          <QrCode className="h-4 w-4" />
-          <span className="text-xs">Show QR Code</span>
-        </Button>
-      ) : (
-        <div className="rounded-xl border border-white/10 bg-white p-3 flex flex-col items-center gap-3 animate-in fade-in duration-200">
-          {dataUrl ? (
-            <img src={dataUrl} alt="QR code to share this download" width={size} height={size} />
-          ) : (
-            <div className="h-[180px] w-[180px] bg-muted rounded-lg animate-pulse" />
-          )}
-          <div className="flex gap-2 w-full">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 border-white/10 bg-white/5 hover:bg-white/10"
-              onClick={handleDownload}
-              disabled={!dataUrl}
-            >
-              <Download className="h-4 w-4 mr-1.5" />
-              Save QR
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => setShow(false)}>
-              Hide
-            </Button>
+          <div
+            className="relative rounded-2xl border border-white/10 bg-white dark:bg-slate-900 p-5 flex flex-col items-center gap-4 shadow-2xl max-w-xs w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="text-sm font-semibold text-slate-900 dark:text-white">Scan to open this download</p>
+            {dataUrl ? (
+              <img src={dataUrl} alt="QR code to share this download" width={size} height={size} className="rounded-xl" />
+            ) : (
+              <div className="h-[180px] w-[180px] bg-muted rounded-xl animate-pulse" />
+            )}
+            <div className="flex gap-2 w-full">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 border-slate-200 dark:border-white/10"
+                onClick={handleDownload}
+                disabled={!dataUrl}
+              >
+                <Download className="h-4 w-4 mr-1.5" />
+                Save QR
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => setShow(false)}>
+                Close
+              </Button>
+            </div>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

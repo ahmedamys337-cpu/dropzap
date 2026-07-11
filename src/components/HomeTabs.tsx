@@ -22,6 +22,14 @@ const ThumbnailDownloader = dynamic(
   () => import("@/components/ThumbnailDownloader"),
   { loading: TabSkeleton, ssr: false },
 );
+const InstagramThumbnailDownloader = dynamic(
+  () => import("@/components/InstagramThumbnailDownloader"),
+  { loading: TabSkeleton, ssr: false },
+);
+const TikTokThumbnailDownloader = dynamic(
+  () => import("@/components/TikTokThumbnailDownloader"),
+  { loading: TabSkeleton, ssr: false },
+);
 const TwitterDownloader = dynamic(
   () => import("@/components/TwitterDownloader"),
   { loading: TabSkeleton, ssr: false },
@@ -63,11 +71,25 @@ export default function HomeTabs() {
       <div className="overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
         <TabsList className="glass-strong h-auto p-1.5 gap-1 flex w-max lg:w-full justify-start">
           <TabsTrigger
-            value="thumbnail"
+            value="youtube-thumbnail"
             className="lg:flex-1 gap-1.5 px-2.5 py-1.5 text-xs font-medium cursor-pointer rounded-md bg-foreground/[0.06] border border-foreground/15 hover:bg-orange-500 hover:text-white hover:border-orange-500 hover:-translate-y-0.5 hover:scale-105 hover:shadow-lg hover:shadow-orange-500/40 data-[state=active]:bg-orange-500 data-[state=active]:border-orange-500 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-orange-500/30 transition-all duration-300 ease-out"
           >
             <ImageIcon className="h-3.5 w-3.5" />
-            <span>Thumbnails</span>
+            <span>YouTube Thumbnail</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="instagram-thumbnail"
+            className="lg:flex-1 gap-1.5 px-2.5 py-1.5 text-xs font-medium cursor-pointer rounded-md bg-foreground/[0.06] border border-foreground/15 hover:bg-gradient-to-r hover:from-purple-600 hover:via-pink-600 hover:to-orange-500 hover:text-white hover:border-transparent hover:-translate-y-0.5 hover:scale-105 hover:shadow-lg hover:shadow-pink-600/40 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:via-pink-600 data-[state=active]:to-orange-500 data-[state=active]:border-transparent data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-pink-600/30 transition-all duration-300 ease-out"
+          >
+            <Instagram className="h-3.5 w-3.5" />
+            <span>IG Thumbnail</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="tiktok-thumbnail"
+            className="lg:flex-1 gap-1.5 px-2.5 py-1.5 text-xs font-medium cursor-pointer rounded-md bg-foreground/[0.06] border border-foreground/15 hover:bg-gradient-to-r hover:from-cyan-500 hover:to-pink-500 hover:text-white hover:border-transparent hover:-translate-y-0.5 hover:scale-105 hover:shadow-lg hover:shadow-pink-500/40 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-pink-500 data-[state=active]:border-transparent data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-pink-500/30 transition-all duration-300 ease-out"
+          >
+            <Music2 className="h-3.5 w-3.5" />
+            <span>TikTok Thumbnail</span>
           </TabsTrigger>
           <TabsTrigger
             value="instagram"
@@ -137,7 +159,7 @@ export default function HomeTabs() {
 
       <div className="space-y-6">
         <div>
-          <TabsContent value="thumbnail" className="mt-0">
+          <TabsContent value="youtube-thumbnail" className="mt-0">
             <div className="glass rounded-2xl p-6 space-y-4 border-l-4 border-l-orange-500 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-orange-500/30">
               <div className="flex items-center gap-3 pb-2 border-b border-orange-500/20">
                 <div className="shrink-0 h-10 w-10 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-lg shadow-orange-500/30">
@@ -151,6 +173,40 @@ export default function HomeTabs() {
                 </div>
               </div>
               <ThumbnailDownloader />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="instagram-thumbnail" className="mt-0">
+            <div className="glass rounded-2xl p-6 space-y-4 border-l-4 border-l-pink-600 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-pink-600/30">
+              <div className="flex items-center gap-3 pb-2 border-b border-pink-600/20">
+                <div className="shrink-0 h-10 w-10 rounded-lg bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500 flex items-center justify-center shadow-lg shadow-pink-600/30">
+                  <Instagram className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold">Instagram Thumbnail Downloader</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Download Instagram Reel and post cover images in original quality
+                  </p>
+                </div>
+              </div>
+              <InstagramThumbnailDownloader />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="tiktok-thumbnail" className="mt-0">
+            <div className="glass rounded-2xl p-6 space-y-4 border-l-4 border-l-pink-500 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-pink-500/30">
+              <div className="flex items-center gap-3 pb-2 border-b border-pink-500/20">
+                <div className="shrink-0 h-10 w-10 rounded-lg bg-gradient-to-br from-cyan-500 to-pink-500 flex items-center justify-center shadow-lg shadow-pink-500/30">
+                  <Music2 className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold">TikTok Thumbnail Downloader</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Grab TikTok video cover images in portrait 9:16 format
+                  </p>
+                </div>
+              </div>
+              <TikTokThumbnailDownloader />
             </div>
           </TabsContent>
 
