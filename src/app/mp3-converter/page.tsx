@@ -197,8 +197,12 @@ export default function Mp3ConverterPage() {
           Free Video to MP3 Converter Online — No Signup
         </h1>
 
+        <div className="mb-6">
+          <Mp3Converter />
+        </div>
+
         <aside
-          className="mb-8 rounded-2xl border-l-4 border-emerald-500 bg-emerald-500/10 p-5"
+          className="mb-10 rounded-2xl border-l-4 border-emerald-500 bg-emerald-500/10 p-5"
           aria-label="Quick answer"
         >
           <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-400 mb-2">
@@ -211,10 +215,6 @@ export default function Mp3ConverterPage() {
             deleted within 30 minutes of conversion.
           </p>
         </aside>
-
-        <div className="mb-10">
-          <Mp3Converter />
-        </div>
 
         <article className="prose prose-invert prose-lg max-w-none prose-headings:font-bold prose-headings:text-foreground prose-p:text-muted-foreground prose-p:leading-relaxed prose-a:text-emerald-400 prose-strong:text-foreground">
           <h2>What this tool does</h2>

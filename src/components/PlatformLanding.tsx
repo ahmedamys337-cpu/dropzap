@@ -138,64 +138,43 @@ export default function PlatformLanding({ platform, children }: PlatformLandingP
         ]}
       />
 
-      {/* Hero */}
-      <section className="max-w-6xl mx-auto px-4 pt-6 pb-4 text-center">
-        {/*
-          Visible H1 mirrors `platform.h1` from seo-data.ts. We split
-          on the first em-dash so the platform-name prefix gets the
-          gradient treatment while the descriptive tail stays in the
-          neutral foreground colour. Falls back to the existing
-          "[Name] Downloader — Free & Fast" pattern if `platform.h1`
-          isn't set or doesn't contain an em-dash.
-
-          `bg-clip-text text-transparent` paints the gradient as the
-          text fill. `pr-2` adds extra horizontal painting room so
-          italic/round-edge glyphs at the right of the word (e.g.
-          the trailing "t" in "Reddit") don't get cropped by the
-          text's own bounding box.
-        */}
-        <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight">
-          {(() => {
-            const h1 = platform.h1 ?? `${platform.name} Downloader — Free & Fast`;
-            const dashIdx = h1.indexOf("—");
-            const head = dashIdx > 0 ? h1.slice(0, dashIdx).trim() : h1;
-            const tail = dashIdx > 0 ? h1.slice(dashIdx).trim() : "";
-            return (
-              <>
-                <span
-                  className={`inline-block pr-2 bg-gradient-to-r ${platform.gradient} bg-clip-text text-transparent`}
-                >
-                  {head}
-                </span>
-                {tail && <span className="text-foreground"> {tail}</span>}
-              </>
-            );
-          })()}
-        </h1>
-        <p className="mt-3 text-base sm:text-lg text-muted-foreground max-w-3xl mx-auto">
-          {platform.description}
-        </p>
+      {/* Hero — kept compact so the tool appears above the fold. */}
+      <section className="max-w-6xl mx-auto px-4 pt-6 pb-2 text-center">
+        {(() => {
+          const h1 = platform.h1 ?? `${platform.name} Downloader — Free & Fast`;
+          const dashIdx = h1.indexOf("—");
+          const head = dashIdx > 0 ? h1.slice(0, dashIdx).trim() : h1;
+          const tail = dashIdx > 0 ? h1.slice(dashIdx).trim() : "";
+          return (
+            <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight">
+              <span className={`inline-block pr-2 bg-gradient-to-r ${platform.gradient} bg-clip-text text-transparent`}>
+                {head}
+              </span>
+              {tail && <span className="text-foreground"> {tail}</span>}
+            </h1>
+          );
+        })()}
       </section>
 
-      {/* Ad: Top */}
-      <div className="max-w-6xl mx-auto px-4 pt-2">
-        <AdBanner slot="top" />
-      </div>
-
       {/*
-        Download tool — widened from max-w-3xl to max-w-5xl so
-        platforms with side-by-side dual-mode cards (Instagram
-        "Reels & Videos / Photos & Carousels", Facebook
-        "Videos / Photo Albums") get full breathing room and don't
-        truncate the paste-link inputs. Single-card platforms
-        (TikTok, Reddit, Twitter) just get a more generous tool
-        surface that matches the homepage's spacious feel.
+        Download tool — placed immediately below the H1 so users see the whole
+        tool on first glance without scrolling.
       */}
-      <section className="max-w-5xl mx-auto px-4 py-8">
+      <section className="max-w-5xl mx-auto px-4 pt-2 pb-6">
         <div className="glass rounded-2xl p-6 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-2xl hover:shadow-foreground/10">
           {children}
         </div>
       </section>
+
+      {/* Description + top ad — moved below the tool so content flows after the action. */}
+      <section className="max-w-4xl mx-auto px-4 pb-8 text-center">
+        <p className="text-base sm:text-lg text-muted-foreground">
+          {platform.description}
+        </p>
+      </section>
+      <div className="max-w-6xl mx-auto px-4 pb-8">
+        <AdBanner slot="top" />
+      </div>
 
       {/* Intro Content */}
       <section className="max-w-4xl mx-auto px-4 py-8">

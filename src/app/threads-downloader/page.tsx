@@ -102,30 +102,19 @@ export default function ThreadsDownloaderPage() {
         </div>
       </header>
 
-      <section className="max-w-6xl mx-auto px-4 pt-10 pb-4 text-center">
+      <section className="max-w-6xl mx-auto px-4 pt-10 pb-2 text-center">
         <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full glass text-sm text-muted-foreground">
           <AtSign className="h-4 w-4" />
           <span>Meta Threads Platform</span>
         </div>
-        <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight mb-3">
+        <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight">
           <span className="bg-gradient-to-r from-zinc-700 via-zinc-500 to-zinc-800 dark:from-zinc-300 dark:via-white dark:to-zinc-400 bg-clip-text text-transparent">
             Threads Video Downloader
           </span>
         </h1>
-        <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto mb-2">
-          Save any public Threads video or photo as MP4 / JPG — free, no app, no login, no watermark.
-        </p>
-        <div className="flex flex-wrap justify-center gap-3 text-xs text-muted-foreground mb-8">
-          {["No signup", "No daily limit", "iPhone & Android", "PC & Mac", "Free"].map((f) => (
-            <span key={f} className="inline-flex items-center gap-1">
-              <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-              {f}
-            </span>
-          ))}
-        </div>
       </section>
 
-      <section className="max-w-5xl mx-auto px-4 py-4">
+      <section className="max-w-5xl mx-auto px-4 pt-2 pb-6">
         <div className="glass rounded-2xl p-6 border-l-4 border-l-zinc-700 hover:-translate-y-0.5 transition-transform hover:shadow-2xl hover:shadow-black/30">
           <div className="flex items-center gap-3 pb-3 border-b border-zinc-700/30 mb-4">
             <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-zinc-800 to-zinc-900 flex items-center justify-center shadow-lg border border-white/10">
@@ -137,6 +126,20 @@ export default function ThreadsDownloaderPage() {
             </div>
           </div>
           <ThreadsSection />
+        </div>
+      </section>
+
+      <section className="max-w-4xl mx-auto px-4 pb-8 text-center">
+        <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto mb-3">
+          Save any public Threads video or photo as MP4 / JPG — free, no app, no login, no watermark.
+        </p>
+        <div className="flex flex-wrap justify-center gap-3 text-xs text-muted-foreground">
+          {["No signup", "No daily limit", "iPhone & Android", "PC & Mac", "Free"].map((f) => (
+            <span key={f} className="inline-flex items-center gap-1">
+              <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+              {f}
+            </span>
+          ))}
         </div>
       </section>
 
