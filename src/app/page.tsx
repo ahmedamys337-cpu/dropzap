@@ -16,6 +16,8 @@ import {
   Shield,
   Globe,
   Headphones,
+  Copy,
+  MousePointerClick,
 } from "lucide-react";
 
 // Dynamic imports for code splitting and reduced initial bundle size
@@ -247,22 +249,37 @@ export default function Home() {
           How to Download a Video in 3 Steps
         </h2>
         <ol className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
-          <li className="glass rounded-xl p-5">
-            <div className="text-3xl font-extrabold bg-gradient-to-br from-blue-500 to-purple-600 bg-clip-text text-transparent">1</div>
+          <li className="group glass rounded-xl p-5 hover:bg-white/[0.08] hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex items-center justify-center h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-md group-hover:scale-110 transition-transform duration-300">
+                <Copy className="h-5 w-5" />
+              </div>
+              <div className="text-2xl font-extrabold bg-gradient-to-br from-blue-500 to-purple-600 bg-clip-text text-transparent">1</div>
+            </div>
             <h3 className="font-bold mt-2 mb-1">Copy the link</h3>
             <p className="text-sm text-muted-foreground">
               Copy the URL of the post or video from Instagram, TikTok, Facebook, Twitter/X, Reddit, or any supported platform.
             </p>
           </li>
-          <li className="glass rounded-xl p-5">
-            <div className="text-3xl font-extrabold bg-gradient-to-br from-purple-600 to-pink-500 bg-clip-text text-transparent">2</div>
+          <li className="group glass rounded-xl p-5 hover:bg-white/[0.08] hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex items-center justify-center h-10 w-10 rounded-full bg-gradient-to-br from-purple-600 to-pink-500 text-white shadow-md group-hover:scale-110 transition-transform duration-300">
+                <MousePointerClick className="h-5 w-5" />
+              </div>
+              <div className="text-2xl font-extrabold bg-gradient-to-br from-purple-600 to-pink-500 bg-clip-text text-transparent">2</div>
+            </div>
             <h3 className="font-bold mt-2 mb-1">Paste into DropZap</h3>
             <p className="text-sm text-muted-foreground">
               Pick the matching tab above and paste the link into the input box.
             </p>
           </li>
-          <li className="glass rounded-xl p-5">
-            <div className="text-3xl font-extrabold bg-gradient-to-br from-pink-500 to-orange-500 bg-clip-text text-transparent">3</div>
+          <li className="group glass rounded-xl p-5 hover:bg-white/[0.08] hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex items-center justify-center h-10 w-10 rounded-full bg-gradient-to-br from-pink-500 to-orange-500 text-white shadow-md group-hover:scale-110 transition-transform duration-300">
+                <Download className="h-5 w-5" />
+              </div>
+              <div className="text-2xl font-extrabold bg-gradient-to-br from-pink-500 to-orange-500 bg-clip-text text-transparent">3</div>
+            </div>
             <h3 className="font-bold mt-2 mb-1">Choose quality &amp; download</h3>
             <p className="text-sm text-muted-foreground">
               Select your preferred quality or format and DropZap delivers the file instantly.

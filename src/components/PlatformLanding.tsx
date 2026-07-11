@@ -1,7 +1,28 @@
 import { ThemeToggle } from "@/components/ThemeToggle";
 import AdBanner from "@/components/AdBanner";
 import Breadcrumbs from "@/components/Breadcrumbs";
-import { Zap } from "lucide-react";
+import {
+  Zap,
+  Instagram,
+  Twitter,
+  Facebook,
+  Music2,
+  MessageSquare,
+  Image as ImageIcon,
+  AtSign,
+  CheckCircle2,
+  Copy,
+  MousePointerClick,
+  Download,
+  Shield,
+  Zap as ZapIcon,
+  Eye,
+  Clock,
+  Smartphone,
+  Globe,
+  Headphones,
+  Sparkles,
+} from "lucide-react";
 import type { PlatformSEO } from "@/lib/seo-data";
 
 interface PlatformLandingProps {
@@ -95,6 +116,118 @@ const RELATED_LINKS: Record<string, RelatedLink[]> = {
   ],
 };
 
+// Platform icon helper — returns a white icon for the tool card header.
+const PlatformIcon = ({ slug, className = "h-5 w-5" }: { slug: string; className?: string }) => {
+  switch (slug) {
+    case "tiktok-downloader":
+    case "tiktok-to-mp3":
+      return <Music2 className={className} />;
+    case "instagram-downloader":
+      return <Instagram className={className} />;
+    case "twitter-video-downloader":
+      return <Twitter className={className} />;
+    case "facebook-video-downloader":
+      return <Facebook className={className} />;
+    case "reddit-video-downloader":
+      return <MessageSquare className={className} />;
+    case "pinterest-video-downloader":
+      return <ImageIcon className={className} />;
+    case "threads-downloader":
+      return <AtSign className={className} />;
+    default:
+      return <ZapIcon className={className} />;
+  }
+};
+
+// Feature icon helper — picks an icon based on feature title keywords.
+const FeatureIcon = ({ title, className = "h-5 w-5" }: { title: string; className?: string }) => {
+  const t = title.toLowerCase();
+  if (t.includes("watermark")) return <Sparkles className={className} />;
+  if (t.includes("hd") || t.includes("quality") || t.includes("high")) return <Eye className={className} />;
+  if (t.includes("fast") || t.includes("speed") || t.includes("quick") || t.includes("instant")) return <Clock className={className} />;
+  if (t.includes("private") || t.includes("safe") || t.includes("secure") || t.includes("no login")) return <Shield className={className} />;
+  if (t.includes("mobile") || t.includes("iphone") || t.includes("android")) return <Smartphone className={className} />;
+  if (t.includes("mp3") || t.includes("audio") || t.includes("sound")) return <Headphones className={className} />;
+  if (t.includes("global") || t.includes("online") || t.includes("web")) return <Globe className={className} />;
+  if (t.includes("free") || t.includes("unlimited")) return <ZapIcon className={className} />;
+  return <CheckCircle2 className={className} />;
+};
+
+const FeatureCard = ({
+  icon,
+  gradient,
+  title,
+  desc,
+}: {
+  icon: React.ReactNode;
+  gradient: string;
+  title: string;
+  desc: string;
+}) => (
+  <div className="group glass rounded-xl p-5 hover:bg-white/[0.08] hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+    <div
+      className={`inline-flex items-center justify-center h-10 w-10 rounded-lg bg-gradient-to-br ${gradient} text-white shadow-md mb-3 group-hover:scale-110 transition-transform duration-300`}
+    >
+      {icon}
+    </div>
+    <h3 className="font-bold mb-2">{title}</h3>
+    <p className="text-sm text-muted-foreground">{desc}</p>
+  </div>
+);
+
+const HowToStep = ({
+  n,
+  step,
+  gradient,
+  icon,
+}: {
+  n: number;
+  step: { step: string; desc: string };
+  gradient: string;
+  icon: React.ReactNode;
+}) => (
+  <li className="group glass rounded-xl p-5 hover:bg-white/[0.08] hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+    <div className="flex items-center gap-3 mb-3">
+      <div
+        className={`flex items-center justify-center h-10 w-10 rounded-full bg-gradient-to-br ${gradient} text-white shadow-md group-hover:scale-110 transition-transform duration-300`}
+      >
+        {icon}
+      </div>
+      <div className={`text-2xl font-extrabold bg-gradient-to-br ${gradient} bg-clip-text text-transparent`}>
+        {n}
+      </div>
+    </div>
+    <h3 className="font-bold mt-2 mb-1">{step.step}</h3>
+    <p className="text-sm text-muted-foreground">{step.desc}</p>
+  </li>
+);
+
+const RelatedCard = ({
+  link,
+  gradient,
+}: {
+  link: { label: string; href: string; kind: "device" | "alt" | "blog" };
+  gradient: string;
+}) => {
+  const kindLabel = {
+    device: "Device guide",
+    alt: "Alternative to",
+    blog: "Tutorial",
+  }[link.kind];
+  return (
+    <a
+      href={link.href}
+      className="group glass rounded-xl p-5 transition-all duration-300 hover:bg-white/[0.08] hover:-translate-y-1 hover:shadow-lg"
+    >
+      <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">{kindLabel}</div>
+      <p className="font-semibold leading-snug mb-3">{link.label}</p>
+      <p className={`text-sm font-medium bg-gradient-to-r ${gradient} bg-clip-text text-transparent flex items-center gap-1`}>
+        Read more <span className="group-hover:translate-x-1 transition-transform">→</span>
+      </p>
+    </a>
+  );
+};
+
 export default function PlatformLanding({ platform, children }: PlatformLandingProps) {
   return (
     <main className="min-h-screen gradient-bg animate-gradient">
@@ -162,6 +295,17 @@ export default function PlatformLanding({ platform, children }: PlatformLandingP
       */}
       <section className="max-w-5xl mx-auto px-4 pt-2 pb-6">
         <div className="glass rounded-2xl p-6 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-2xl hover:shadow-foreground/10">
+          <div className="flex items-center gap-3 pb-4 mb-4 border-b border-foreground/10">
+            <div
+              className={`shrink-0 h-10 w-10 rounded-lg bg-gradient-to-br ${platform.gradient} flex items-center justify-center shadow-md`}
+            >
+              <PlatformIcon slug={platform.slug} className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <h2 className="font-bold text-lg">{platform.name} Downloader</h2>
+              <p className="text-sm text-muted-foreground">Paste the URL below and download in seconds</p>
+            </div>
+          </div>
           {children}
         </div>
       </section>
@@ -191,15 +335,18 @@ export default function PlatformLanding({ platform, children }: PlatformLandingP
           {platform.howToTitle ?? `How to Download ${platform.name} Videos — 3 Easy Steps`}
         </h2>
         <ol className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
-          {platform.howTo.map((step, i) => (
-            <li key={i} className="glass rounded-xl p-5">
-              <div className={`text-3xl font-extrabold bg-gradient-to-br ${platform.gradient} bg-clip-text text-transparent`}>
-                {i + 1}
-              </div>
-              <h3 className="font-bold mt-2 mb-1">{step.step}</h3>
-              <p className="text-sm text-muted-foreground">{step.desc}</p>
-            </li>
-          ))}
+          {platform.howTo.map((step, i) => {
+            const icons = [<Copy key="copy" className="h-5 w-5" />, <MousePointerClick key="paste" className="h-5 w-5" />, <Download key="download" className="h-5 w-5" />];
+            return (
+              <HowToStep
+                key={i}
+                n={i + 1}
+                step={step}
+                gradient={platform.gradient}
+                icon={icons[i]}
+              />
+            );
+          })}
         </ol>
       </section>
 
@@ -210,10 +357,13 @@ export default function PlatformLanding({ platform, children }: PlatformLandingP
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {platform.features.map((f, i) => (
-            <div key={i} className="glass rounded-xl p-5">
-              <h3 className="font-bold mb-2">{f.title}</h3>
-              <p className="text-sm text-muted-foreground">{f.desc}</p>
-            </div>
+            <FeatureCard
+              key={i}
+              icon={<FeatureIcon title={f.title} className="h-5 w-5" />}
+              gradient={platform.gradient}
+              title={f.title}
+              desc={f.desc}
+            />
           ))}
         </div>
       </section>
@@ -295,12 +445,17 @@ export default function PlatformLanding({ platform, children }: PlatformLandingP
         </h2>
         <div className="space-y-3">
           {platform.faq.map((item, i) => (
-            <details key={i} className="glass rounded-xl p-4 group">
-              <summary className="font-semibold cursor-pointer list-none flex justify-between items-center">
-                {item.q}
-                <span className="text-muted-foreground group-open:rotate-180 transition-transform">&#9662;</span>
+            <details key={i} className="group glass rounded-xl p-4 open:bg-white/[0.04] transition-colors">
+              <summary className="font-semibold cursor-pointer list-none flex justify-between items-center gap-3">
+                <span className="flex items-center gap-3">
+                  <span className={`flex items-center justify-center h-7 w-7 rounded-full bg-gradient-to-br ${platform.gradient} text-white text-xs shadow-sm`}>
+                    ?
+                  </span>
+                  {item.q}
+                </span>
+                <span className="text-muted-foreground group-open:rotate-180 transition-transform shrink-0">&#9662;</span>
               </summary>
-              <p className="text-sm text-muted-foreground mt-3">{item.a}</p>
+              <p className="text-sm text-muted-foreground mt-3 ml-10 leading-relaxed">{item.a}</p>
             </details>
           ))}
         </div>
@@ -317,21 +472,7 @@ export default function PlatformLanding({ platform, children }: PlatformLandingP
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {RELATED_LINKS[platform.slug].map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                className="glass rounded-xl p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-foreground/10"
-              >
-                <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
-                  {link.kind === "device" && "Device guide"}
-                  {link.kind === "alt" && "Alternative to"}
-                  {link.kind === "blog" && "Tutorial"}
-                </div>
-                <p className="font-semibold leading-snug">{link.label}</p>
-                <p className={`mt-3 text-sm font-medium bg-gradient-to-r ${platform.gradient} bg-clip-text text-transparent`}>
-                  Read more →
-                </p>
-              </a>
+              <RelatedCard key={link.href} link={link} gradient={platform.gradient} />
             ))}
           </div>
         </section>
@@ -340,23 +481,26 @@ export default function PlatformLanding({ platform, children }: PlatformLandingP
       {/* Cross-links to other platforms */}
       <section className="max-w-6xl mx-auto px-4 py-10">
         <h2 className="text-xl font-bold text-center mb-6">Download From Other Platforms</h2>
-        <div className="flex flex-wrap justify-center gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {[
-            { name: "TikTok", href: "/tiktok-downloader", color: "bg-gradient-to-r from-cyan-500 to-pink-500" },
-            { name: "TikTok to MP3", href: "/tiktok-to-mp3", color: "bg-gradient-to-r from-emerald-500 to-pink-500" },
-            { name: "Instagram", href: "/instagram-downloader", color: "bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500" },
-            { name: "Twitter/X", href: "/twitter-video-downloader", color: "bg-black border border-white/20" },
-            { name: "Facebook", href: "/facebook-video-downloader", color: "bg-blue-600" },
-            { name: "Reddit", href: "/reddit-video-downloader", color: "bg-orange-600" },
+            { name: "TikTok", href: "/tiktok-downloader", color: "from-cyan-500 to-pink-500", icon: <Music2 className="h-4 w-4" /> },
+            { name: "TikTok MP3", href: "/tiktok-to-mp3", color: "from-emerald-500 to-pink-500", icon: <Headphones className="h-4 w-4" /> },
+            { name: "Instagram", href: "/instagram-downloader", color: "from-purple-600 via-pink-600 to-orange-500", icon: <Instagram className="h-4 w-4" /> },
+            { name: "Twitter/X", href: "/twitter-video-downloader", color: "from-zinc-700 to-black", icon: <Twitter className="h-4 w-4" /> },
+            { name: "Facebook", href: "/facebook-video-downloader", color: "from-blue-500 to-blue-700", icon: <Facebook className="h-4 w-4" /> },
+            { name: "Reddit", href: "/reddit-video-downloader", color: "from-orange-500 to-red-600", icon: <MessageSquare className="h-4 w-4" /> },
           ]
             .filter((p) => `/${platform.slug}` !== p.href)
             .map((p) => (
               <a
                 key={p.href}
                 href={p.href}
-                className={`${p.color} text-white text-sm font-semibold px-4 py-2 rounded-lg hover:opacity-90 transition-opacity`}
+                className="group glass rounded-xl p-3 text-center hover:bg-white/[0.08] hover:-translate-y-1 hover:shadow-lg transition-all duration-300"
               >
-                {p.name} Downloader
+                <div className={`inline-flex items-center justify-center h-9 w-9 rounded-full bg-gradient-to-br ${p.color} text-white shadow-md mb-2 group-hover:scale-110 transition-transform duration-300`}>
+                  {p.icon}
+                </div>
+                <p className="text-sm font-semibold">{p.name}</p>
               </a>
             ))}
         </div>
