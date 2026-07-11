@@ -56,7 +56,7 @@ const Mp3Converter = dynamic(
 const noop = () => {};
 
 const tabClass = (active: string, hover: string) =>
-  `flex-1 min-w-0 gap-1 px-2 py-1.5 text-[10px] sm:text-xs font-medium cursor-pointer rounded-md bg-foreground/[0.06] border border-foreground/15 text-foreground/80 transition-colors duration-200 hover:text-white ${hover} ${active}`;
+  `flex-1 min-w-0 gap-1 px-2 py-1.5 text-[10px] sm:text-xs font-medium cursor-pointer rounded-md bg-foreground/[0.06] border border-foreground/15 text-foreground/80 hover:-translate-y-px hover:shadow-md hover:scale-[1.02] transition-all duration-300 ease-out hover:text-white ${hover} ${active}`;
 
 export default function HomeTabs() {
   return (
