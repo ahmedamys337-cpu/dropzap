@@ -1,6 +1,22 @@
 import Image from "next/image";
 import dynamic from "next/dynamic";
-import { Zap } from "lucide-react";
+import {
+  Zap,
+  Instagram,
+  Twitter,
+  Facebook,
+  Music2,
+  MessageSquare,
+  Image as ImageIcon,
+  FileAudio,
+  Youtube,
+  AtSign,
+  Download,
+  Play,
+  Shield,
+  Globe,
+  Headphones,
+} from "lucide-react";
 
 // Dynamic imports for code splitting and reduced initial bundle size
 const ThemeToggle = dynamic(() => import("@/components/ThemeToggle").then(m => m.ThemeToggle), { ssr: false });
@@ -10,6 +26,55 @@ const SupportedPlatforms = dynamic(() => import("@/components/SupportedPlatforms
 const CitableFacts = dynamic(() => import("@/components/CitableFacts"), { ssr: false });
 const HomeTabs = dynamic(() => import("@/components/HomeTabs"), { ssr: false });
 const CompetitorBanner = dynamic(() => import("@/components/CompetitorBanner"), { ssr: false });
+
+const ToolCard = ({
+  href,
+  icon,
+  iconBg,
+  title,
+  subtitle,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  iconBg: string;
+  title: string;
+  subtitle: string;
+}) => (
+  <a
+    href={href}
+    className="group glass rounded-xl p-4 hover:bg-white/[0.08] hover:-translate-y-1 hover:shadow-lg transition-all duration-300 text-center"
+  >
+    <div
+      className={`inline-flex items-center justify-center h-10 w-10 rounded-lg ${iconBg} text-white shadow-md mb-3 group-hover:scale-110 transition-transform duration-300`}
+    >
+      {icon}
+    </div>
+    <h3 className="font-bold text-sm mb-1">{title}</h3>
+    <p className="text-xs text-muted-foreground">{subtitle}</p>
+  </a>
+);
+
+const FeatureCard = ({
+  icon,
+  iconBg,
+  title,
+  description,
+}: {
+  icon: React.ReactNode;
+  iconBg: string;
+  title: string;
+  description: string;
+}) => (
+  <div className="group glass rounded-xl p-5 hover:bg-white/[0.08] hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+    <div
+      className={`inline-flex items-center justify-center h-10 w-10 rounded-lg ${iconBg} text-white shadow-md mb-3 group-hover:scale-110 transition-transform duration-300`}
+    >
+      {icon}
+    </div>
+    <h3 className="font-bold mb-2">{title}</h3>
+    <p className="text-sm text-muted-foreground">{description}</p>
+  </div>
+);
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital";
 const SITE_DESCRIPTION =
@@ -109,7 +174,7 @@ export default function Home() {
       <CompetitorBanner />
 
       {/* Hero / SEO H1 */}
-      <section className="max-w-6xl mx-auto px-4 pt-6 pb-4 text-center">
+      <section className="max-w-6xl mx-auto px-4 pt-6 pb-2 text-center">
         <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight">
           <span className="bg-gradient-to-r from-blue-500 via-purple-600 to-pink-500 bg-clip-text text-transparent">
             DropZap
@@ -120,29 +185,22 @@ export default function Home() {
           </span>
           <span className="text-foreground"> Video Downloader</span>
         </h1>
-        {/* Hero copy split into short sentences. The previous one-line
-           paragraph dragged the readability score below 50; breaking it
-           up brings the homepage above the audit threshold. */}
-        <p className="mt-3 text-base sm:text-lg text-muted-foreground max-w-3xl mx-auto">
+      </section>
+
+      {/* Main Content — placed immediately below the H1 so users can use the tool without scrolling. */}
+      <div className="max-w-6xl mx-auto px-4 pt-2 pb-8">
+        <HomeTabs />
+      </div>
+
+      {/* Hero copy and EEAT trust bar — moved below the tool so the downloader is the first interactive element. */}
+      <section className="max-w-6xl mx-auto px-4 py-6 text-center">
+        <p className="text-base sm:text-lg text-muted-foreground max-w-3xl mx-auto">
           Save videos in HD from <strong>Instagram</strong>, <strong>TikTok</strong>, <strong>Facebook</strong>, <strong>Twitter/X</strong>, <strong>Reddit</strong>, <strong>Pinterest</strong>, and <strong>Threads</strong>.
           <br className="hidden sm:block" />
           No watermark. No signup. 100% free.
         </p>
-        {/* EEAT trust bar — 4 falsifiable trust claims, server-rendered,
-           rendered between H1 and the tool tabs so it shapes first
-           impression without delaying LCP (text-only, no JS). */}
         <TrustBar />
       </section>
-
-      {/* Top ad zone REMOVED in May 2026. An ad placed above the
-         primary tool (between H1 and tabs) is exactly the "ads above
-         primary content" pattern Google's Page Layout algorithm
-         penalizes. Sidebar + bottom slots remain. */}
-
-      {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <HomeTabs />
-      </div>
 
       {/* SEO: Features Section */}
       <section className="max-w-6xl mx-auto px-4 py-12" aria-labelledby="features-heading">
@@ -150,48 +208,15 @@ export default function Home() {
           Why DropZap is the Best Free Video Downloader
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div className="glass rounded-xl p-5">
-            <h3 className="font-bold mb-2">Instagram Photos &amp; Carousels</h3>
-            <p className="text-sm text-muted-foreground">
-              Save Instagram photo posts and full carousels — single image as JPG, multi-slide carousels packaged into a clean ZIP.
-            </p>
-          </div>
-          <div className="glass rounded-xl p-5">
-            <h3 className="font-bold mb-2">Instagram Reels Downloader</h3>
-            <p className="text-sm text-muted-foreground">
-              Download Instagram Reels, posts, and IGTV videos directly to your device with full quality preserved.
-            </p>
-          </div>
-          <div className="glass rounded-xl p-5">
-            <h3 className="font-bold mb-2">TikTok No Watermark</h3>
-            <p className="text-sm text-muted-foreground">
-              Save TikTok videos without the TikTok logo or watermark — clean HD downloads every time.
-            </p>
-          </div>
-          <div className="glass rounded-xl p-5">
-            <h3 className="font-bold mb-2">Twitter / X Video Downloader</h3>
-            <p className="text-sm text-muted-foreground">
-              Grab any video from Twitter or X posts in the best available resolution with one click.
-            </p>
-          </div>
-          <div className="glass rounded-xl p-5">
-            <h3 className="font-bold mb-2">TikTok to MP3</h3>
-            <p className="text-sm text-muted-foreground">
-              Convert TikTok videos to MP3 audio instantly — save trending sounds, songs, and voiceovers as high-quality audio files.
-            </p>
-          </div>
-          <div className="glass rounded-xl p-5">
-            <h3 className="font-bold mb-2">MP3 Converter</h3>
-            <p className="text-sm text-muted-foreground">
-              Convert any video file or online video into high-quality MP3 audio for music, podcasts, or learning.
-            </p>
-          </div>
-          <div className="glass rounded-xl p-5">
-            <h3 className="font-bold mb-2">Pinterest &amp; Threads</h3>
-            <p className="text-sm text-muted-foreground">
-              Save Pinterest pin images, Idea Pins, and Threads videos &amp; photos in their original quality — single posts or full carousels.
-            </p>
-          </div>
+          <FeatureCard icon={<ImageIcon className="h-5 w-5" />} iconBg="bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500" title="Instagram Photos &amp; Carousels" description="Save Instagram photo posts and full carousels — single image as JPG, multi-slide carousels packaged into a clean ZIP." />
+          <FeatureCard icon={<Play className="h-5 w-5" />} iconBg="bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500" title="Instagram Reels Downloader" description="Download Instagram Reels, posts, and IGTV videos directly to your device with full quality preserved." />
+          <FeatureCard icon={<Music2 className="h-5 w-5" />} iconBg="bg-gradient-to-br from-cyan-500 to-pink-500" title="TikTok No Watermark" description="Save TikTok videos without the TikTok logo or watermark — clean HD downloads every time." />
+          <FeatureCard icon={<Twitter className="h-5 w-5" />} iconBg="bg-black" title="Twitter / X Video Downloader" description="Grab any video from Twitter or X posts in the best available resolution with one click." />
+          <FeatureCard icon={<FileAudio className="h-5 w-5" />} iconBg="bg-gradient-to-br from-emerald-500 to-pink-500" title="TikTok to MP3" description="Convert TikTok videos to MP3 audio instantly — save trending sounds, songs, and voiceovers as high-quality audio files." />
+          <FeatureCard icon={<Headphones className="h-5 w-5" />} iconBg="bg-emerald-600" title="MP3 Converter" description="Convert any video file or online video into high-quality MP3 audio for music, podcasts, or learning." />
+          <FeatureCard icon={<ImageIcon className="h-5 w-5" />} iconBg="bg-gradient-to-br from-red-600 to-rose-600" title="Pinterest &amp; Threads" description="Save Pinterest pin images, Idea Pins, and Threads videos &amp; photos in their original quality — single posts or full carousels." />
+          <FeatureCard icon={<Youtube className="h-5 w-5" />} iconBg="bg-red-600" title="YouTube Thumbnail Downloader" description="Grab YouTube video thumbnails in HD, SD, and full resolution. Perfect for creators, marketers, and reference boards." />
+          <FeatureCard icon={<Download className="h-5 w-5" />} iconBg="bg-blue-600" title="Bulk Video Downloader" description="Download multiple links at once. Paste a list of URLs and let DropZap fetch every video in one go." />
         </div>
       </section>
 
@@ -201,42 +226,18 @@ export default function Home() {
           Popular Download Tools
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          <a href="/instagram-downloader" className="glass rounded-xl p-4 hover:bg-white/10 transition-colors text-center">
-            <h3 className="font-bold text-sm mb-1">Instagram Downloader</h3>
-            <p className="text-xs text-muted-foreground">Reels, Photos & Carousels</p>
-          </a>
-          <a href="/tiktok-downloader" className="glass rounded-xl p-4 hover:bg-white/10 transition-colors text-center">
-            <h3 className="font-bold text-sm mb-1">TikTok Downloader</h3>
-            <p className="text-xs text-muted-foreground">No Watermark</p>
-          </a>
-          <a href="/twitter-video-downloader" className="glass rounded-xl p-4 hover:bg-white/10 transition-colors text-center">
-            <h3 className="font-bold text-sm mb-1">Twitter/X Downloader</h3>
-            <p className="text-xs text-muted-foreground">Videos & GIFs</p>
-          </a>
-          <a href="/facebook-video-downloader" className="glass rounded-xl p-4 hover:bg-white/10 transition-colors text-center">
-            <h3 className="font-bold text-sm mb-1">Facebook Downloader</h3>
-            <p className="text-xs text-muted-foreground">Videos & Reels</p>
-          </a>
-          <a href="/reddit-video-downloader" className="glass rounded-xl p-4 hover:bg-white/10 transition-colors text-center">
-            <h3 className="font-bold text-sm mb-1">Reddit Downloader</h3>
-            <p className="text-xs text-muted-foreground">Videos with Sound</p>
-          </a>
-          <a href="/pinterest-video-downloader" className="glass rounded-xl p-4 hover:bg-white/10 transition-colors text-center">
-            <h3 className="font-bold text-sm mb-1">Pinterest Downloader</h3>
-            <p className="text-xs text-muted-foreground">Images & Videos</p>
-          </a>
-          <a href="/tiktok-to-mp3" className="glass rounded-xl p-4 hover:bg-white/10 transition-colors text-center">
-            <h3 className="font-bold text-sm mb-1">TikTok to MP3</h3>
-            <p className="text-xs text-muted-foreground">Audio Converter</p>
-          </a>
-          <a href="/mp3-converter" className="glass rounded-xl p-4 hover:bg-white/10 transition-colors text-center">
-            <h3 className="font-bold text-sm mb-1">MP3 Converter</h3>
-            <p className="text-xs text-muted-foreground">Video to Audio</p>
-          </a>
-          <a href="/thumbnail-downloader" className="glass rounded-xl p-4 hover:bg-white/10 transition-colors text-center">
-            <h3 className="font-bold text-sm mb-1">Thumbnail Downloader</h3>
-            <p className="text-xs text-muted-foreground">TikTok, IG, YouTube Covers</p>
-          </a>
+          <ToolCard href="/instagram-downloader" icon={<Instagram className="h-5 w-5" />} iconBg="bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500" title="Instagram Downloader" subtitle="Reels, Photos & Carousels" />
+          <ToolCard href="/tiktok-downloader" icon={<Music2 className="h-5 w-5" />} iconBg="bg-gradient-to-br from-cyan-500 to-pink-500" title="TikTok Downloader" subtitle="No Watermark" />
+          <ToolCard href="/twitter-video-downloader" icon={<Twitter className="h-5 w-5" />} iconBg="bg-black" title="Twitter/X Downloader" subtitle="Videos & GIFs" />
+          <ToolCard href="/facebook-video-downloader" icon={<Facebook className="h-5 w-5" />} iconBg="bg-blue-600" title="Facebook Downloader" subtitle="Videos & Reels" />
+          <ToolCard href="/reddit-video-downloader" icon={<MessageSquare className="h-5 w-5" />} iconBg="bg-orange-600" title="Reddit Downloader" subtitle="Videos with Sound" />
+          <ToolCard href="/pinterest-video-downloader" icon={<ImageIcon className="h-5 w-5" />} iconBg="bg-gradient-to-br from-red-600 to-rose-600" title="Pinterest Downloader" subtitle="Images & Videos" />
+          <ToolCard href="/tiktok-to-mp3" icon={<FileAudio className="h-5 w-5" />} iconBg="bg-gradient-to-br from-emerald-500 to-pink-500" title="TikTok to MP3" subtitle="Audio Converter" />
+          <ToolCard href="/mp3-converter" icon={<Headphones className="h-5 w-5" />} iconBg="bg-emerald-600" title="MP3 Converter" subtitle="Video to Audio" />
+          <ToolCard href="/thumbnail-downloader" icon={<ImageIcon className="h-5 w-5" />} iconBg="bg-purple-600" title="All Thumbnail Downloader" subtitle="TikTok, IG, YouTube Covers" />
+          <ToolCard href="/youtube-thumbnail-downloader" icon={<Youtube className="h-5 w-5" />} iconBg="bg-red-600" title="YouTube Thumbnail" subtitle="HD Cover Images" />
+          <ToolCard href="/instagram-thumbnail-downloader" icon={<Instagram className="h-5 w-5" />} iconBg="bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500" title="Instagram Thumbnail" subtitle="Post & Reel Covers" />
+          <ToolCard href="/tiktok-thumbnail-downloader" icon={<Music2 className="h-5 w-5" />} iconBg="bg-gradient-to-br from-cyan-500 to-pink-500" title="TikTok Thumbnail" subtitle="No-Watermark Covers" />
         </div>
       </section>
 
