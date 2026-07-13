@@ -10,6 +10,25 @@ function extractShortcode(url: string): string | null {
   return match?.[1] ?? null;
 }
 
+function decodeHtmlEntities(str: string): string {
+  return str
+    .replace(/&quot;/g, '"')
+    .replace(/&#x22;/gi, '"')
+    .replace(/&#34;/g, '"')
+    .replace(/&amp;/g, '&')
+    .replace(/&#x26;/gi, '&')
+    .replace(/&#38;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&#x2F;/gi, '/')
+    .replace(/&#47;/g, '/')
+    .replace(/&#064;/g, '@')
+    .replace(/&#x40;/gi, '@')
+    .replace(/&#39;/g, "'")
+    .replace(/&#x27;/gi, "'")
+    .replace(/&apos;/g, "'");
+}
+
 function extractMeta(html: string, prop: string): string | null {
   const byProp = new RegExp(
     `<meta[^>]*property=["']${prop}["'][^>]*content=["']([^"']+)["']`,
@@ -19,7 +38,8 @@ function extractMeta(html: string, prop: string): string | null {
     `<meta[^>]*content=["']([^"']+)["'][^>]*property=["']${prop}["']`,
     "i"
   );
-  return html.match(byProp)?.[1] ?? html.match(byContent)?.[1] ?? null;
+  const raw = html.match(byProp)?.[1] ?? html.match(byContent)?.[1] ?? null;
+  return raw ? decodeHtmlEntities(raw) : null;
 }
 
 async function fetchHtmlThumbnail(url: string) {
