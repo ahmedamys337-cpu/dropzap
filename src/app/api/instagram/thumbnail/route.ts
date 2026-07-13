@@ -185,6 +185,41 @@ async function fetchInternalApiThumbnail(shortcode: string): Promise<InstagramMe
   };
 }
 
+async function fetchWebApiThumbnail(shortcode: string): Promise<InstagramMedia> {
+  const cookieHeader = getCookieHeader("www.instagram.com");
+  const headers: Record<string, string> = {
+    "User-Agent": DESKTOP_UA,
+    Accept: "*/*",
+    "X-IG-App-ID": "936619743392459",
+    Referer: "https://www.instagram.com/",
+  };
+  if (cookieHeader) headers.Cookie = cookieHeader;
+
+  const res = await fetch(
+    `https://www.instagram.com/p/${shortcode}/?__a=1&__d=dis`,
+    {
+      headers,
+      signal: AbortSignal.timeout(6000),
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error(`Instagram web API returned ${res.status}`);
+  }
+
+  const data = await res.json();
+  const media = data?.graphql?.shortcode_media;
+  if (!media) {
+    throw new Error("No media in Instagram web API response");
+  }
+
+  const parsed = parseMediaNode(media);
+  if (!parsed) {
+    throw new Error("Could not parse Instagram web API media");
+  }
+  return parsed;
+}
+
 async function fetchHtmlThumbnail(url: string): Promise<InstagramMedia> {
   const res = await fetch(url, {
     headers: {
@@ -287,7 +322,7 @@ export async function POST(request: NextRequest) {
 
     const shortcode = extractShortcode(url);
 
-    // Strategy 1: Instagram internal API — fastest and most reliable for public posts.
+    // Strategy 1: Instagram internal API.
     if (shortcode) {
       try {
         const data = await fetchInternalApiThumbnail(shortcode);
@@ -297,7 +332,17 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Strategy 2: Scrape the Instagram page HTML; prefer embedded JSON.
+    // Strategy 2: Instagram web API (?__a=1) — works for many public posts.
+    if (shortcode) {
+      try {
+        const data = await fetchWebApiThumbnail(shortcode);
+        return NextResponse.json(data);
+      } catch (webErr: any) {
+        console.warn("[instagram/thumbnail] Web API failed:", webErr.message);
+      }
+    }
+
+    // Strategy 3: Scrape the Instagram page HTML; prefer embedded JSON.
     try {
       const data = await fetchHtmlThumbnail(url);
       return NextResponse.json(data);
@@ -305,7 +350,7 @@ export async function POST(request: NextRequest) {
       console.warn("[instagram/thumbnail] HTML scrape failed:", htmlErr.message);
     }
 
-    // Strategy 3: Try the public embed page.
+    // Strategy 4: Try the public embed page.
     if (shortcode) {
       try {
         const data = await fetchEmbedThumbnail(shortcode);
@@ -315,7 +360,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Strategy 4: yt-dlp as last resort.
+    // Strategy 5: yt-dlp as last resort.
     try {
       const data = await fetchYtdlpThumbnail(url);
       return NextResponse.json(data);
