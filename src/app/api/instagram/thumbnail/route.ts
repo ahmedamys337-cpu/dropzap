@@ -368,8 +368,16 @@ export async function POST(request: NextRequest) {
       console.error("[instagram/thumbnail] yt-dlp fallback failed:", ytdlpErr.message);
     }
 
+    console.error(
+      "[instagram/thumbnail] All strategies failed. Instagram is likely requiring authentication or blocking this server's IP. " +
+        "Set MEDIA_COOKIES_INSTAGRAM (fresh Instagram session cookies) or YOUTUBE_PROXIES to restore access."
+    );
     return NextResponse.json(
-      { error: "Failed to fetch Instagram thumbnail. The post may be private or restricted." },
+      {
+        error:
+          "Instagram is blocking this request. Public posts can still be blocked when Instagram requires a login or rate-limits the server. " +
+          "Add fresh Instagram cookies (MEDIA_COOKIES_INSTAGRAM) or a proxy to fix this.",
+      },
       { status: 500 }
     );
   } catch (err: any) {
