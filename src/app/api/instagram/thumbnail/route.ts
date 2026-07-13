@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
-import { getVideoInfoSkipDownload } from "@/lib/ytdlp";
+import { getVideoInfoSkipDownload, getCookieHeader } from "@/lib/ytdlp";
 
 const MOBILE_UA =
   "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1";
@@ -135,30 +135,73 @@ function extractFromEmbeddedJson(html: string): InstagramMedia | null {
   return null;
 }
 
-async function fetchHtmlThumbnail(url: string): Promise<InstagramMedia> {
-  // Desktop UA is more likely to receive window._sharedData with full media info.
-  const fetchWithUa = async (ua: string) => {
-    const res = await fetch(url, {
-      headers: {
-        "User-Agent": ua,
-        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.9",
-        Referer: "https://www.instagram.com/",
-      },
-      signal: AbortSignal.timeout(10000),
-    });
-    if (!res.ok) throw new Error(`Instagram HTML returned ${res.status}`);
-    return res.text();
+async function fetchInternalApiThumbnail(shortcode: string): Promise<InstagramMedia> {
+  const cookieHeader = getCookieHeader("i.instagram.com");
+  const headers: Record<string, string> = {
+    "User-Agent": MOBILE_UA,
+    Accept: "*/*",
+    "X-IG-App-ID": "936619743392459",
+    "X-Requested-With": "XMLHttpRequest",
+    Referer: "https://www.instagram.com/",
   };
+  if (cookieHeader) headers.Cookie = cookieHeader;
 
-  let html: string;
-  try {
-    html = await fetchWithUa(DESKTOP_UA);
-  } catch {
-    html = await fetchWithUa(MOBILE_UA);
+  const res = await fetch(`https://i.instagram.com/api/v1/media/${shortcode}/info/`, {
+    headers,
+    signal: AbortSignal.timeout(6000),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Instagram internal API returned ${res.status}`);
   }
 
-  // Try embedded JSON first — it gives the original cover without play button overlay.
+  const data = await res.json();
+  const item = data?.items?.[0];
+  if (!item) {
+    throw new Error("No media item in internal API response");
+  }
+
+  // For carousels, use the first image's cover.
+  let mediaNode: any = item;
+  if (item.carousel_media && item.carousel_media.length > 0) {
+    mediaNode = item.carousel_media[0];
+  }
+
+  const candidates = mediaNode.image_versions2?.candidates;
+  if (!Array.isArray(candidates) || candidates.length === 0) {
+    throw new Error("No image candidates in internal API response");
+  }
+
+  const best = candidates.sort(
+    (a: any, b: any) => (b.width || 0) * (b.height || 0) - (a.width || 0) * (a.height || 0)
+  )[0];
+
+  const caption = item.caption?.text || mediaNode.caption?.text || "";
+  return {
+    thumbnail: best.url,
+    title: caption || "Instagram post",
+    width: best.width,
+    height: best.height,
+  };
+}
+
+async function fetchHtmlThumbnail(url: string): Promise<InstagramMedia> {
+  const res = await fetch(url, {
+    headers: {
+      "User-Agent": DESKTOP_UA,
+      Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      "Accept-Language": "en-US,en;q=0.9",
+      Referer: "https://www.instagram.com/",
+    },
+    signal: AbortSignal.timeout(6000),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Instagram HTML returned ${res.status}`);
+  }
+
+  const html = await res.text();
+
   const jsonData = extractFromEmbeddedJson(html);
   if (jsonData) return jsonData;
 
@@ -181,7 +224,7 @@ async function fetchEmbedThumbnail(shortcode: string): Promise<InstagramMedia> {
       "Accept-Language": "en-US,en;q=0.9",
       Referer: "https://www.instagram.com/",
     },
-    signal: AbortSignal.timeout(10000),
+    signal: AbortSignal.timeout(6000),
   });
 
   if (!res.ok) {
@@ -205,7 +248,12 @@ async function fetchEmbedThumbnail(shortcode: string): Promise<InstagramMedia> {
 }
 
 async function fetchYtdlpThumbnail(url: string): Promise<InstagramMedia> {
-  const info = await getVideoInfoSkipDownload(url);
+  const info = await Promise.race([
+    getVideoInfoSkipDownload(url),
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("yt-dlp timeout")), 8000)
+    ),
+  ]);
   const thumbnail = info.thumbnail || info.thumbnails?.[0]?.url;
   if (!thumbnail) {
     throw new Error("No thumbnail found via yt-dlp");
@@ -237,7 +285,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Strategy 1: Scrape the Instagram page HTML; prefer embedded JSON (HD, no play button).
+    const shortcode = extractShortcode(url);
+
+    // Strategy 1: Instagram internal API — fastest and most reliable for public posts.
+    if (shortcode) {
+      try {
+        const data = await fetchInternalApiThumbnail(shortcode);
+        return NextResponse.json(data);
+      } catch (apiErr: any) {
+        console.warn("[instagram/thumbnail] Internal API failed:", apiErr.message);
+      }
+    }
+
+    // Strategy 2: Scrape the Instagram page HTML; prefer embedded JSON.
     try {
       const data = await fetchHtmlThumbnail(url);
       return NextResponse.json(data);
@@ -245,8 +305,7 @@ export async function POST(request: NextRequest) {
       console.warn("[instagram/thumbnail] HTML scrape failed:", htmlErr.message);
     }
 
-    // Strategy 2: Try the public embed page.
-    const shortcode = extractShortcode(url);
+    // Strategy 3: Try the public embed page.
     if (shortcode) {
       try {
         const data = await fetchEmbedThumbnail(shortcode);
@@ -256,7 +315,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Strategy 3: yt-dlp as last resort.
+    // Strategy 4: yt-dlp as last resort.
     try {
       const data = await fetchYtdlpThumbnail(url);
       return NextResponse.json(data);

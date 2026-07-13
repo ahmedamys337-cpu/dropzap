@@ -42,7 +42,7 @@ async function fetchInstagramThumbnail(url: string): Promise<ThumbnailResult> {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ url }),
-    signal: AbortSignal.timeout(20000),
+    signal: AbortSignal.timeout(30000),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "Instagram thumbnail failed");
