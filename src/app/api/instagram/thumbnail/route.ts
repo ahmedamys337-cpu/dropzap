@@ -301,103 +301,6 @@ async function fetchYtdlpThumbnail(url: string): Promise<InstagramMedia> {
   };
 }
 
-function findImageUrl(obj: any): string | null {
-  if (!obj) return null;
-  if (typeof obj === "string") {
-    if (/\.(jpg|jpeg|png|webp)(\?.*)?$/i.test(obj)) return obj;
-    return null;
-  }
-  if (typeof obj !== "object") return null;
-  // Direct fields common in downloader APIs
-  for (const key of ["thumbnail", "cover", "image", "url", "preview", "src", "display_url"]) {
-    const val = obj[key];
-    if (typeof val === "string" && /\.(jpg|jpeg|png|webp)(\?.*)?$/i.test(val)) return val;
-  }
-  // Nested arrays (e.g. medias[0].url, images[0].url)
-  for (const val of Object.values(obj)) {
-    if (Array.isArray(val)) {
-      for (const item of val) {
-        const found = findImageUrl(item);
-        if (found) return found;
-      }
-    } else if (typeof val === "object") {
-      const found = findImageUrl(val);
-      if (found) return found;
-    }
-  }
-  return null;
-}
-
-function findTitle(obj: any): string | null {
-  if (!obj || typeof obj !== "object") return null;
-  for (const key of ["title", "caption", "description", "text", "name"]) {
-    const val = obj[key];
-    if (typeof val === "string" && val.trim()) return val.trim();
-  }
-  for (const val of Object.values(obj)) {
-    if (Array.isArray(val)) {
-      for (const item of val) {
-        const found = findTitle(item);
-        if (found) return found;
-      }
-    } else if (typeof val === "object") {
-      const found = findTitle(val);
-      if (found) return found;
-    }
-  }
-  return null;
-}
-
-async function fetchRapidApiThumbnail(url: string): Promise<InstagramMedia> {
-  const key = process.env.INSTAGRAM_RAPIDAPI_KEY?.trim();
-  const host = process.env.INSTAGRAM_RAPIDAPI_HOST?.trim();
-  if (!key || !host) {
-    throw new Error("RapidAPI not configured (missing INSTAGRAM_RAPIDAPI_KEY or HOST)");
-  }
-
-  const path = (process.env.INSTAGRAM_RAPIDAPI_PATH || "/v1/post").trim();
-  const method = (process.env.INSTAGRAM_RAPIDAPI_METHOD || "POST").toUpperCase();
-  const apiUrl = `https://${host.replace(/^https?:\/\//, "")}${path}`;
-
-  const headers: Record<string, string> = {
-    "X-RapidAPI-Key": key,
-    "X-RapidAPI-Host": host.replace(/^https?:\/\//, ""),
-  };
-
-  let res: Response;
-  if (method === "GET") {
-    const param = process.env.INSTAGRAM_RAPIDAPI_URL_PARAM || "url";
-    const query = new URLSearchParams({ [param]: url }).toString();
-    res = await fetch(`${apiUrl}?${query}`, {
-      headers,
-      signal: AbortSignal.timeout(8000),
-    });
-  } else {
-    headers["Content-Type"] = "application/json";
-    const bodyField = process.env.INSTAGRAM_RAPIDAPI_BODY_FIELD || "url";
-    res = await fetch(apiUrl, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ [bodyField]: url }),
-      signal: AbortSignal.timeout(8000),
-    });
-  }
-
-  if (!res.ok) {
-    throw new Error(`RapidAPI returned ${res.status}`);
-  }
-
-  const data = await res.json();
-  const thumbnail = findImageUrl(data);
-  if (!thumbnail) {
-    throw new Error("No thumbnail URL found in RapidAPI response");
-  }
-  return {
-    thumbnail,
-    title: findTitle(data) || "Instagram post",
-  };
-}
-
 async function fetchScraperApiThumbnail(url: string): Promise<InstagramMedia> {
   const template = process.env.INSTAGRAM_SCRAPER_API_URL?.trim();
   if (!template) {
@@ -459,6 +362,53 @@ async function fetchScraperApiThumbnail(url: string): Promise<InstagramMedia> {
     thumbnail,
     title: findTitle(data) || "Instagram post",
   };
+}
+
+function findImageUrl(obj: any): string | null {
+  if (!obj) return null;
+  if (typeof obj === "string") {
+    if (/\.(jpg|jpeg|png|webp)(\?.*)?$/i.test(obj)) return obj;
+    return null;
+  }
+  if (typeof obj !== "object") return null;
+  // Direct fields common in downloader APIs
+  for (const key of ["thumbnail", "cover", "image", "url", "preview", "src", "display_url"]) {
+    const val = obj[key];
+    if (typeof val === "string" && /\.(jpg|jpeg|png|webp)(\?.*)?$/i.test(val)) return val;
+  }
+  // Nested arrays (e.g. medias[0].url, images[0].url)
+  for (const val of Object.values(obj)) {
+    if (Array.isArray(val)) {
+      for (const item of val) {
+        const found = findImageUrl(item);
+        if (found) return found;
+      }
+    } else if (typeof val === "object") {
+      const found = findImageUrl(val);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+function findTitle(obj: any): string | null {
+  if (!obj || typeof obj !== "object") return null;
+  for (const key of ["title", "caption", "description", "text", "name"]) {
+    const val = obj[key];
+    if (typeof val === "string" && val.trim()) return val.trim();
+  }
+  for (const val of Object.values(obj)) {
+    if (Array.isArray(val)) {
+      for (const item of val) {
+        const found = findTitle(item);
+        if (found) return found;
+      }
+    } else if (typeof val === "object") {
+      const found = findTitle(val);
+      if (found) return found;
+    }
+  }
+  return null;
 }
 
 export async function POST(request: NextRequest) {
@@ -528,15 +478,7 @@ export async function POST(request: NextRequest) {
       console.error("[instagram/thumbnail] yt-dlp fallback failed:", ytdlpErr.message);
     }
 
-    // Strategy 6: RapidAPI Instagram thumbnail/downloader API (requires API key).
-    try {
-      const data = await fetchRapidApiThumbnail(url);
-      return NextResponse.json(data);
-    } catch (rapidErr: any) {
-      console.warn("[instagram/thumbnail] RapidAPI fallback failed:", rapidErr.message);
-    }
-
-    // Strategy 7: Configurable third-party scraper API (e.g., GrabGram-style endpoint).
+    // Strategy 6: Configurable third-party scraper API (e.g., GrabGram-style endpoint).
     try {
       const data = await fetchScraperApiThumbnail(url);
       return NextResponse.json(data);
@@ -546,13 +488,13 @@ export async function POST(request: NextRequest) {
 
     console.error(
       "[instagram/thumbnail] All strategies failed. Instagram is likely requiring authentication or blocking this server's IP. " +
-        "Set MEDIA_COOKIES_INSTAGRAM (fresh Instagram session cookies), YOUTUBE_PROXIES, INSTAGRAM_RAPIDAPI_KEY, or INSTAGRAM_SCRAPER_API_URL to restore access."
+        "Set MEDIA_COOKIES_INSTAGRAM (fresh Instagram session cookies), YOUTUBE_PROXIES, or INSTAGRAM_SCRAPER_API_URL to restore access."
     );
     return NextResponse.json(
       {
         error:
           "Instagram is blocking this request. Public posts can still be blocked when Instagram requires a login or rate-limits the server. " +
-          "Fix options: set fresh Instagram cookies (MEDIA_COOKIES_INSTAGRAM), a proxy (YOUTUBE_PROXIES), a RapidAPI key (INSTAGRAM_RAPIDAPI_KEY), or a third-party scraper URL (INSTAGRAM_SCRAPER_API_URL).",
+          "Fix options: set fresh Instagram cookies (MEDIA_COOKIES_INSTAGRAM), a proxy (YOUTUBE_PROXIES), or a third-party scraper URL (INSTAGRAM_SCRAPER_API_URL).",
       },
       { status: 500 }
     );
