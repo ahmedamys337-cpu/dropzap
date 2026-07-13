@@ -49,7 +49,16 @@ async function fetchInstagramThumbnail(url: string): Promise<ThumbnailResult> {
   return {
     platform: "instagram",
     title: data.title || "Instagram post",
-    thumbnails: data.thumbnail ? [{ label: "Instagram Thumbnail", url: data.thumbnail }] : [],
+    thumbnails: data.thumbnail
+      ? [
+          {
+            label: "Instagram Thumbnail",
+            url: data.thumbnail,
+            width: data.width,
+            height: data.height,
+          },
+        ]
+      : [],
   };
 }
 
