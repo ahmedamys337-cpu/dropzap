@@ -132,7 +132,10 @@ body {
 
 .animate-gradient {
   background-size: 200% 200%;
-  animation: gradient-shift 20s ease infinite;
+  /* Static gradient by default — the infinite animation caused noticeable
+     GPU/CPU load on lower-end devices. It is already disabled on mobile; now
+     disabled everywhere to keep the site fast and responsive. */
+  animation: none;
 }
 
 /* === Performance optimizations for mobile / low-power devices === */

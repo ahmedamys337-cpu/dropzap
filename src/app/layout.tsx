@@ -5,7 +5,6 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/toaster";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
-import AdsterraAds from "@/components/AdsterraAds";
 
 // `display: "swap"` eliminates FOIT (Flash of Invisible Text) — text
 // renders immediately with the system fallback while Inter loads, then
@@ -244,10 +243,6 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://i.ytimg.com" />
         <link rel="dns-prefetch" href="https://img.youtube.com" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
-        <link rel="preconnect" href="https://pl30087661.effectivecpmnetwork.com" />
-        <link rel="preconnect" href="https://www.highperformanceformat.com" />
-        <link rel="dns-prefetch" href="https://pl30087662.effectivecpmnetwork.com" />
-        <link rel="dns-prefetch" href="https://pl30087663.effectivecpmnetwork.com" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -264,7 +259,6 @@ export default function RootLayout({
           {children}
           <Toaster />
         </ThemeProvider>
-        <AdsterraAds />
         <Script
           id="service-worker-register"
           strategy="afterInteractive"
