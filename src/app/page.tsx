@@ -22,7 +22,6 @@ import {
 
 // Dynamic imports for code splitting and reduced initial bundle size
 const ThemeToggle = dynamic(() => import("@/components/ThemeToggle").then(m => m.ThemeToggle), { ssr: false });
-const AdBanner = dynamic(() => import("@/components/AdBanner"), { ssr: false });
 const TrustBar = dynamic(() => import("@/components/TrustBar"), { ssr: false });
 const SupportedPlatforms = dynamic(() => import("@/components/SupportedPlatforms"), { ssr: false });
 const CitableFacts = dynamic(() => import("@/components/CitableFacts"), { ssr: false });
@@ -500,11 +499,6 @@ export default function Home() {
           </a>
         </div>
       </section>
-
-      {/* === AD ZONE: Bottom Banner === */}
-      <div className="max-w-6xl mx-auto px-4 pb-6">
-        <AdBanner slot="bottom" />
-      </div>
 
       {/* Footer */}
       <footer className="mt-6 py-10 border-t border-border/50">

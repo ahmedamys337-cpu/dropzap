@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { safeFilename } from "@/lib/download";
 import { addDownloadHistory } from "@/lib/download-history";
-import AdCountdown from "@/components/AdCountdown";
 import DownloadSuccessActions from "@/components/DownloadSuccessActions";
 import DownloadErrorFallback from "@/components/DownloadErrorFallback";
 import { Download, Loader2, Clipboard, X, CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
@@ -102,18 +101,14 @@ export default function SimpleDownloader({
   const [url, setUrl] = useState("");
   // Phase machine:
   //   idle        → user can paste a URL and click Download.
-  //   ad          → 5s ad overlay is up; fetch() to the API is running in
-  //                 parallel so server-side yt-dlp warms up during the ad.
-  //   downloading → ad finished but the server fetch is still running.
+  //   downloading → server fetch is running.
   //   downloaded  → blob received, object-URL clicked, success banner shown.
   //   error       → server returned non-200 or network failed; banner shows
   //                 the actual error. Button is re-enabled for retry.
-  const [phase, setPhase] = useState<"idle" | "ad" | "downloading" | "downloaded" | "error">("idle");
+  const [phase, setPhase] = useState<"idle" | "downloading" | "downloaded" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const adDoneRef = useRef(false);
-  const fetchDoneRef = useRef(false);
   const fetchBlobRef = useRef<{ blob: Blob; name: string } | null>(null);
   const fetchErrRef = useRef<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -197,13 +192,11 @@ export default function SimpleDownloader({
     params.set("name", defaultName);
     const streamUrl = `${basePath}?${params.toString()}`;
 
-    adDoneRef.current = false;
-    fetchDoneRef.current = false;
     fetchBlobRef.current = null;
     fetchErrRef.current = null;
 
     setErrorMsg(null);
-    setPhase("ad");
+    setPhase("downloading");
     onDownload?.(`${platform} ${mediaTypeLabel}`, url, mediaTypeLabel);
 
     const controller = new AbortController();
@@ -214,46 +207,20 @@ export default function SimpleDownloader({
         if (!res.ok) {
           const text = await res.text().catch(() => `Server error (${res.status})`);
           const msg = text?.trim() || `Download failed (${res.status})`;
-          fetchErrRef.current = msg;
-          fetchDoneRef.current = true;
-          if (adDoneRef.current) {
-            setErrorMsg(msg);
-            setPhase("error");
-          }
+          setErrorMsg(msg);
+          setPhase("error");
           return;
         }
         const blob = await res.blob();
         const finalName = inferFilename(res, blob, defaultName);
-        fetchBlobRef.current = { blob, name: finalName };
-        fetchDoneRef.current = true;
-        if (adDoneRef.current) {
-          doDownload(blob, finalName);
-        }
+        doDownload(blob, finalName);
       })
       .catch((err: any) => {
         if (err?.name === "AbortError") return;
         const msg = "Network error. Check your connection and try again.";
-        fetchErrRef.current = msg;
-        fetchDoneRef.current = true;
-        if (adDoneRef.current) {
-          setErrorMsg(msg);
-          setPhase("error");
-        }
+        setErrorMsg(msg);
+        setPhase("error");
       });
-  };
-
-  const finishAd = () => {
-    adDoneRef.current = true;
-    if (!fetchDoneRef.current) {
-      setPhase("downloading");
-      return;
-    }
-    if (fetchBlobRef.current) {
-      doDownload(fetchBlobRef.current.blob, fetchBlobRef.current.name);
-    } else if (fetchErrRef.current) {
-      setErrorMsg(fetchErrRef.current);
-      setPhase("error");
-    }
   };
 
   const paste = async () => {
@@ -269,9 +236,8 @@ export default function SimpleDownloader({
     setErrorMsg(null);
   };
 
-  const isAd = phase === "ad";
   const isDownloading = phase === "downloading";
-  const isBusy = isAd || isDownloading;
+  const isBusy = isDownloading;
   const isDone = phase === "downloaded";
   const isError = phase === "error";
 
@@ -347,12 +313,7 @@ export default function SimpleDownloader({
                 : `w-full h-14 text-lg font-bold text-white shadow-lg transition-all duration-200 hover:scale-[1.02] hover:shadow-xl active:scale-[0.99] ${buttonClassName}`
         }
       >
-        {isAd ? (
-          <>
-            <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-            Processing...
-          </>
-        ) : isDownloading ? (
+        {isDownloading ? (
           <>
             <Loader2 className="h-5 w-5 mr-2 animate-spin" />
             Downloading...
@@ -421,15 +382,6 @@ export default function SimpleDownloader({
         <p className="text-xs text-muted-foreground text-center">{help}</p>
       )}
 
-      {/* Ad runs in parallel with the server fetch. */}
-      {isAd && (
-        <AdCountdown
-          seconds={5}
-          message="Starting your download. Stay on the page."
-          onComplete={finishAd}
-          inline={inlineCountdown}
-        />
-      )}
     </div>
   );
 }

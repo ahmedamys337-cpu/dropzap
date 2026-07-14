@@ -7,6 +7,7 @@ import { join } from "path";
 import { randomUUID } from "crypto";
 import archiver from "archiver";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
+import { withConcurrencyLimit } from "@/lib/concurrency";
 import { writeFile } from "fs/promises";
 import { getGenericCookiesArgs, getCookieHeader } from "@/lib/ytdlp";
 import { resolveViaCobalt } from "@/lib/cobalt";
@@ -446,7 +447,7 @@ async function handleDownload(url: string): Promise<Response> {
       "--merge-output-format", "mp4",
     ];
 
-    const { code, stderr } = await runYtDlp(args);
+    const { code, stderr } = await withConcurrencyLimit(() => runYtDlp(args));
 
     // If yt-dlp failed AND this looks like an image-only post, fall back to
     // platform-specific direct extractors. yt-dlp's "Unsupported URL",

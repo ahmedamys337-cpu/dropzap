@@ -3,6 +3,34 @@ import { NextRequest } from "next/server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const ALLOWED_HOSTS = [
+  /^i\.ytimg\.com$/i,
+  /^img\.youtube\.com$/i,
+  /cdninstagram\.com$/i,
+  /fbcdn\.net$/i,
+  /twimg\.com$/i,
+  /tiktokcdn\.com$/i,
+  /redd\.it$/i,
+  /pinimg\.com$/i,
+  /scontent.*\.cdninstagram\.com$/i,
+];
+
+function isAllowedHost(urlStr: string): boolean {
+  try {
+    const u = new URL(urlStr);
+    if (u.protocol !== "https:" && u.protocol !== "http:") return false;
+    if (u.hostname === "localhost" || u.hostname === "127.0.0.1") return false;
+    if (u.hostname.startsWith("169.254.")) return false;
+    if (u.hostname.startsWith("10.")) return false;
+    if (u.hostname.startsWith("192.168.")) return false;
+    if (/^172\.(1[6-9]|2\d|3[01])\./.test(u.hostname)) return false;
+    if (u.hostname === "0.0.0.0" || u.hostname === "::1") return false;
+    return ALLOWED_HOSTS.some((re) => re.test(u.hostname));
+  } catch {
+    return false;
+  }
+}
+
 export async function GET(request: NextRequest) {
   const cdnUrl = request.nextUrl.searchParams.get("url");
   const filename = request.nextUrl.searchParams.get("name") || "download.mp4";
@@ -10,6 +38,13 @@ export async function GET(request: NextRequest) {
   if (!cdnUrl) {
     return new Response(JSON.stringify({ error: "URL required" }), {
       status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  if (!isAllowedHost(cdnUrl)) {
+    return new Response(JSON.stringify({ error: "URL host not allowed" }), {
+      status: 403,
       headers: { "Content-Type": "application/json" },
     });
   }

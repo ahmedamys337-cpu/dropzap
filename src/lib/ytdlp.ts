@@ -141,11 +141,16 @@ if (process.env.YOUTUBE_PROXIES) {
     });
 }
 
-// Pick a random proxy per request to spread load and avoid bans
+// Pick a random proxy per request to spread load and avoid bans.
+// Credentials are stripped from any logged output to prevent leakage.
 export function getProxyArgs(): string[] {
   if (proxyList.length === 0) return [];
   const proxy = proxyList[Math.floor(Math.random() * proxyList.length)];
   return ["--proxy", proxy];
+}
+
+export function getSafeProxyListForLogging(): string[] {
+  return proxyList.map((p) => p.replace(/\/\/([^:]+):([^@]+)@/, "//$1:***@"));
 }
 
 // In-memory cache for video info (5 min TTL)
@@ -191,34 +196,14 @@ export async function getVideoInfo(url: string): Promise<any> {
   ], { timeout: 45000, maxBuffer: 10 * 1024 * 1024 });
   if (stderr) console.error("[yt-dlp stderr]", stderr.slice(0, 500));
 
-  const data = JSON.parse(stdout);
+  let data: any;
+  try {
+    data = JSON.parse(stdout);
+  } catch (parseErr: any) {
+    throw new Error(`yt-dlp returned non-JSON output: ${stdout.slice(0, 200)}`);
+  }
   cacheSet(url, data);
   return data;
-}
-
-function countUniqueHeights(formats: any[] | undefined): number {
-  if (!Array.isArray(formats)) return 0;
-  const heights = new Set<number>();
-  for (const f of formats) {
-    if (f?.height && (f.vcodec ? f.vcodec !== "none" : f.acodec === "none")) {
-      heights.add(f.height);
-    }
-  }
-  return heights.size;
-}
-
-// Does the format list contain at least one HD video stream (>=720p)?
-// Used by the recovery chain to decide whether to keep trying fallbacks
-// when the primary call came back with only low-res formats.
-function hasHdFormat(formats: any[] | undefined): boolean {
-  if (!Array.isArray(formats)) return false;
-  for (const f of formats) {
-    if (!f?.height || f.height < 720) continue;
-    // Must be a video format, not a storyboard / audio-only entry.
-    if (f.vcodec && f.vcodec !== "none") return true;
-    if (!f.vcodec && f.acodec === "none") return true;
-  }
-  return false;
 }
 
 // Pick the best matching video and/or audio format from a cached info
@@ -331,7 +316,12 @@ export async function getVideoInfoSkipDownload(url: string): Promise<any> {
     ...getProxyArgs(),
   ], { timeout: 30000, maxBuffer: 10 * 1024 * 1024 });
 
-  const data = JSON.parse(stdout);
+  let data: any;
+  try {
+    data = JSON.parse(stdout);
+  } catch (parseErr: any) {
+    throw new Error(`yt-dlp returned non-JSON output: ${stdout.slice(0, 200)}`);
+  }
   cacheSet(url, data);
   return data;
 }

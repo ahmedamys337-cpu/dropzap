@@ -13,6 +13,10 @@ function isLegalPage(path: string | null) {
 }
 
 export default function AdsterraAds() {
+  return null;
+}
+
+function AdsterraAdsInner() {
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);

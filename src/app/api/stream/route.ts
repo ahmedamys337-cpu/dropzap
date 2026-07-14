@@ -12,6 +12,7 @@ import {
 import { resolveViaCobalt } from "@/lib/cobalt";
 import { fetchInstagramVideoUrl } from "@/lib/instagram";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
+import { withConcurrencyLimit } from "@/lib/concurrency";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -222,6 +223,7 @@ export async function GET(request: NextRequest) {
   const expectedFinal = `${tempBase}.${ext}`;
 
   try {
+    const result = await withConcurrencyLimit(async () => {
     const args: string[] = [
       url,
       ...getProxyArgs(),
@@ -343,6 +345,8 @@ export async function GET(request: NextRequest) {
         "Cache-Control": "no-store",
       },
     });
+    });
+    return result;
   } catch (err: any) {
     unlink(expectedFinal).catch(() => {});
     return new Response("Download failed: " + err.message, { status: 500 });

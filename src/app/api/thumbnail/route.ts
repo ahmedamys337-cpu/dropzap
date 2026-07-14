@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
+import { fetchInstagramThumbnailData } from "@/lib/instagram";
 
 export const runtime = "nodejs";
 
@@ -37,44 +38,74 @@ async function fetchTikTokThumbnail(url: string): Promise<ThumbnailResult> {
 }
 
 async function fetchInstagramThumbnail(url: string): Promise<ThumbnailResult> {
-  // Reuse the Instagram thumbnail endpoint internally.
-  const res = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital"}/api/instagram/thumbnail`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ url }),
-    signal: AbortSignal.timeout(30000),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || "Instagram thumbnail failed");
+  const data = await fetchInstagramThumbnailData(url);
+  if (!data) throw new Error("Instagram thumbnail extraction failed");
   return {
     platform: "instagram",
     title: data.title || "Instagram post",
-    thumbnails: data.thumbnail
-      ? [
-          {
-            label: "Instagram Thumbnail",
-            url: data.thumbnail,
-            width: data.width,
-            height: data.height,
-          },
-        ]
-      : [],
+    thumbnails: [
+      {
+        label: "Instagram Thumbnail",
+        url: data.thumbnail,
+        width: data.width,
+        height: data.height,
+      },
+    ],
   };
 }
 
+function extractVideoId(url: string): string | null {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
+  ];
+  for (const p of patterns) {
+    const match = url.match(p);
+    if (match) return match[1];
+  }
+  return null;
+}
+
 async function fetchYouTubeThumbnail(url: string): Promise<ThumbnailResult> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital"}/api/youtube/thumbnail`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ url }),
-    signal: AbortSignal.timeout(10000),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || "YouTube thumbnail failed");
+  const videoId = extractVideoId(url);
+  if (!videoId) throw new Error("Could not extract YouTube video ID");
+
+  let title = "YouTube Video";
+  try {
+    const oembed = await fetch(
+      `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`,
+      { signal: AbortSignal.timeout(5000) },
+    );
+    if (oembed.ok) {
+      const data = await oembed.json();
+      title = data.title || title;
+    }
+  } catch {}
+
+  const isShorts = /\/shorts\//i.test(url);
+  const sizes = isShorts
+    ? [
+        { key: "oar2", label: "Max Resolution (Portrait)", width: 1080, height: 1920 },
+        { key: "oarhqdefault", label: "High (Portrait)", width: 360, height: 640 },
+        { key: "oarmqdefault", label: "Medium (Portrait)", width: 320, height: 568 },
+        { key: "oardefault", label: "Default (Portrait)", width: 168, height: 298 },
+      ]
+    : [
+        { key: "default", label: "Default", width: 120, height: 90 },
+        { key: "mqdefault", label: "Medium", width: 320, height: 180 },
+        { key: "hqdefault", label: "High", width: 480, height: 360 },
+        { key: "sddefault", label: "Standard", width: 640, height: 480 },
+        { key: "maxresdefault", label: "Max Resolution", width: 1280, height: 720 },
+      ];
+
   return {
     platform: "youtube",
-    title: data.title || "YouTube video",
-    thumbnails: data.thumbnails || [],
+    title,
+    thumbnails: sizes.map((s) => ({
+      label: s.label,
+      url: `https://i.ytimg.com/vi/${videoId}/${s.key}.jpg`,
+      width: s.width,
+      height: s.height,
+    })),
   };
 }
 
