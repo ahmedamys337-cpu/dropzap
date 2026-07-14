@@ -72,7 +72,7 @@ export default function Mp3Converter() {
           const speed = elapsed > 0 ? downloaded / elapsed : 0;
           const percent = total ? Math.min(Math.round((downloaded / total) * 100), 99) : null;
           const eta = total && speed > 0 ? (total - downloaded) / speed : null;
-          setDlProgress({ downloaded, total, speed, eta, percent });
+          setDlProgress({ phase: "downloading", downloaded, total, speed, eta, percent });
           if (percent !== null) setProgress(60 + Math.round(percent * 0.4));
         }
       }

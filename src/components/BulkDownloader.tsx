@@ -150,23 +150,37 @@ export default function BulkDownloader() {
                       <div className="mt-1.5 space-y-1">
                         <div className="flex items-center justify-between text-xs">
                           <span className="text-blue-400 font-medium">
-                            {item.progress.percent !== null && item.progress.percent !== undefined ? `${item.progress.percent}%` : "Downloading…"}
+                            {item.progress.phase === "fetching"
+                              ? "Fetching from source…"
+                              : item.progress.percent !== null && item.progress.percent !== undefined
+                                ? `${item.progress.percent}%`
+                                : "Downloading…"}
                           </span>
                           <span className="text-muted-foreground">
-                            {item.progress.speed > 0 ? `${formatBytes(item.progress.speed)}/s` : ""}
+                            {item.progress.phase === "fetching"
+                              ? "Processing"
+                              : item.progress.speed > 0
+                                ? `${formatBytes(item.progress.speed)}/s`
+                                : ""}
                             {item.progress.eta !== null && item.progress.eta !== undefined && item.progress.eta > 0 ? ` · ~${Math.round(item.progress.eta)}s left` : ""}
                           </span>
                         </div>
-                        <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
-                          <div
-                            className="h-full bg-blue-500 rounded-full transition-all duration-300"
-                            style={{ width: `${item.progress.percent ?? 0}%` }}
-                          />
-                        </div>
+                        {item.progress.phase === "fetching" ? (
+                          <div className="h-1.5 rounded-full bg-white/10 overflow-hidden relative">
+                            <div className="absolute inset-y-0 w-1/3 rounded-full bg-blue-500 animate-indeterminate" />
+                          </div>
+                        ) : (
+                          <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+                            <div
+                              className="h-full bg-blue-500 rounded-full transition-all duration-300"
+                              style={{ width: `${item.progress.percent ?? 0}%` }}
+                            />
+                          </div>
+                        )}
                       </div>
                     )}
                     {item.status === "extracting" && !item.progress && (
-                      <p className="text-xs text-blue-400 mt-1">Starting download…</p>
+                      <p className="text-xs text-blue-400 mt-1">Starting…</p>
                     )}
                     {item.status === "ready" && item.downloadUrl && (
                       <a

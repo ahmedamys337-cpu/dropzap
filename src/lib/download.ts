@@ -54,7 +54,11 @@ export function safeFilename(raw: string, fallback = "download"): string {
   return cleaned || fallback;
 }
 
+export type DownloadPhase = "fetching" | "downloading" | "done";
+
 export interface DownloadProgress {
+  /** Current phase of the download. */
+  phase: DownloadPhase;
   /** Bytes received so far. */
   downloaded: number;
   /** Total bytes from Content-Length, or null if unknown. */
@@ -70,6 +74,11 @@ export interface DownloadProgress {
 /**
  * Fetches a URL with real-time download progress tracking via the
  * ReadableStream API. Calls onProgress on each chunk received.
+ *
+ * The download has two phases:
+ * - "fetching": waiting for the server to respond (yt-dlp is running, etc.)
+ * - "downloading": response headers received, body bytes streaming in
+ *
  * Returns the blob and the original Response (for header inspection).
  */
 export async function fetchWithProgress(
@@ -77,6 +86,16 @@ export async function fetchWithProgress(
   onProgress: (p: DownloadProgress) => void,
   signal?: AbortSignal,
 ): Promise<{ blob: Blob; response: Response }> {
+  // Immediately notify that we're fetching (server may take 10-60s to respond)
+  onProgress({
+    phase: "fetching",
+    downloaded: 0,
+    total: null,
+    speed: 0,
+    eta: null,
+    percent: null,
+  });
+
   const res = await fetch(url, { signal });
   if (!res.ok) {
     const text = await res.text().catch(() => `Server error (${res.status})`);
@@ -90,6 +109,7 @@ export async function fetchWithProgress(
   if (!res.body) {
     const blob = await res.blob();
     onProgress({
+      phase: "done",
       downloaded: blob.size,
       total: blob.size,
       speed: 0,
@@ -99,12 +119,21 @@ export async function fetchWithProgress(
     return { blob, response: res };
   }
 
+  // Headers received — switch to downloading phase
+  onProgress({
+    phase: "downloading",
+    downloaded: 0,
+    total,
+    speed: 0,
+    eta: null,
+    percent: total ? 0 : null,
+  });
+
   const reader = res.body.getReader();
   const chunks: Uint8Array[] = [];
   let downloaded = 0;
   const startTime = Date.now();
   let lastTime = startTime;
-  let lastLoaded = 0;
 
   while (true) {
     const { done, value } = await reader.read();
@@ -120,9 +149,8 @@ export async function fetchWithProgress(
       const speed = elapsed > 0 ? downloaded / elapsed : 0;
       const eta = total && speed > 0 ? (total - downloaded) / speed : null;
       const percent = total ? Math.min(Math.round((downloaded / total) * 100), 99) : null;
-      onProgress({ downloaded, total, speed, eta, percent });
+      onProgress({ phase: "downloading", downloaded, total, speed, eta, percent });
       lastTime = now;
-      lastLoaded = downloaded;
     }
   }
 
@@ -130,6 +158,7 @@ export async function fetchWithProgress(
   const elapsed = (Date.now() - startTime) / 1000;
   const speed = elapsed > 0 ? downloaded / elapsed : 0;
   onProgress({
+    phase: "done",
     downloaded,
     total: total ?? downloaded,
     speed,
