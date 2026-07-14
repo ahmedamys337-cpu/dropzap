@@ -1,4 +1,74 @@
 /**
+ * Downloads an image directly from the browser when the server can't fetch it
+ * (common with social-media CDNs that block datacenter IPs). Tries CORS fetch,
+ * canvas draw, and a public image proxy before giving up and opening the image.
+ */
+export async function downloadImageClientSide(imageUrl: string, filename: string): Promise<boolean> {
+  if (typeof document === "undefined" || typeof window === "undefined") return false;
+
+  const triggerBlobDownload = (blob: Blob) => {
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = filename;
+    a.rel = "noopener";
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      try { document.body.removeChild(a); } catch {}
+      URL.revokeObjectURL(blobUrl);
+    }, 1000);
+  };
+
+  // 1. Try a CORS fetch from the browser (residential IP, often unblocked)
+  try {
+    const res = await fetch(imageUrl, { mode: "cors", cache: "no-cache" });
+    if (res.ok) {
+      triggerBlobDownload(await res.blob());
+      return true;
+    }
+  } catch {}
+
+  // 2. Try drawing to a canvas (works if CDN sends Access-Control-Allow-Origin)
+  try {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = imageUrl;
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = () => reject(new Error("Image load failed"));
+      setTimeout(() => reject(new Error("Timeout")), 5000);
+    });
+    const canvas = document.createElement("canvas");
+    canvas.width = img.naturalWidth || 1;
+    canvas.height = img.naturalHeight || 1;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("No canvas context");
+    ctx.drawImage(img, 0, 0);
+    const a = document.createElement("a");
+    a.href = canvas.toDataURL("image/jpeg");
+    a.download = filename;
+    a.click();
+    return true;
+  } catch {}
+
+  // 3. Public image proxy (adds CORS + bypasses datacenter blocks)
+  try {
+    const proxyUrl = `https://images.weserv.nl/?url=${encodeURIComponent(imageUrl)}&output=jpg`;
+    const res = await fetch(proxyUrl, { mode: "cors" });
+    if (res.ok) {
+      triggerBlobDownload(await res.blob());
+      return true;
+    }
+  } catch {}
+
+  // 4. Last resort: open the image in a new tab so the user can save it manually
+  window.open(imageUrl, "_blank", "noopener,noreferrer");
+  return false;
+}
+
+/**
  * Triggers a browser-native download by creating a hidden <a download> element
  * and programmatically clicking it. The browser then hands the request to its
  * native download manager (Chrome's bottom download bar, Firefox's panel, etc.)

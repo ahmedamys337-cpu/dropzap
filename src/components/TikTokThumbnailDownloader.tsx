@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
 import { Download, Loader2, Clipboard, X, Image as ImageIcon, Sparkles, AlertCircle } from "lucide-react";
+import { downloadImageClientSide } from "@/lib/download";
 
 interface Thumb {
   label: string;
@@ -23,6 +24,7 @@ interface Result {
 export default function TikTokThumbnailDownloader() {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [data, setData] = useState<Result | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
@@ -59,27 +61,40 @@ export default function TikTokThumbnailDownloader() {
     }
   };
 
-  const [downloading, setDownloading] = useState(false);
-
   const download = async (thumb: Thumb) => {
     setDownloading(true);
+    const filename = `tiktok-thumbnail-${thumb.width || 0}x${thumb.height || 0}.jpg`;
     try {
       const res = await fetch("/api/thumbnail/download", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url, platform: "tiktok" }),
       });
-      if (!res.ok) throw new Error("Download failed");
-      const blob = await res.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = blobUrl;
-      a.download = `tiktok-thumbnail-${thumb.width || 0}x${thumb.height || 0}.jpg`;
-      a.rel = "noopener";
-      a.style.display = "none";
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => { try { document.body.removeChild(a); } catch {}; URL.revokeObjectURL(blobUrl); }, 1000);
+
+      const contentType = res.headers.get("content-type") || "";
+
+      // Server streamed the image bytes successfully
+      if (res.ok && !contentType.includes("application/json")) {
+        const blob = await res.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = blobUrl;
+        a.download = filename;
+        a.rel = "noopener";
+        a.style.display = "none";
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => { try { document.body.removeChild(a); } catch {}; URL.revokeObjectURL(blobUrl); }, 1000);
+        return;
+      }
+
+      // Server couldn't proxy it; try downloading from the browser instead
+      const json = await res.json().catch(() => ({}));
+      const imageUrl = json?.url || thumb.url;
+      const ok = await downloadImageClientSide(imageUrl, filename);
+      if (!ok) {
+        toast({ title: "Download started", description: "The image opened in a new tab — right-click and Save As.", variant: "default" });
+      }
     } catch (e: any) {
       toast({ title: "Download failed", description: e?.message || "Could not download thumbnail", variant: "destructive" });
     } finally {

@@ -110,6 +110,10 @@ export async function POST(request: NextRequest) {
   const response = await fetchImageAsResponse(imageUrl, filename);
   if (response) return response;
 
-  // If we resolved the URL but can't proxy it, let the browser fetch it directly.
-  return Response.redirect(imageUrl, 302);
+  // If we resolved the URL but can't proxy it from the datacenter, tell the
+  // client to download it directly from the browser (residential IP usually works).
+  return new Response(JSON.stringify({ url: imageUrl, useClient: true }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
 }

@@ -2,6 +2,8 @@
 
 import dynamic from "next/dynamic";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import InstagramThumbnailDownloader from "@/components/InstagramThumbnailDownloader";
+import TikTokThumbnailDownloader from "@/components/TikTokThumbnailDownloader";
 import {
   Instagram,
   Twitter,
@@ -24,14 +26,6 @@ const InstagramDownloader = dynamic(
 );
 const ThumbnailDownloader = dynamic(
   () => import("@/components/ThumbnailDownloader"),
-  { loading: TabSkeleton, ssr: false },
-);
-const InstagramThumbnailDownloader = dynamic(
-  () => import("@/components/InstagramThumbnailDownloader"),
-  { loading: TabSkeleton, ssr: false },
-);
-const TikTokThumbnailDownloader = dynamic(
-  () => import("@/components/TikTokThumbnailDownloader"),
   { loading: TabSkeleton, ssr: false },
 );
 const TwitterDownloader = dynamic(
