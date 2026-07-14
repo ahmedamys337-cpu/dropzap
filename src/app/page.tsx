@@ -60,13 +60,18 @@ const FeatureCard = ({
   iconBg,
   title,
   description,
+  href,
 }: {
   icon: React.ReactNode;
   iconBg: string;
   title: string;
   description: string;
+  href: string;
 }) => (
-  <div className="group glass rounded-xl p-5 hover:bg-white/[0.08] hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+  <a
+    href={href}
+    className="group glass rounded-xl p-5 hover:bg-white/[0.08] hover:-translate-y-1 hover:shadow-lg transition-all duration-300 block"
+  >
     <div
       className={`inline-flex items-center justify-center h-10 w-10 rounded-lg ${iconBg} text-white shadow-md mb-3 group-hover:scale-110 transition-transform duration-300`}
     >
@@ -74,7 +79,7 @@ const FeatureCard = ({
     </div>
     <h3 className="font-bold mb-2">{title}</h3>
     <p className="text-sm text-muted-foreground">{description}</p>
-  </div>
+  </a>
 );
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital";
@@ -203,24 +208,6 @@ export default function Home() {
         <TrustBar />
       </section>
 
-      {/* SEO: Features Section */}
-      <section className="max-w-6xl mx-auto px-4 py-12" aria-labelledby="features-heading">
-        <h2 id="features-heading" className="text-2xl sm:text-3xl font-bold text-center mb-8">
-          Why DropZap is the Best Free Video Downloader
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <FeatureCard icon={<ImageIcon className="h-5 w-5" />} iconBg="bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500" title="Instagram Photos &amp; Carousels" description="Save Instagram photo posts and full carousels — single image as JPG, multi-slide carousels packaged into a clean ZIP." />
-          <FeatureCard icon={<Play className="h-5 w-5" />} iconBg="bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500" title="Instagram Reels Downloader" description="Download Instagram Reels, posts, and IGTV videos directly to your device with full quality preserved." />
-          <FeatureCard icon={<Music2 className="h-5 w-5" />} iconBg="bg-gradient-to-br from-cyan-500 to-pink-500" title="TikTok No Watermark" description="Save TikTok videos without the TikTok logo or watermark — clean HD downloads every time." />
-          <FeatureCard icon={<Twitter className="h-5 w-5" />} iconBg="bg-black" title="Twitter / X Video Downloader" description="Grab any video from Twitter or X posts in the best available resolution with one click." />
-          <FeatureCard icon={<FileAudio className="h-5 w-5" />} iconBg="bg-gradient-to-br from-emerald-500 to-pink-500" title="TikTok to MP3" description="Convert TikTok videos to MP3 audio instantly — save trending sounds, songs, and voiceovers as high-quality audio files." />
-          <FeatureCard icon={<Headphones className="h-5 w-5" />} iconBg="bg-emerald-600" title="MP3 Converter" description="Convert any video file or online video into high-quality MP3 audio for music, podcasts, or learning." />
-          <FeatureCard icon={<ImageIcon className="h-5 w-5" />} iconBg="bg-gradient-to-br from-red-600 to-rose-600" title="Pinterest &amp; Threads" description="Save Pinterest pin images, Idea Pins, and Threads videos &amp; photos in their original quality — single posts or full carousels." />
-          <FeatureCard icon={<Youtube className="h-5 w-5" />} iconBg="bg-red-600" title="YouTube Thumbnail Downloader" description="Grab YouTube video thumbnails in HD, SD, and full resolution. Perfect for creators, marketers, and reference boards." />
-          <FeatureCard icon={<Download className="h-5 w-5" />} iconBg="bg-blue-600" title="Bulk Video Downloader" description="Download multiple links at once. Paste a list of URLs and let DropZap fetch every video in one go." />
-        </div>
-      </section>
-
       {/* SEO: Quick Links to Tool Pages */}
       <section className="max-w-6xl mx-auto px-4 py-12" aria-labelledby="tools-heading">
         <h2 id="tools-heading" className="text-2xl sm:text-3xl font-bold text-center mb-8">
@@ -239,6 +226,24 @@ export default function Home() {
           <ToolCard href="/youtube-thumbnail-downloader" icon={<Youtube className="h-5 w-5" />} iconBg="bg-red-600" title="YouTube Thumbnail" subtitle="HD Cover Images" />
           <ToolCard href="/instagram-thumbnail-downloader" icon={<Instagram className="h-5 w-5" />} iconBg="bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500" title="Instagram Thumbnail" subtitle="Post & Reel Covers" />
           <ToolCard href="/tiktok-thumbnail-downloader" icon={<Music2 className="h-5 w-5" />} iconBg="bg-gradient-to-br from-cyan-500 to-pink-500" title="TikTok Thumbnail" subtitle="No-Watermark Covers" />
+        </div>
+      </section>
+
+      {/* SEO: Features Section */}
+      <section className="max-w-6xl mx-auto px-4 py-12" aria-labelledby="features-heading">
+        <h2 id="features-heading" className="text-2xl sm:text-3xl font-bold text-center mb-8">
+          Why DropZap is the Best Free Video Downloader
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <FeatureCard href="/instagram-downloader" icon={<ImageIcon className="h-5 w-5" />} iconBg="bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500" title="Instagram Photos &amp; Carousels" description="Save Instagram photo posts and full carousels — single image as JPG, multi-slide carousels packaged into a clean ZIP." />
+          <FeatureCard href="/instagram-downloader" icon={<Play className="h-5 w-5" />} iconBg="bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500" title="Instagram Reels Downloader" description="Download Instagram Reels, posts, and IGTV videos directly to your device with full quality preserved." />
+          <FeatureCard href="/tiktok-downloader" icon={<Music2 className="h-5 w-5" />} iconBg="bg-gradient-to-br from-cyan-500 to-pink-500" title="TikTok No Watermark" description="Save TikTok videos without the TikTok logo or watermark — clean HD downloads every time." />
+          <FeatureCard href="/twitter-video-downloader" icon={<Twitter className="h-5 w-5" />} iconBg="bg-black" title="Twitter / X Video Downloader" description="Grab any video from Twitter or X posts in the best available resolution with one click." />
+          <FeatureCard href="/tiktok-to-mp3" icon={<FileAudio className="h-5 w-5" />} iconBg="bg-gradient-to-br from-emerald-500 to-pink-500" title="TikTok to MP3" description="Convert TikTok videos to MP3 audio instantly — save trending sounds, songs, and voiceovers as high-quality audio files." />
+          <FeatureCard href="/mp3-converter" icon={<Headphones className="h-5 w-5" />} iconBg="bg-emerald-600" title="MP3 Converter" description="Convert any video file or online video into high-quality MP3 audio for music, podcasts, or learning." />
+          <FeatureCard href="/pinterest-video-downloader" icon={<ImageIcon className="h-5 w-5" />} iconBg="bg-gradient-to-br from-red-600 to-rose-600" title="Pinterest &amp; Threads" description="Save Pinterest pin images, Idea Pins, and Threads videos &amp; photos in their original quality — single posts or full carousels." />
+          <FeatureCard href="/youtube-thumbnail-downloader" icon={<Youtube className="h-5 w-5" />} iconBg="bg-red-600" title="YouTube Thumbnail Downloader" description="Grab YouTube video thumbnails in HD, SD, and full resolution. Perfect for creators, marketers, and reference boards." />
+          <FeatureCard href="/tools" icon={<Download className="h-5 w-5" />} iconBg="bg-blue-600" title="Bulk Video Downloader" description="Download multiple links at once. Paste a list of URLs and let DropZap fetch every video in one go." />
         </div>
       </section>
 
