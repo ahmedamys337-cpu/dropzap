@@ -196,6 +196,29 @@ body {
   .animate-gradient {
     animation: none;
   }
+
+  /* Shadows and scale transforms are heavy on mobile GPUs during scroll */
+  .shadow-lg,
+  .shadow-md,
+  .shadow-sm,
+  .shadow-2xl,
+  .shadow-xl,
+  .shadow,
+  .shadow-purple-600\/30,
+  .shadow-orange-500\/30,
+  .shadow-pink-600\/30,
+  .shadow-pink-500\/30,
+  .shadow-sky-500\/30,
+  .shadow-emerald-500\/30,
+  .shadow-blue-600\/30,
+  .shadow-red-600\/30,
+  .shadow-emerald-600\/30 {
+    box-shadow: none !important;
+  }
+
+  *:hover {
+    transform: none !important;
+  }
 }
 
 /* Make every Tailwind transition utility feel snappy by default.

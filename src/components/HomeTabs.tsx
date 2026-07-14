@@ -62,13 +62,13 @@ const Mp3Converter = dynamic(
 const noop = () => {};
 
 const tabClass = (active: string, hover: string) =>
-  `flex items-center justify-center gap-1 px-1 py-2 text-[10px] sm:text-xs font-medium cursor-pointer rounded-md bg-foreground/[0.06] border border-foreground/15 text-foreground/80 transition-colors duration-200 hover:text-white whitespace-nowrap ${hover} ${active}`;
+  `flex items-center justify-center gap-1 px-1 py-2 text-[9px] sm:text-[11px] font-medium cursor-pointer rounded-md bg-foreground/[0.06] border border-foreground/15 text-foreground/80 transition-colors duration-200 hover:text-white whitespace-nowrap ${hover} ${active}`;
 
 export default function HomeTabs() {
   return (
     <Tabs defaultValue="instagram" className="space-y-6">
       <div className="pb-2">
-        <TabsList className="glass-strong h-auto p-1.5 gap-1.5 grid grid-cols-5 sm:flex sm:flex-wrap sm:justify-center">
+        <TabsList className="glass-strong h-auto p-1.5 !grid grid-cols-5 gap-1.5 sm:grid-cols-10 sm:gap-2">
           <TabsTrigger
             value="youtube-thumbnail"
             className={tabClass(
