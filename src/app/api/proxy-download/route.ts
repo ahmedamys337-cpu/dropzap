@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -84,7 +85,7 @@ export async function GET(request: NextRequest) {
       headers,
     });
   } catch (err: any) {
-    console.error("Proxy download error:", err.message);
+    logger.error("Proxy download error:", err.message);
     return new Response(JSON.stringify({ error: "Download failed" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },

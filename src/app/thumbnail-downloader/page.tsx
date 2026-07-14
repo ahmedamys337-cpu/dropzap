@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
+import Image from "next/image";
 import { Zap, ImageIcon, Download, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 
 export default function ThumbnailDownloaderPage() {
@@ -111,14 +112,14 @@ export default function ThumbnailDownloaderPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {result.thumbnails.map((t, i) => (
                   <div key={i} className="glass rounded-xl p-3 space-y-3">
-                    <a href={t.url} target="_blank" rel="noopener noreferrer" className="block">
-                      <img
+                    <a href={t.url} target="_blank" rel="noopener noreferrer" className="block relative aspect-video">
+                      <Image
                         src={t.url}
                         alt={t.label}
-                        className="w-full aspect-video object-cover rounded-lg bg-muted"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = "/icon-512.png";
-                        }}
+                        fill
+                        sizes="(max-width: 640px) 100vw, 50vw"
+                        className="object-cover rounded-lg bg-muted"
+                        unoptimized
                       />
                     </a>
                     <div className="flex items-center justify-between">

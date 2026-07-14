@@ -62,13 +62,13 @@ const Mp3Converter = dynamic(
 const noop = () => {};
 
 const tabClass = (active: string, hover: string) =>
-  `flex items-center justify-center gap-1 px-1 py-2 text-[9px] sm:text-[11px] font-medium cursor-pointer rounded-md bg-foreground/[0.06] border border-foreground/15 text-foreground/80 transition-colors duration-200 hover:text-white whitespace-nowrap ${hover} ${active}`;
+  `flex items-center justify-center gap-1 px-1 py-2 text-[9px] sm:text-[11px] font-medium cursor-pointer rounded-md bg-foreground/[0.06] border border-foreground/15 text-foreground/80 transition-colors duration-200 hover:text-white whitespace-nowrap overflow-hidden text-ellipsis ${hover} ${active}`;
 
 export default function HomeTabs() {
   return (
     <Tabs defaultValue="instagram" className="space-y-6">
       <div className="pb-2">
-        <TabsList className="glass-strong h-auto p-1.5 !grid grid-cols-5 gap-1.5 sm:grid-cols-10 sm:gap-2">
+        <TabsList className="glass-strong !h-auto p-1.5 !grid grid-cols-4 gap-1.5 min-[400px]:grid-cols-5 sm:grid-cols-10 sm:gap-2">
           <TabsTrigger
             value="youtube-thumbnail"
             className={tabClass(
@@ -77,7 +77,7 @@ export default function HomeTabs() {
             )}
           >
             <ImageIcon className="h-3.5 w-3.5 shrink-0" />
-            <span className="whitespace-nowrap">YT Thumb</span>
+            <span className="truncate">YT Thumb</span>
           </TabsTrigger>
           <TabsTrigger
             value="instagram-thumbnail"
@@ -87,7 +87,7 @@ export default function HomeTabs() {
             )}
           >
             <Instagram className="h-3.5 w-3.5 shrink-0" />
-            <span className="whitespace-nowrap">IG Thumb</span>
+            <span className="truncate">IG Thumb</span>
           </TabsTrigger>
           <TabsTrigger
             value="tiktok-thumbnail"
@@ -97,7 +97,7 @@ export default function HomeTabs() {
             )}
           >
             <Music2 className="h-3.5 w-3.5 shrink-0" />
-            <span className="whitespace-nowrap">TikTok Thumb</span>
+            <span className="truncate">TikTok Thumb</span>
           </TabsTrigger>
           <TabsTrigger
             value="instagram"
@@ -107,7 +107,7 @@ export default function HomeTabs() {
             )}
           >
             <Instagram className="h-3.5 w-3.5 shrink-0" />
-            <span className="whitespace-nowrap">Instagram</span>
+            <span className="truncate">Instagram</span>
           </TabsTrigger>
           <TabsTrigger
             value="twitter"
@@ -117,7 +117,7 @@ export default function HomeTabs() {
             )}
           >
             <Twitter className="h-3.5 w-3.5 shrink-0" />
-            <span className="whitespace-nowrap">Twitter/X</span>
+            <span className="truncate">Twitter/X</span>
           </TabsTrigger>
           <TabsTrigger
             value="tiktok"
@@ -127,7 +127,7 @@ export default function HomeTabs() {
             )}
           >
             <Music2 className="h-3.5 w-3.5 shrink-0" />
-            <span className="whitespace-nowrap">TikTok</span>
+            <span className="truncate">TikTok</span>
           </TabsTrigger>
           <TabsTrigger
             value="tiktok-mp3"
@@ -137,7 +137,7 @@ export default function HomeTabs() {
             )}
           >
             <FileAudio className="h-3.5 w-3.5 shrink-0" />
-            <span className="whitespace-nowrap">TikTok MP3</span>
+            <span className="truncate">TikTok MP3</span>
           </TabsTrigger>
           <TabsTrigger
             value="facebook"
@@ -147,7 +147,7 @@ export default function HomeTabs() {
             )}
           >
             <Facebook className="h-3.5 w-3.5 shrink-0" />
-            <span className="whitespace-nowrap">Facebook</span>
+            <span className="truncate">Facebook</span>
           </TabsTrigger>
           <TabsTrigger
             value="pinterest"
@@ -157,7 +157,7 @@ export default function HomeTabs() {
             )}
           >
             <ImageIcon className="h-3.5 w-3.5 shrink-0" />
-            <span className="whitespace-nowrap">Pinterest</span>
+            <span className="truncate">Pinterest</span>
           </TabsTrigger>
           <TabsTrigger
             value="mp3"
@@ -167,7 +167,7 @@ export default function HomeTabs() {
             )}
           >
             <FileAudio className="h-3.5 w-3.5 shrink-0" />
-            <span className="whitespace-nowrap">Video MP3</span>
+            <span className="truncate">Video MP3</span>
           </TabsTrigger>
         </TabsList>
       </div>

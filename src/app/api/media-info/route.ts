@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { execFile } from "child_process";
 import { promisify } from "util";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
 
 const execFileAsync = promisify(execFile);
 
@@ -87,7 +88,7 @@ export async function POST(request: NextRequest) {
       : stderr.includes("Unsupported URL")
         ? "This platform or URL is not supported yet."
         : "Could not fetch media from that URL.";
-    console.error("Media info error:", msg, stderr.slice(0, 500));
+    logger.error("Media info error:", msg, stderr.slice(0, 500));
     return NextResponse.json({ error: hint }, { status: 500 });
   }
 }

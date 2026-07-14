@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import Image from "next/image";
 import { QrCode, Download } from "lucide-react";
 
 interface Props {
@@ -55,7 +56,7 @@ export default function QRCodeGenerator({ url, size = 180 }: Props) {
           >
             <p className="text-sm font-semibold text-slate-900 dark:text-white">Scan to open this download</p>
             {dataUrl ? (
-              <img src={dataUrl} alt="QR code to share this download" width={size} height={size} className="rounded-xl" />
+              <Image src={dataUrl} alt="QR code to share this download" width={size} height={size} className="rounded-xl" unoptimized />
             ) : (
               <div className="h-[180px] w-[180px] bg-muted rounded-xl animate-pulse" />
             )}

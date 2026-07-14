@@ -3,6 +3,7 @@ import { execFile } from "child_process";
 import { promisify } from "util";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { getGenericCookiesArgs, getProxyArgs } from "@/lib/ytdlp";
+import { logger } from "@/lib/logger";
 
 const execFileAsync = promisify(execFile);
 
@@ -80,7 +81,7 @@ export async function POST(request: NextRequest) {
       ext: audioOnly ? "m4a" : "mp4",
     });
   } catch (err: any) {
-    console.error("Extract error:", err.message);
+    logger.error("Extract error:", err.message);
     return NextResponse.json(
       { error: "Failed to extract download link. Try again." },
       { status: 500 }

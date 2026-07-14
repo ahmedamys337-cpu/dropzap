@@ -6,6 +6,7 @@ import { tmpdir } from "os";
 import { join } from "path";
 import { readFile, unlink } from "fs/promises";
 import { randomUUID } from "crypto";
+import { logger } from "@/lib/logger";
 
 const execFileAsync = promisify(execFile);
 
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
     return new NextResponse(fileBuffer, { status: 200, headers });
   } catch (err: any) {
     if (tempPath) unlink(tempPath).catch(() => {});
-    console.error("Instagram download error:", err.message);
+    logger.error("Instagram download error:", err.message);
     return NextResponse.json(
       { error: "Failed to download Instagram reel. It may be private or unavailable." },
       { status: 500 }

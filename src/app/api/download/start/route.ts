@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { startDownload } from "@/lib/download-manager";
+import { logger } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
@@ -24,7 +25,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ jobId });
   } catch (err: any) {
-    console.error("Start download error:", err.message);
+    logger.error("Start download error:", err.message);
     return NextResponse.json(
       { error: "Failed to start download." },
       { status: 500 }

@@ -7,8 +7,14 @@ import { writeFile, readFile, unlink } from "fs/promises";
 import { randomUUID } from "crypto";
 import { execFile } from "child_process";
 import { promisify } from "util";
+import { logger } from "@/lib/logger";
 
 const execFileAsync = promisify(execFile);
+
+function safeMp3Filename(name: string): string {
+  const base = name.replace(/\.[^.]+$/, "").replace(/[^\w\s.-]/g, "").trim() || "audio";
+  return `attachment; filename="${base}.mp3"; filename*=UTF-8''${encodeURIComponent(base + ".mp3")}`;
+}
 
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
@@ -64,14 +70,14 @@ export async function POST(request: NextRequest) {
 
     const headers = new Headers();
     headers.set("Content-Type", "audio/mpeg");
-    headers.set("Content-Disposition", `attachment; filename="${file.name.replace(/\.[^.]+$/, ".mp3")}"`);
+    headers.set("Content-Disposition", safeMp3Filename(file.name));
     headers.set("Content-Length", mp3Buffer.length.toString());
 
     return new NextResponse(mp3Buffer, { status: 200, headers });
   } catch (err: any) {
     if (inputPath) unlink(inputPath).catch(() => {});
     if (outputPath) unlink(outputPath).catch(() => {});
-    console.error("MP3 conversion error:", err.message);
+    logger.error("MP3 conversion error:", err.message);
     return NextResponse.json(
       { error: "Conversion failed. Make sure ffmpeg is installed." },
       { status: 500 }

@@ -11,6 +11,7 @@ import { withConcurrencyLimit } from "@/lib/concurrency";
 import { writeFile } from "fs/promises";
 import { getGenericCookiesArgs, getCookieHeader } from "@/lib/ytdlp";
 import { resolveViaCobalt } from "@/lib/cobalt";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -179,7 +180,7 @@ async function extractRedditImageUrls(postUrl: string): Promise<string[] | null>
 
     return null;
   } catch (e: any) {
-    console.warn(`[auto:reddit] extractor threw:`, e?.message);
+    logger.warn(`[auto:reddit] extractor threw:`, e?.message);
     return null;
   }
 }
@@ -238,7 +239,7 @@ async function extractTwitterImageUrls(tweetUrl: string): Promise<string[] | nul
     if (og && og[1]) return [og[1].replace(/&amp;/g, "&")];
     return null;
   } catch (e: any) {
-    console.warn(`[auto:twitter] extractor threw:`, e?.message);
+    logger.warn(`[auto:twitter] extractor threw:`, e?.message);
     return null;
   }
 }
@@ -334,7 +335,7 @@ async function extractPinterestImageUrls(pinUrl: string): Promise<string[] | nul
     }
     return null;
   } catch (e: any) {
-    console.warn(`[auto:pinterest] extractor threw:`, e?.message);
+    logger.warn(`[auto:pinterest] extractor threw:`, e?.message);
     return null;
   }
 }
@@ -350,7 +351,7 @@ async function downloadImagesToWorkDir(urls: string[], workDir: string, platform
       const { ext } = await fetchImageToFile(urls[i], base);
       downloaded.push(`${String(i + 1).padStart(2, "0")}${ext}`);
     } catch (e: any) {
-      console.warn(`[auto:${platform}] image ${i + 1} fetch failed:`, e?.message);
+      logger.warn(`[auto:${platform}] image ${i + 1} fetch failed:`, e?.message);
     }
   }
   return downloaded;
@@ -422,7 +423,7 @@ async function handleDownload(url: string): Promise<Response> {
           return Response.redirect(target.toString(), 302);
         }
       } catch (e: any) {
-        console.warn(`[auto:${platform}] cobalt attempt failed:`, e?.message?.slice(0, 200));
+        logger.warn(`[auto:${platform}] cobalt attempt failed:`, e?.message?.slice(0, 200));
       }
     }
 
@@ -472,7 +473,7 @@ async function handleDownload(url: string): Promise<Response> {
           }
         }
       }
-      console.warn(`[auto:${platform}] yt-dlp failed:`, stderr.slice(0, 400));
+      logger.warn(`[auto:${platform}] yt-dlp failed:`, stderr.slice(0, 400));
       cleanup();
       const privateMsg = /private|login|account|not.*available|requires.*authentication/i.test(stderr);
       const unsupportedMsg = /unsupported url|no video formats/i.test(stderr);
@@ -531,7 +532,7 @@ async function handleDownload(url: string): Promise<Response> {
     cleanup();
     return new Response("No downloadable media found in this post.", { status: 422 });
   } catch (e: any) {
-    console.error(`[auto:${platform}] handler error:`, e?.message);
+    logger.error(`[auto:${platform}] handler error:`, e?.message);
     cleanup();
     return new Response("Failed to download this post", { status: 500 });
   }
@@ -585,7 +586,7 @@ function streamZip(
   const archive = archiver("zip", { zlib: { level: 0 } });
   let lastError: Error | null = null;
   archive.on("error", (err) => { lastError = err; });
-  archive.on("warning", (err) => console.warn(`[auto:${platform}] archiver warn:`, err.message));
+  archive.on("warning", (err) => logger.warn(`[auto:${platform}] archiver warn:`, err.message));
 
   files.forEach((f, i) => {
     const ext = (f.match(/\.[a-z0-9]+$/i)?.[0] || ".bin").toLowerCase();
@@ -595,7 +596,7 @@ function streamZip(
 
   archive.finalize().catch((e) => {
     lastError = e;
-    console.error(`[auto:${platform}] archive.finalize:`, e?.message);
+    logger.error(`[auto:${platform}] archive.finalize:`, e?.message);
   });
 
   const web = new ReadableStream<Uint8Array>({
@@ -604,7 +605,7 @@ function streamZip(
       archive.on("end", () => {
         try { controller.close(); } catch {}
         cleanup();
-        if (lastError) console.warn(`[auto:${platform}] zip ended after error:`, lastError.message);
+        if (lastError) logger.warn(`[auto:${platform}] zip ended after error:`, lastError.message);
       });
     },
     cancel() {

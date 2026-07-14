@@ -8,6 +8,7 @@ import { unlink, stat } from "fs/promises";
 import { createReadStream } from "fs";
 import { randomUUID } from "crypto";
 import { withConcurrencyLimit } from "@/lib/concurrency";
+import { logger } from "@/lib/logger";
 
 const execFileAsync = promisify(execFile);
 
@@ -70,7 +71,7 @@ export async function POST(request: NextRequest) {
     return new Response(webStream, { status: 200, headers });
   } catch (err: any) {
     if (tempPath) unlink(tempPath).catch(() => {});
-    console.error("Twitter download error:", err.message);
+    logger.error("Twitter download error:", err.message);
     return NextResponse.json(
       { error: "Failed to download Twitter video. It may be private or unavailable." },
       { status: 500 }

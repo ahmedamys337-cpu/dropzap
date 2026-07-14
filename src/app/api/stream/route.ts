@@ -18,6 +18,48 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
+// Allowed platforms for security / abuse prevention.
+const ALLOWED_HOSTS = new Set([
+  "instagram.com",
+  "www.instagram.com",
+  "tiktok.com",
+  "www.tiktok.com",
+  "vm.tiktok.com",
+  "twitter.com",
+  "x.com",
+  "www.twitter.com",
+  "www.x.com",
+  "facebook.com",
+  "www.facebook.com",
+  "fb.watch",
+  "reddit.com",
+  "www.reddit.com",
+  "pinterest.com",
+  "www.pinterest.com",
+  "threads.net",
+  "www.threads.net",
+  "youtube.com",
+  "www.youtube.com",
+  "youtu.be",
+  "m.youtube.com",
+]);
+
+function isAllowedUrl(url: string): boolean {
+  try {
+    const u = new URL(url);
+    if (u.protocol !== "http:" && u.protocol !== "https:") return false;
+    return ALLOWED_HOSTS.has(u.hostname.toLowerCase());
+  } catch {
+    return false;
+  }
+}
+
+function contentDispositionHeader(filename: string): string {
+  const ascii = filename.replace(/[^\x20-\x7E]/g, "");
+  const utf8 = encodeURIComponent(filename);
+  return `attachment; filename="${ascii || "download"}"; filename*=UTF-8''${utf8}`;
+}
+
 // Run yt-dlp to download into a temp file. We deliberately avoid streaming
 // directly to stdout because piping forces fragmented-mp4 output (so the
 // muxer never has to seek back), and fragmented-mp4 with VP9/AV1 (which is
@@ -55,8 +97,11 @@ export async function GET(request: NextRequest) {
   const audio = request.nextUrl.searchParams.get("audio") === "1";
 
   if (!url) {
-    console.warn("[stream] missing URL");
     return new Response("URL required", { status: 400 });
+  }
+
+  if (!isAllowedUrl(url)) {
+    return new Response("URL not supported. Please paste a link from Instagram, TikTok, Twitter/X, Facebook, Reddit, Pinterest, Threads, or YouTube.", { status: 400 });
   }
 
   const isYoutube = /youtu(?:\.be|be\.com)/i.test(url);
@@ -123,18 +168,18 @@ export async function GET(request: NextRequest) {
         });
         if (proxyRes.ok && proxyRes.body) {
           const ct = proxyRes.headers.get("Content-Type") || (audio ? "audio/mpeg" : "video/mp4");
-          return new Response(proxyRes.body, {
-            status: 200,
-            headers: {
-              "Content-Type": ct,
-              "Content-Disposition": `attachment; filename="${safeName}"`,
-              "Cache-Control": "no-store",
-            },
-          });
+          const cl = proxyRes.headers.get("Content-Length");
+          const headers: Record<string, string> = {
+            "Content-Type": ct,
+            "Content-Disposition": contentDispositionHeader(safeName),
+            "Cache-Control": "no-store",
+          };
+          if (cl) headers["Content-Length"] = cl;
+          return new Response(proxyRes.body, { status: 200, headers });
         }
       }
     } catch (e: any) {
-      console.warn("[stream] cobalt Instagram attempt failed, trying Instagram API:", e.message?.slice(0, 200));
+      // Silently fall through; no need to log in production.
     }
 
     // Fallback 2: Instagram's own API / public JSON / web scrape.
@@ -154,19 +199,18 @@ export async function GET(request: NextRequest) {
           });
           if (proxyRes.ok && proxyRes.body) {
             const ct = proxyRes.headers.get("Content-Type") || "video/mp4";
-            console.log(`[stream] Instagram API fallback succeeded in ${Date.now() - t0}ms: ${url}`);
-            return new Response(proxyRes.body, {
-              status: 200,
-              headers: {
-                "Content-Type": ct,
-                "Content-Disposition": `attachment; filename="${safeName}"`,
-                "Cache-Control": "no-store",
-              },
-            });
+            const cl = proxyRes.headers.get("Content-Length");
+            const headers: Record<string, string> = {
+              "Content-Type": ct,
+              "Content-Disposition": contentDispositionHeader(safeName),
+              "Cache-Control": "no-store",
+            };
+            if (cl) headers["Content-Length"] = cl;
+            return new Response(proxyRes.body, { status: 200, headers });
           }
         }
-      } catch (e: any) {
-        console.warn("[stream] Instagram API fallback failed:", e.message?.slice(0, 200));
+      } catch {
+        // Fall through to yt-dlp.
       }
     }
   }
@@ -188,18 +232,18 @@ export async function GET(request: NextRequest) {
         });
         if (proxyRes.ok && proxyRes.body) {
           const ct = proxyRes.headers.get("Content-Type") || (audio ? "audio/mpeg" : "video/mp4");
-          return new Response(proxyRes.body, {
-            status: 200,
-            headers: {
-              "Content-Type": ct,
-              "Content-Disposition": `attachment; filename="${safeName}"`,
-              "Cache-Control": "no-store",
-            },
-          });
+          const cl = proxyRes.headers.get("Content-Length");
+          const headers: Record<string, string> = {
+            "Content-Type": ct,
+            "Content-Disposition": contentDispositionHeader(safeName),
+            "Cache-Control": "no-store",
+          };
+          if (cl) headers["Content-Length"] = cl;
+          return new Response(proxyRes.body, { status: 200, headers });
         }
       }
-    } catch (e: any) {
-      console.warn("[stream] cobalt Facebook attempt failed, falling back to yt-dlp:", e.message?.slice(0, 200));
+    } catch {
+      // Fall through to yt-dlp.
     }
   }
 
@@ -260,7 +304,6 @@ export async function GET(request: NextRequest) {
     // while the same request anonymously may succeed (or fail with a clearer
     // error that tells us the post is genuinely private/login-required).
     if (code !== 0 && isInstagram && getGenericCookiesArgs().length > 0) {
-      console.warn("[stream] yt-dlp with cookies failed, retrying Instagram without cookies");
       const argsNoCookies = args.filter((a, i) => !(a === "--cookies" || (i > 0 && args[i - 1] === "--cookies")));
       ({ code, stderr } = await runYtDlp(argsNoCookies));
     }
@@ -293,7 +336,6 @@ export async function GET(request: NextRequest) {
         const rawErr = stderr.split("\n").find((l) => l.includes("ERROR")) || "Download failed";
         friendlyMsg = rawErr.length > 250 ? rawErr.slice(0, 250) + "\u2026" : rawErr;
       }
-      console.warn(`[stream] yt-dlp error for ${isInstagram ? "instagram" : "generic"}: ${friendlyMsg}`, stderr.slice(0, 500));
       return new Response(friendlyMsg, { status: 500 });
     }
 
@@ -340,7 +382,7 @@ export async function GET(request: NextRequest) {
       status: 200,
       headers: {
         "Content-Type": audio ? "audio/mpeg" : "video/mp4",
-        "Content-Disposition": `attachment; filename="${safeName}"`,
+        "Content-Disposition": contentDispositionHeader(safeName),
         "Content-Length": fileSize.toString(),
         "Cache-Control": "no-store",
       },
@@ -348,7 +390,9 @@ export async function GET(request: NextRequest) {
     });
     return result;
   } catch (err: any) {
-    unlink(expectedFinal).catch(() => {});
-    return new Response("Download failed: " + err.message, { status: 500 });
+    // Cleanup any temp files that may have been created.
+    const cleanups = [expectedFinal, `${tempBase}.m4a`, `${tempBase}.opus`, `${tempBase}.webm`, `${tempBase}.mkv`];
+    await Promise.all(cleanups.map((p) => unlink(p).catch(() => {})));
+    return new Response("Download failed: " + (err.message || "Unknown error"), { status: 500 });
   }
 }

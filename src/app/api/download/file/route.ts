@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getJob, cleanupJob } from "@/lib/download-manager";
+import { logger } from "@/lib/logger";
 import { existsSync, createReadStream, statSync } from "fs";
 
 export async function GET(request: NextRequest) {
@@ -58,7 +59,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (err: any) {
-    console.error("File serve error:", err.message);
+    logger.error("File serve error:", err.message);
     return NextResponse.json({ error: "Failed to serve file: " + err.message }, { status: 500 });
   }
 }

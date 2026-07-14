@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { getVideoInfoSkipDownload } from "@/lib/ytdlp";
 import { fetchInstagramThumbnailData, extractIgShortcode } from "@/lib/instagram";
+import { logger } from "@/lib/logger";
 
 const DESKTOP_UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
@@ -170,7 +171,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(data);
       }
     } catch (e: any) {
-      console.warn("[instagram/thumbnail] Consolidated extraction failed:", e.message);
+      logger.warn("[instagram/thumbnail] Consolidated extraction failed:", e.message);
     }
 
     // Strategy 5: yt-dlp as last resort.
@@ -178,7 +179,7 @@ export async function POST(request: NextRequest) {
       const data = await fetchYtdlpThumbnail(url);
       return NextResponse.json(data);
     } catch (ytdlpErr: any) {
-      console.error("[instagram/thumbnail] yt-dlp fallback failed:", ytdlpErr.message);
+      logger.error("[instagram/thumbnail] yt-dlp fallback failed:", ytdlpErr.message);
     }
 
     // Strategy 6: Configurable third-party scraper API (e.g., GrabGram-style endpoint).
@@ -186,10 +187,10 @@ export async function POST(request: NextRequest) {
       const data = await fetchScraperApiThumbnail(url);
       return NextResponse.json(data);
     } catch (scraperErr: any) {
-      console.warn("[instagram/thumbnail] Scraper API fallback failed:", scraperErr.message);
+      logger.warn("[instagram/thumbnail] Scraper API fallback failed:", scraperErr.message);
     }
 
-    console.error(
+    logger.error(
       "[instagram/thumbnail] All strategies failed. Instagram is likely requiring authentication or blocking this server's IP. " +
         "Set MEDIA_COOKIES_INSTAGRAM (fresh Instagram session cookies), YOUTUBE_PROXIES, or INSTAGRAM_SCRAPER_API_URL to restore access."
     );
@@ -202,7 +203,7 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   } catch (err: any) {
-    console.error("Instagram thumbnail error:", err.message);
+    logger.error("Instagram thumbnail error:", err.message);
     return NextResponse.json(
       { error: "Failed to fetch Instagram thumbnail." },
       { status: 500 }

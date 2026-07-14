@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { fetchInstagramThumbnailData } from "@/lib/instagram";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -151,7 +152,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (err: any) {
-    console.error("Thumbnail error:", err?.message);
+    logger.error("Thumbnail error:", err?.message);
     return NextResponse.json(
       { error: err?.message || "Failed to fetch thumbnail." },
       { status: 500 }

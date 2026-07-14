@@ -9,6 +9,7 @@ import archiver from "archiver";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { getGenericCookiesArgs, getCookieHeader, getProxyArgs } from "@/lib/ytdlp";
 import { fetchInstagramImageUrls } from "@/lib/instagram";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -251,7 +252,7 @@ async function fetchFacebookAlbumFbids(
       // cases. Skip the slower /media/set/ mirrors.
       if (m.label === "www-viewer" && all.size >= 2) break;
     } catch (e: any) {
-      console.warn(`[photos:facebook] album:${m.label} threw:`, e?.message);
+      logger.warn(`[photos:facebook] album:${m.label} threw:`, e?.message);
     }
   }
   return Array.from(all).slice(0, 30);
@@ -449,7 +450,7 @@ async function fetchFacebookImageUrl(postUrl: string): Promise<FbPhotoResult> {
         return { url: top.url };
       }
     } catch (e: any) {
-      console.warn(`[photos:facebook] fetch ${c.url} threw:`, e?.message);
+      logger.warn(`[photos:facebook] fetch ${c.url} threw:`, e?.message);
     }
   }
   return { url: null, loginWalled: everWalled };
@@ -556,37 +557,37 @@ async function handleDownload(url: string): Promise<Response> {
     // (no display_url). Bypassing it with the private mobile API is
     // dramatically faster and actually returns full carousel data.
     if (platform === "instagram") {
-      console.time("[photos:instagram] fetchInstagramImageUrls");
+      logger.time("[photos:instagram] fetchInstagramImageUrls");
       const igUrls = await fetchInstagramImageUrls(url);
-      console.timeEnd("[photos:instagram] fetchInstagramImageUrls");
+      logger.timeEnd("[photos:instagram] fetchInstagramImageUrls");
       if (igUrls && igUrls.length > 0) {
-        console.log(`[photos:instagram] Found ${igUrls.length} images, downloading in parallel`);
+        logger.log(`[photos:instagram] Found ${igUrls.length} images, downloading in parallel`);
         const downloaded: string[] = [];
         // Download images in parallel for faster carousel downloads
-        console.time("[photos:instagram] parallel image downloads");
+        logger.time("[photos:instagram] parallel image downloads");
         const downloadPromises = igUrls.map(async (igUrl, i) => {
           const base = join(workDir, String(i + 1).padStart(2, "0"));
           try {
             const { ext } = await fetchToFile(igUrl, base);
             return `${String(i + 1).padStart(2, "0")}${ext}`;
           } catch (e: any) {
-            console.warn(`[photos:instagram] image ${i + 1} fetch failed:`, e?.message);
+            logger.warn(`[photos:instagram] image ${i + 1} fetch failed:`, e?.message);
             return null;
           }
         });
         const results = await Promise.all(downloadPromises);
-        console.timeEnd("[photos:instagram] parallel image downloads");
+        logger.timeEnd("[photos:instagram] parallel image downloads");
         results.forEach((result) => {
           if (result) downloaded.push(result);
         });
-        console.log(`[photos:instagram] Successfully downloaded ${downloaded.length}/${igUrls.length} images`);
+        logger.log(`[photos:instagram] Successfully downloaded ${downloaded.length}/${igUrls.length} images`);
         if (downloaded.length > 0) {
           if (downloaded.length === 1) {
             return streamSingleImage(join(workDir, downloaded[0]), downloaded[0], platform, cleanup);
           }
-          console.time("[photos:instagram] zip creation");
+          logger.time("[photos:instagram] zip creation");
           const result = await streamZip(workDir, downloaded, platform, cleanup);
-          console.timeEnd("[photos:instagram] zip creation");
+          logger.timeEnd("[photos:instagram] zip creation");
           return result;
         }
         // Fell through (all image fetches failed) → try yt-dlp below.
@@ -695,7 +696,7 @@ async function handleDownload(url: string): Promise<Response> {
             const { ext } = await fetchToFile(url, base);
             return `${String(i + 1).padStart(2, "0")}${ext}`;
           } catch (e: any) {
-            console.warn(`[photos:facebook] image ${i + 1} fetch failed:`, e?.message);
+            logger.warn(`[photos:facebook] image ${i + 1} fetch failed:`, e?.message);
             return null;
           }
         });
@@ -755,12 +756,12 @@ async function handleDownload(url: string): Promise<Response> {
     // already handles cookie-based extraction. If we reach yt-dlp fallback,
     // try without cookies first to avoid the 30+ second retry delay.
     if (platform === "instagram" && getGenericCookiesArgs().length > 0) {
-      console.warn("[photos:instagram] skipping cookie retry in yt-dlp fallback (fast path should handle cookies)");
+      logger.warn("[photos:instagram] skipping cookie retry in yt-dlp fallback (fast path should handle cookies)");
       const argsNoCookies = argsWithCookies.filter((a, i) => !(a === "--cookies" || (i > 0 && argsWithCookies[i - 1] === "--cookies")));
       ({ code, stdout, stderr } = await runYtDlpJson(argsNoCookies));
     } else if (code !== 0 && getGenericCookiesArgs().length > 0) {
       // For other platforms, retry without cookies on failure
-      console.warn(`[photos:${platform}] yt-dlp -j with cookies failed, retrying without cookies`);
+      logger.warn(`[photos:${platform}] yt-dlp -j with cookies failed, retrying without cookies`);
       const argsNoCookies = argsWithCookies.filter((a, i) => !(a === "--cookies" || (i > 0 && argsWithCookies[i - 1] === "--cookies")));
       ({ code, stdout, stderr } = await runYtDlpJson(argsNoCookies));
     }
@@ -775,16 +776,16 @@ async function handleDownload(url: string): Promise<Response> {
     }
 
     if (entries.length === 0) {
-      console.warn(`[photos:${platform}] yt-dlp -j produced no entries (code=${code}):`, stderr.slice(0, 400));
+      logger.warn(`[photos:${platform}] yt-dlp -j produced no entries (code=${code}):`, stderr.slice(0, 400));
 
       // Fallback: yt-dlp may still download the media files directly even when
       // JSON metadata extraction fails. Try a plain download before giving up.
       let { files: directFiles } = await downloadFilesWithYtDlp(url, workDir, platform === "instagram" ? false : true);
       if (directFiles.length === 0 && platform === "instagram" && getGenericCookiesArgs().length > 0) {
-        console.warn("[photos:instagram] direct download without cookies also failed, trying with cookies as last resort");
+        logger.warn("[photos:instagram] direct download without cookies also failed, trying with cookies as last resort");
         ({ files: directFiles } = await downloadFilesWithYtDlp(url, workDir, true));
       } else if (directFiles.length === 0 && getGenericCookiesArgs().length > 0) {
-        console.warn("[photos:instagram] direct download with cookies failed, retrying without cookies");
+        logger.warn("[photos:instagram] direct download with cookies failed, retrying without cookies");
         ({ files: directFiles } = await downloadFilesWithYtDlp(url, workDir, false));
       }
       const imageFiles = directFiles.filter((f) => IMAGE_EXT_RE.test(f));
@@ -827,7 +828,7 @@ async function handleDownload(url: string): Promise<Response> {
         formats_count: Array.isArray(first.formats) ? first.formats.length : 0,
         keys: Object.keys(first).slice(0, 25),
       };
-      console.warn(`[photos:${platform}] no images extracted; first-entry summary:`, JSON.stringify(summary));
+      logger.warn(`[photos:${platform}] no images extracted; first-entry summary:`, JSON.stringify(summary));
       cleanup();
       // Instagram specifically: if the resolved entry is a video (mp4, etc.),
       // the user picked the wrong downloader. Otherwise, every extraction method
@@ -862,7 +863,7 @@ async function handleDownload(url: string): Promise<Response> {
         const { ext } = await fetchToFile(url, base);
         return `${String(i + 1).padStart(2, "0")}${ext}`;
       } catch (e: any) {
-        console.warn(`[photos:${platform}] image ${i + 1} fetch failed:`, e?.message);
+        logger.warn(`[photos:${platform}] image ${i + 1} fetch failed:`, e?.message);
         return null;
       }
     });
@@ -881,7 +882,7 @@ async function handleDownload(url: string): Promise<Response> {
     }
     return streamZip(workDir, downloaded, platform, cleanup);
   } catch (e: any) {
-    console.error(`[photos:${platform}] handler error:`, e?.message);
+    logger.error(`[photos:${platform}] handler error:`, e?.message);
     cleanup();
     return new Response("Failed to download photos", { status: 500 });
   }
@@ -934,7 +935,7 @@ function streamZip(
   const archive = archiver("zip", { zlib: { level: 0 } });
   let lastError: Error | null = null;
   archive.on("error", (err) => { lastError = err; });
-  archive.on("warning", (err) => console.warn(`[photos:${platform}] archiver warn:`, err.message));
+  archive.on("warning", (err) => logger.warn(`[photos:${platform}] archiver warn:`, err.message));
 
   images.forEach((img, i) => {
     const ext = (img.match(/\.[a-z0-9]+$/i)?.[0] || ".jpg").toLowerCase();
@@ -943,7 +944,7 @@ function streamZip(
 
   archive.finalize().catch((e) => {
     lastError = e;
-    console.error(`[photos:${platform}] archive.finalize:`, e?.message);
+    logger.error(`[photos:${platform}] archive.finalize:`, e?.message);
   });
 
   const web = new ReadableStream<Uint8Array>({
@@ -952,7 +953,7 @@ function streamZip(
       archive.on("end", () => {
         try { controller.close(); } catch {}
         cleanup();
-        if (lastError) console.warn(`[photos:${platform}] zip ended after error:`, lastError.message);
+        if (lastError) logger.warn(`[photos:${platform}] zip ended after error:`, lastError.message);
       });
     },
     cancel() {

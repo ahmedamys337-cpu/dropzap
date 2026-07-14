@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
 
 function extractVideoId(url: string): string | null {
   const patterns = [
@@ -80,7 +81,7 @@ export async function POST(request: NextRequest) {
       thumbnails,
     });
   } catch (err: any) {
-    console.error("Thumbnail error:", err.message);
+    logger.error("Thumbnail error:", err.message);
     return NextResponse.json(
       { error: "Failed to fetch thumbnails." },
       { status: 500 }
