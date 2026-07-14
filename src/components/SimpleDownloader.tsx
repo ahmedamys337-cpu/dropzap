@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { safeFilename } from "@/lib/download";
+import { safeFilename, fetchWithProgress, type DownloadProgress as ProgressInfo } from "@/lib/download";
+import DownloadProgressBar from "@/components/DownloadProgressBar";
 import { addDownloadHistory } from "@/lib/download-history";
 import DownloadSuccessActions from "@/components/DownloadSuccessActions";
 import DownloadErrorFallback from "@/components/DownloadErrorFallback";
@@ -91,6 +92,7 @@ export default function SimpleDownloader({
   //                 the actual error. Button is re-enabled for retry.
   const [phase, setPhase] = useState<"idle" | "downloading" | "downloaded" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [progress, setProgress] = useState<ProgressInfo | null>(null);
   const { toast } = useToast();
 
   const abortRef = useRef<AbortController | null>(null);
@@ -175,28 +177,25 @@ export default function SimpleDownloader({
     const streamUrl = `${basePath}?${params.toString()}`;
 
     setErrorMsg(null);
+    setProgress(null);
     setPhase("downloading");
     onDownload?.(`${platform} ${mediaTypeLabel}`, url, mediaTypeLabel);
 
     const controller = new AbortController();
     abortRef.current = controller;
 
-    fetch(streamUrl, { signal: controller.signal })
-      .then(async (res) => {
-        if (!res.ok) {
-          const text = await res.text().catch(() => `Server error (${res.status})`);
-          const msg = text?.trim() || `Download failed (${res.status})`;
-          setErrorMsg(msg);
-          setPhase("error");
-          return;
-        }
-        const blob = await res.blob();
-        const finalName = inferFilename(res, blob, defaultName);
+    fetchWithProgress(
+      streamUrl,
+      (p) => setProgress(p),
+      controller.signal,
+    )
+      .then(({ blob, response }) => {
+        const finalName = inferFilename(response, blob, defaultName);
         doDownload(blob, finalName);
       })
       .catch((err: any) => {
         if (err?.name === "AbortError") return;
-        const msg = "Network error. Check your connection and try again.";
+        const msg = err?.message || "Network error. Check your connection and try again.";
         setErrorMsg(msg);
         setPhase("error");
       });
@@ -315,14 +314,9 @@ export default function SimpleDownloader({
         )}
       </Button>
 
-      {/* Inline downloading hint while fetch is still running after ad. */}
+      {/* Real-time download progress bar with percentage, speed, and ETA */}
       {isDownloading && (
-        <div className="flex items-center justify-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/15 dark:bg-amber-500/10 px-4 py-3 animate-in fade-in duration-200">
-          <Loader2 className="h-4 w-4 animate-spin text-amber-700 dark:text-amber-300" />
-          <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
-            Downloading… your file will appear in the browser&apos;s download bar in a moment.
-          </p>
-        </div>
+        <DownloadProgressBar progress={progress} label="Downloading" />
       )}
 
       {/* Error banner — shows server error text so user knows exactly what failed. */}

@@ -125,7 +125,7 @@ export default function DownloadCountdown({ streamUrl, filename, onClose }: Down
       }
 
       // Build blob and trigger save
-      const blob = new Blob(chunks);
+      const blob = new Blob(chunks as BlobPart[]);
       const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = blobUrl;

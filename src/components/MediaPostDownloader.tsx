@@ -5,7 +5,8 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { triggerNativeDownload, proxyDownloadUrl, safeFilename } from "@/lib/download";
+import { triggerNativeDownload, proxyDownloadUrl, safeFilename, fetchWithProgress, type DownloadProgress as ProgressInfo } from "@/lib/download";
+import DownloadProgressBar from "@/components/DownloadProgressBar";
 import {
   Download,
   Loader2,
@@ -13,6 +14,7 @@ import {
   X,
   Video as VideoIcon,
   Image as ImageIcon,
+  CheckCircle2,
 } from "lucide-react";
 
 /**
@@ -73,6 +75,9 @@ export default function MediaPostDownloader({
   const [url, setUrl] = useState("");
   const [phase, setPhase] = useState<Phase>("idle");
   const [info, setInfo] = useState<MediaInfo | null>(null);
+  const [downloadingIdx, setDownloadingIdx] = useState<number | null>(null);
+  const [progress, setProgress] = useState<ProgressInfo | null>(null);
+  const [doneIdx, setDoneIdx] = useState<Set<number>>(new Set());
   const { toast } = useToast();
 
   const start = async () => {
@@ -103,29 +108,48 @@ export default function MediaPostDownloader({
     }
   };
 
-  const downloadItem = (item: MediaItem, idx: number) => {
+  const downloadItem = async (item: MediaItem, idx: number) => {
     if (!info) return;
     const base = safeFilename(info.title || filePrefix, filePrefix);
     const suffix = info.items.length > 1 ? `-${idx + 1}` : "";
     const ext = item.ext || (item.type === "image" ? "jpg" : "mp4");
     const name = `${base}${suffix}.${ext}`;
 
-    if (item.type === "video") {
-      // Videos always go through /api/stream so yt-dlp re-resolves the CDN URL
-      // (they expire) and we get the correct Content-Disposition header.
-      const streamUrl = `/api/stream?url=${encodeURIComponent(url)}&name=${encodeURIComponent(name)}`;
-      triggerNativeDownload(streamUrl, name);
-    } else {
-      // Images: our proxy-download route re-headers the response so the browser
-      // saves instead of displaying inline.
-      triggerNativeDownload(proxyDownloadUrl(item.url, name), name);
-    }
+    setDownloadingIdx(idx);
+    setProgress(null);
+    setDoneIdx((prev) => { const next = new Set(prev); next.delete(idx); return next; });
 
-    onDownload?.(
-      info.title || `${platform} Media`,
-      url,
-      item.type === "video" ? "Video MP4" : "Image",
-    );
+    try {
+      if (item.type === "video") {
+        const streamUrl = `/api/stream?url=${encodeURIComponent(url)}&name=${encodeURIComponent(name)}`;
+        const { blob } = await fetchWithProgress(streamUrl, (p) => setProgress(p));
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = blobUrl;
+        a.download = name;
+        a.style.display = "none";
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          try { document.body.removeChild(a); } catch {}
+          URL.revokeObjectURL(blobUrl);
+        }, 1000);
+      } else {
+        triggerNativeDownload(proxyDownloadUrl(item.url, name), name);
+      }
+
+      setDoneIdx((prev) => new Set(prev).add(idx));
+      onDownload?.(
+        info.title || `${platform} Media`,
+        url,
+        item.type === "video" ? "Video MP4" : "Image",
+      );
+    } catch (err: any) {
+      toast({ title: "Download failed", description: err.message, variant: "destructive" });
+    } finally {
+      setDownloadingIdx(null);
+      setProgress(null);
+    }
   };
 
   const paste = async () => {
@@ -138,6 +162,9 @@ export default function MediaPostDownloader({
     setUrl("");
     setInfo(null);
     setPhase("idle");
+    setDownloadingIdx(null);
+    setProgress(null);
+    setDoneIdx(new Set());
   };
 
   const isProcessing = phase === "processing";
@@ -263,16 +290,23 @@ export default function MediaPostDownloader({
                       {dims ? ` · ${dims}` : ""}
                     </span>
                   </div>
-                  <div className="p-3">
+                  <div className="p-3 space-y-2">
                     <Button
                       onClick={() => downloadItem(item, idx)}
+                      disabled={downloadingIdx !== null}
                       className={`w-full font-semibold text-white transition-all hover:scale-[1.02] ${buttonClassName}`}
                     >
-                      <Download className="h-4 w-4 mr-2" />
-                      Download {item.type === "video" ? "Video" : "Image"}
-                      {info.items.length > 1 ? ` ${idx + 1}` : ""}
-                      {dims ? ` (${dims})` : ""}
+                      {downloadingIdx === idx ? (
+                        <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Downloading…</>
+                      ) : doneIdx.has(idx) ? (
+                        <><CheckCircle2 className="h-4 w-4 mr-2" /> Downloaded ✓</>
+                      ) : (
+                        <><Download className="h-4 w-4 mr-2" /> Download {item.type === "video" ? "Video" : "Image"}{info.items.length > 1 ? ` ${idx + 1}` : ""}{dims ? ` (${dims})` : ""}</>
+                      )}
                     </Button>
+                    {downloadingIdx === idx && item.type === "video" && (
+                      <DownloadProgressBar progress={progress} label="Downloading" />
+                    )}
                   </div>
                 </div>
               );

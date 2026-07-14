@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/components/ui/use-toast";
+import { formatBytes, type DownloadProgress as ProgressInfo } from "@/lib/download";
 import { Upload, Loader2, Download, FileAudio, X } from "lucide-react";
 
 const ACCEPTED_FORMATS = ".mp4,.mkv,.avi,.mov,.webm,.flv,.wmv";
@@ -13,6 +14,8 @@ export default function Mp3Converter() {
   const [file, setFile] = useState<File | null>(null);
   const [converting, setConverting] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [dlProgress, setDlProgress] = useState<ProgressInfo | null>(null);
+  const [phase, setPhase] = useState<"idle" | "uploading" | "converting" | "downloading" | "done">("idle");
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -29,25 +32,53 @@ export default function Mp3Converter() {
   const convert = async () => {
     if (!file) return;
     setConverting(true);
-    setProgress(20);
+    setProgress(10);
+    setPhase("uploading");
+    setDlProgress(null);
 
     try {
       const formData = new FormData();
       formData.append("file", file);
 
-      setProgress(40);
+      setProgress(30);
+      setPhase("converting");
       const res = await fetch("/api/convert/mp3", {
         method: "POST",
         body: formData,
       });
 
-      setProgress(80);
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error || "Conversion failed");
       }
 
-      const blob = await res.blob();
+      setPhase("downloading");
+      setProgress(60);
+
+      // Read the response body as a stream for real progress tracking
+      const contentLength = res.headers.get("content-length");
+      const total = contentLength ? parseInt(contentLength, 10) : null;
+      const reader = res.body?.getReader();
+      const chunks: Uint8Array[] = [];
+      let downloaded = 0;
+      const startTime = Date.now();
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          if (value) { chunks.push(value); downloaded += value.length; }
+          const elapsed = (Date.now() - startTime) / 1000;
+          const speed = elapsed > 0 ? downloaded / elapsed : 0;
+          const percent = total ? Math.min(Math.round((downloaded / total) * 100), 99) : null;
+          const eta = total && speed > 0 ? (total - downloaded) / speed : null;
+          setDlProgress({ downloaded, total, speed, eta, percent });
+          if (percent !== null) setProgress(60 + Math.round(percent * 0.4));
+        }
+      }
+
+      const blob = new Blob(chunks as BlobPart[], { type: "audio/mpeg" });
+
       const name = file.name.replace(/\.[^.]+$/, ".mp3");
       const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -61,12 +92,17 @@ export default function Mp3Converter() {
         URL.revokeObjectURL(blobUrl);
       }, 1000);
       setProgress(100);
+      setPhase("done");
       toast({ title: "Converted", description: `${name} is ready` });
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
       setConverting(false);
-      setTimeout(() => setProgress(0), 1000);
+      setTimeout(() => {
+        setProgress(0);
+        setPhase("idle");
+        setDlProgress(null);
+      }, 1500);
     }
   };
 
@@ -170,11 +206,29 @@ export default function Mp3Converter() {
       )}
 
       {progress > 0 && (
-        <div className="space-y-1">
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-sm">
+            <span className="font-medium">
+              {phase === "uploading" ? "Uploading file…" :
+               phase === "converting" ? "Converting to MP3…" :
+               phase === "downloading" ? "Downloading MP3…" :
+               "Done!"}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              {phase === "downloading" && dlProgress
+                ? `${dlProgress.percent ?? 0}% · ${dlProgress.speed > 0 ? formatBytes(dlProgress.speed) + "/s" : ""}`
+                : `${progress}%`}
+            </span>
+          </div>
           <Progress value={progress} className="h-2" />
-          <p className="text-xs text-muted-foreground text-center">
-            {progress < 100 ? "Converting..." : "Done!"}
-          </p>
+          {phase === "downloading" && dlProgress && (
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>{formatBytes(dlProgress.downloaded)}{dlProgress.total ? ` / ${formatBytes(dlProgress.total)}` : ""}</span>
+              {dlProgress.eta !== null && dlProgress.eta !== undefined && dlProgress.eta > 0 && (
+                <span>~{Math.round(dlProgress.eta)}s remaining</span>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/use-toast";
+import { fetchWithProgress, formatBytes, type DownloadProgress as ProgressInfo } from "@/lib/download";
 import { Download, Loader2, Plus, Trash2, Play, CheckCircle2, XCircle, Clock, ExternalLink } from "lucide-react";
 
 interface QueueItem {
@@ -14,6 +15,7 @@ interface QueueItem {
   downloadUrl?: string;
   filename?: string;
   error?: string;
+  progress?: ProgressInfo | null;
 }
 
 const VALID_URL_PATTERN = /^https?:\/\/(www\.)?(instagram\.com|tiktok\.com|twitter\.com|x\.com|facebook\.com|reddit\.com|pinterest\.com|threads\.net)\//i;
@@ -48,19 +50,19 @@ export default function BulkDownloader() {
 
   const extractOne = useCallback(async (item: QueueItem) => {
     setQueue((prev) =>
-      prev.map((q) => (q.id === item.id ? { ...q, status: "extracting" } : q))
+      prev.map((q) => (q.id === item.id ? { ...q, status: "extracting", progress: null } : q))
     );
 
     try {
       const filename = `download-${item.id.slice(0, 8)}.mp4`;
       const streamUrl = `/api/stream?url=${encodeURIComponent(item.url)}&name=${encodeURIComponent(filename)}`;
 
-      const res = await fetch(streamUrl);
-      if (!res.ok) {
-        const text = await res.text().catch(() => "Download failed");
-        throw new Error(text || `Download failed (${res.status})`);
-      }
-      const blob = await res.blob();
+      const { blob } = await fetchWithProgress(streamUrl, (p) => {
+        setQueue((prev) =>
+          prev.map((q) => (q.id === item.id ? { ...q, progress: p } : q))
+        );
+      });
+
       const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = blobUrl;
@@ -75,13 +77,13 @@ export default function BulkDownloader() {
 
       setQueue((prev) =>
         prev.map((q) =>
-          q.id === item.id ? { ...q, status: "ready", downloadUrl: item.url, filename } : q
+          q.id === item.id ? { ...q, status: "ready", downloadUrl: item.url, filename, progress: null } : q
         )
       );
     } catch (err: any) {
       setQueue((prev) =>
         prev.map((q) =>
-          q.id === item.id ? { ...q, status: "error", error: err.message } : q
+          q.id === item.id ? { ...q, status: "error", error: err.message, progress: null } : q
         )
       );
     }
@@ -144,8 +146,27 @@ export default function BulkDownloader() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm truncate">{item.url}</p>
-                    {item.status === "extracting" && (
-                      <p className="text-xs text-blue-400 mt-1">Extracting download link...</p>
+                    {item.status === "extracting" && item.progress && (
+                      <div className="mt-1.5 space-y-1">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-blue-400 font-medium">
+                            {item.progress.percent !== null && item.progress.percent !== undefined ? `${item.progress.percent}%` : "Downloading…"}
+                          </span>
+                          <span className="text-muted-foreground">
+                            {item.progress.speed > 0 ? `${formatBytes(item.progress.speed)}/s` : ""}
+                            {item.progress.eta !== null && item.progress.eta !== undefined && item.progress.eta > 0 ? ` · ~${Math.round(item.progress.eta)}s left` : ""}
+                          </span>
+                        </div>
+                        <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+                          <div
+                            className="h-full bg-blue-500 rounded-full transition-all duration-300"
+                            style={{ width: `${item.progress.percent ?? 0}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                    {item.status === "extracting" && !item.progress && (
+                      <p className="text-xs text-blue-400 mt-1">Starting download…</p>
                     )}
                     {item.status === "ready" && item.downloadUrl && (
                       <a

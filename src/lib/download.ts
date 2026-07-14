@@ -53,3 +53,110 @@ export function safeFilename(raw: string, fallback = "download"): string {
     .slice(0, 80);
   return cleaned || fallback;
 }
+
+export interface DownloadProgress {
+  /** Bytes received so far. */
+  downloaded: number;
+  /** Total bytes from Content-Length, or null if unknown. */
+  total: number | null;
+  /** Download speed in bytes per second. */
+  speed: number;
+  /** Estimated seconds remaining, or null if unknown. */
+  eta: number | null;
+  /** 0–100 progress percentage, or null if total is unknown. */
+  percent: number | null;
+}
+
+/**
+ * Fetches a URL with real-time download progress tracking via the
+ * ReadableStream API. Calls onProgress on each chunk received.
+ * Returns the blob and the original Response (for header inspection).
+ */
+export async function fetchWithProgress(
+  url: string,
+  onProgress: (p: DownloadProgress) => void,
+  signal?: AbortSignal,
+): Promise<{ blob: Blob; response: Response }> {
+  const res = await fetch(url, { signal });
+  if (!res.ok) {
+    const text = await res.text().catch(() => `Server error (${res.status})`);
+    throw new Error(text?.trim() || `Download failed (${res.status})`);
+  }
+
+  const contentLength = res.headers.get("content-length");
+  const total = contentLength ? parseInt(contentLength, 10) : null;
+
+  // If no streaming body, fall back to blob()
+  if (!res.body) {
+    const blob = await res.blob();
+    onProgress({
+      downloaded: blob.size,
+      total: blob.size,
+      speed: 0,
+      eta: 0,
+      percent: 100,
+    });
+    return { blob, response: res };
+  }
+
+  const reader = res.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let downloaded = 0;
+  const startTime = Date.now();
+  let lastTime = startTime;
+  let lastLoaded = 0;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    if (value) {
+      chunks.push(value);
+      downloaded += value.length;
+    }
+
+    const now = Date.now();
+    if (now - lastTime >= 300) {
+      const elapsed = (now - startTime) / 1000;
+      const speed = elapsed > 0 ? downloaded / elapsed : 0;
+      const eta = total && speed > 0 ? (total - downloaded) / speed : null;
+      const percent = total ? Math.min(Math.round((downloaded / total) * 100), 99) : null;
+      onProgress({ downloaded, total, speed, eta, percent });
+      lastTime = now;
+      lastLoaded = downloaded;
+    }
+  }
+
+  // Final progress update
+  const elapsed = (Date.now() - startTime) / 1000;
+  const speed = elapsed > 0 ? downloaded / elapsed : 0;
+  onProgress({
+    downloaded,
+    total: total ?? downloaded,
+    speed,
+    eta: 0,
+    percent: 100,
+  });
+
+  const blob = new Blob(chunks as BlobPart[], {
+    type: res.headers.get("content-type") || "application/octet-stream",
+  });
+  return { blob, response: res };
+}
+
+/** Formats bytes into a human-readable string (e.g. "1.5 MB"). */
+export function formatBytes(bytes: number): string {
+  if (bytes === 0) return "0 B";
+  const k = 1024;
+  const sizes = ["B", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
+}
+
+/** Formats seconds into a human-readable duration (e.g. "1m 30s"). */
+export function formatEta(seconds: number): string {
+  if (seconds < 1) return "0s";
+  if (seconds < 60) return `${Math.round(seconds)}s`;
+  const m = Math.floor(seconds / 60);
+  const s = Math.round(seconds % 60);
+  return `${m}m ${s}s`;
+}
