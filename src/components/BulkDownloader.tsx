@@ -151,7 +151,7 @@ export default function BulkDownloader() {
                         <div className="flex items-center justify-between text-xs">
                           <span className="text-blue-400 font-medium">
                             {item.progress.phase === "fetching"
-                              ? "Fetching from source…"
+                              ? "Downloading…"
                               : item.progress.percent !== null && item.progress.percent !== undefined
                                 ? `${item.progress.percent}%`
                                 : "Downloading…"}

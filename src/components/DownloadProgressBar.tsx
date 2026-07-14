@@ -26,7 +26,7 @@ export default function DownloadProgressBar({ progress, label = "Downloading" }:
           <span className="flex items-center gap-2">
             <Server className="h-4 w-4 animate-pulse text-blue-600 dark:text-blue-400" />
             <span className="font-semibold text-blue-800 dark:text-blue-200">
-              Fetching video from source…
+              Downloading…
             </span>
           </span>
           <span className="text-xs text-blue-700/80 dark:text-blue-300/80">
@@ -38,7 +38,7 @@ export default function DownloadProgressBar({ progress, label = "Downloading" }:
           <div className="absolute inset-y-0 w-1/3 rounded-full bg-blue-500 animate-indeterminate" />
         </div>
         <p className="text-xs text-blue-700/70 dark:text-blue-300/70">
-          The server is extracting and preparing your video. Download will start automatically.
+          The server is preparing your video. Download will start automatically.
         </p>
       </div>
     );
