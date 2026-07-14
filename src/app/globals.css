@@ -70,6 +70,23 @@
 
 body {
   min-height: 100vh;
+  background: linear-gradient(135deg,
+    hsl(222 47% 6%) 0%,
+    hsl(240 30% 10%) 25%,
+    hsl(260 35% 12%) 50%,
+    hsl(240 30% 10%) 75%,
+    hsl(222 47% 6%) 100%
+  );
+}
+
+.light body {
+  background: linear-gradient(135deg,
+    hsl(220 60% 95%) 0%,
+    hsl(250 70% 95%) 25%,
+    hsl(270 60% 96%) 50%,
+    hsl(250 70% 95%) 75%,
+    hsl(220 60% 95%) 100%
+  );
 }
 
 /* Dark theme (default base styling) */
@@ -163,6 +180,15 @@ body {
     background: rgba(255, 255, 255, 0.95);
   }
   .light .glass-strong {
+    background: rgba(255, 255, 255, 0.98);
+  }
+
+  /* Mobile sticky header: solid surface prevents white blank showing
+     through the translucent glass during momentum scroll/paint. */
+  header.sticky {
+    background: rgba(20, 24, 40, 0.98);
+  }
+  .light header.sticky {
     background: rgba(255, 255, 255, 0.98);
   }
 
