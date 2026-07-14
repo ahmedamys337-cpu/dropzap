@@ -9,7 +9,6 @@ import archiver from "archiver";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { getGenericCookiesArgs, getCookieHeader, getProxyArgs } from "@/lib/ytdlp";
 import { fetchInstagramImageUrls } from "@/lib/instagram";
-import { resolveViaCobalt } from "@/lib/cobalt";
 import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
@@ -594,25 +593,7 @@ async function handleDownload(url: string): Promise<Response> {
         // Fell through (all image fetches failed) → try cobalt/yt-dlp below.
       }
 
-      // Cobalt fast path: mirrors the working Instagram Reel flow. Cobalt
-      // sometimes resolves carousel posts as a picker of direct image URLs.
-      try {
-        const cobalt = await resolveViaCobalt({ url, videoQuality: "1080" });
-        if (cobalt) {
-          logger.log(`[photos:instagram] cobalt resolved, downloading ${cobalt.url}`);
-          const base = join(workDir, "01");
-          try {
-            const { ext } = await fetchToFile(cobalt.url, base);
-            return streamSingleImage(join(workDir, `01${ext}`), `01${ext}`, platform, cleanup);
-          } catch (e: any) {
-            logger.warn(`[photos:instagram] cobalt single download failed:`, e?.message);
-          }
-        }
-      } catch (e: any) {
-        logger.warn(`[photos:instagram] cobalt threw:`, e?.message);
-      }
-
-      // igUrls null/empty and cobalt failed → post might be a video, or API blocked us.
+      // igUrls null/empty → post might be a video, or API blocked us.
       // Fall through to yt-dlp which can handle other shapes.
     }
 

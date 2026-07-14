@@ -267,7 +267,7 @@ async function fetchInstagramPrivateMedia(
 // Extract a raw Instagram media item using private API, then public JSON, then
 // web scraping. Each source is tried in order; the first one to return usable
 // data wins. This mirrors the extraction already used in /api/photos.
-async function fetchInstagramMedia(
+export async function fetchInstagramMedia(
   postUrl: string,
 ): Promise<{ images: string[]; video: string | null; source: string } | null> {
   const cookieHeader = getInstagramCookieHeader();

@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
 import { Download, Loader2, Clipboard, X, Image as ImageIcon, Sparkles, AlertCircle } from "lucide-react";
-import { proxyDownloadUrl } from "@/lib/download";
 
 interface Thumb {
   label: string;
@@ -60,17 +59,32 @@ export default function TikTokThumbnailDownloader() {
     }
   };
 
-  const download = (thumb: Thumb) => {
-    const filename = `tiktok-thumbnail-${thumb.width || 0}x${thumb.height || 0}.jpg`;
-    const proxyUrl = proxyDownloadUrl(thumb.url, filename);
-    const a = document.createElement("a");
-    a.href = proxyUrl;
-    a.download = filename;
-    a.rel = "noopener";
-    a.style.display = "none";
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => { try { document.body.removeChild(a); } catch {} }, 1000);
+  const [downloading, setDownloading] = useState(false);
+
+  const download = async (thumb: Thumb) => {
+    setDownloading(true);
+    try {
+      const res = await fetch("/api/thumbnail/download", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url, platform: "tiktok" }),
+      });
+      if (!res.ok) throw new Error("Download failed");
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = `tiktok-thumbnail-${thumb.width || 0}x${thumb.height || 0}.jpg`;
+      a.rel = "noopener";
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { try { document.body.removeChild(a); } catch {}; URL.revokeObjectURL(blobUrl); }, 1000);
+    } catch (e: any) {
+      toast({ title: "Download failed", description: e?.message || "Could not download thumbnail", variant: "destructive" });
+    } finally {
+      setDownloading(false);
+    }
   };
 
   const paste = async () => {
@@ -154,7 +168,7 @@ export default function TikTokThumbnailDownloader() {
             <div className="relative bg-black">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={proxyDownloadUrl(data.thumbnails[0].url, "tiktok-thumbnail-preview.jpg")}
+                src={data.thumbnails[0].url}
                 alt="TikTok thumbnail"
                 className="w-full h-auto"
               />
@@ -176,8 +190,8 @@ export default function TikTokThumbnailDownloader() {
                 onClick={() => download(data.thumbnails[0])}
                 className="h-12 w-full bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white font-semibold shadow-md shadow-pink-500/20 transition-all hover:scale-[1.02]"
               >
-                <Download className="h-4 w-4 mr-2" />
-                Download Cover
+                {downloading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
+                {downloading ? "Downloading…" : "Download Cover"}
               </Button>
             </div>
           </div>

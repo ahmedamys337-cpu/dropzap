@@ -24,18 +24,70 @@ function detectPlatform(url: string): string {
 }
 
 async function fetchTikTokThumbnail(url: string): Promise<ThumbnailResult> {
-  const res = await fetch(`https://www.tiktok.com/oembed?url=${encodeURIComponent(url)}`, {
-    signal: AbortSignal.timeout(8000),
-  });
-  if (!res.ok) throw new Error("TikTok oembed failed");
-  const data = await res.json();
-  return {
-    platform: "tiktok",
-    title: data.title || "TikTok video",
-    thumbnails: data.thumbnail_url
-      ? [{ label: "TikTok Cover", url: data.thumbnail_url, width: 1080, height: 1920 }]
-      : [],
-  };
+  // 1. Try oEmbed with proper browser headers
+  try {
+    const oembedUrl = `https://www.tiktok.com/oembed?url=${encodeURIComponent(url)}`;
+    const res = await fetch(oembedUrl, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept": "application/json",
+      },
+      signal: AbortSignal.timeout(10000),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.thumbnail_url) {
+        return {
+          platform: "tiktok",
+          title: data.title || "TikTok video",
+          thumbnails: [{ label: "TikTok Cover", url: data.thumbnail_url, width: 1080, height: 1920 }],
+        };
+      }
+    }
+  } catch (e: any) {
+    logger.warn("[thumbnail:tiktok] oembed failed:", e?.message);
+  }
+
+  // 2. Fallback: scrape the TikTok page for og:image meta tag
+  try {
+    const res = await fetch(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+      },
+      redirect: "follow",
+      signal: AbortSignal.timeout(10000),
+    });
+    if (res.ok) {
+      const html = await res.text();
+      // og:image
+      const ogMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
+      if (ogMatch) {
+        const thumbUrl = ogMatch[1].replace(/&amp;/g, "&");
+        // og:title for the caption
+        const titleMatch = html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i);
+        return {
+          platform: "tiktok",
+          title: titleMatch ? titleMatch[1] : "TikTok video",
+          thumbnails: [{ label: "TikTok Cover", url: thumbUrl, width: 1080, height: 1920 }],
+        };
+      }
+      // Also try og:video:thumbnail
+      const ogVideoThumb = html.match(/<meta[^>]+property=["']og:video:thumbnail["'][^>]+content=["']([^"']+)["']/i);
+      if (ogVideoThumb) {
+        return {
+          platform: "tiktok",
+          title: "TikTok video",
+          thumbnails: [{ label: "TikTok Cover", url: ogVideoThumb[1].replace(/&amp;/g, "&"), width: 1080, height: 1920 }],
+        };
+      }
+    }
+  } catch (e: any) {
+    logger.warn("[thumbnail:tiktok] page scrape failed:", e?.message);
+  }
+
+  throw new Error("Could not fetch TikTok thumbnail. The video may be private or deleted.");
 }
 
 async function fetchInstagramThumbnail(url: string): Promise<ThumbnailResult> {
