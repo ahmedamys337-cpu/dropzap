@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { safeFilename, fetchWithProgress, type DownloadProgress as ProgressInfo } from "@/lib/download";
+import { safeFilename, downloadWithFallback, type DownloadProgress as ProgressInfo } from "@/lib/download";
 import DownloadProgressBar from "@/components/DownloadProgressBar";
 import { addDownloadHistory } from "@/lib/download-history";
 import DownloadSuccessActions from "@/components/DownloadSuccessActions";
@@ -107,8 +107,12 @@ export default function SimpleDownloader({
   const inferFilename = (res: Response, blob: Blob, fallback: string): string => {
     const cd = res.headers.get("content-disposition");
     if (cd) {
-      const match = cd.match(/filename[^;=\n]*=(["']?)([^"';\n]*)\1/);
-      if (match?.[2]) return match[2].trim();
+      // RFC-5987 UTF-8 filename: filename*=UTF-8''encodedName
+      const utf8Match = cd.match(/filename\*=UTF-8''([^;\n]+)/i);
+      if (utf8Match?.[1]) return decodeURIComponent(utf8Match[1].trim());
+      // Plain ASCII filename: filename="name"
+      const asciiMatch = cd.match(/filename[^*;=\n]*=(["']?)([^"';\n]*)\1/);
+      if (asciiMatch?.[2]) return asciiMatch[2].trim();
     }
     const ext = (() => {
       const type = blob.type || res.headers.get("content-type") || "";
@@ -184,14 +188,14 @@ export default function SimpleDownloader({
     const controller = new AbortController();
     abortRef.current = controller;
 
-    fetchWithProgress(
-      streamUrl,
-      (p) => setProgress(p),
-      controller.signal,
-    )
-      .then(({ blob, response }) => {
-        const finalName = inferFilename(response, blob, defaultName);
-        doDownload(blob, finalName);
+    downloadWithFallback(streamUrl, (p) => setProgress(p), controller.signal)
+      .then((result) => {
+        if ("direct" in result) {
+          // Large file: browser is handling the native download.
+          return;
+        }
+        const finalName = inferFilename(result.response, result.blob, defaultName);
+        doDownload(result.blob, finalName);
       })
       .catch((err: any) => {
         if (err?.name === "AbortError") return;

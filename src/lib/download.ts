@@ -41,6 +41,33 @@ export function proxyDownloadUrl(remoteUrl: string, filename: string): string {
   return `/api/proxy-download?${qs.toString()}`;
 }
 
+const LARGE_FILE_BYTES = 100 * 1024 * 1024; // 100 MB
+
+/**
+ * Downloads a same-origin URL with progress tracking for small files, and
+ * falls back to a native browser download for very large files so we never
+ * buffer hundreds of megabytes into the JS heap on mobile devices.
+ */
+export async function downloadWithFallback(
+  url: string,
+  onProgress: (p: DownloadProgress) => void,
+  signal?: AbortSignal,
+): Promise<{ blob: Blob; response: Response } | { direct: true }> {
+  try {
+    const headRes = await fetch(url, { method: "HEAD", signal });
+    if (headRes.ok) {
+      const cl = headRes.headers.get("content-length");
+      if (cl && parseInt(cl, 10) > LARGE_FILE_BYTES) {
+        triggerNativeDownload(url);
+        return { direct: true };
+      }
+    }
+  } catch {
+    // HEAD not supported or failed; continue with normal fetch.
+  }
+  return fetchWithProgress(url, onProgress, signal);
+}
+
 /**
  * Sanitises a string so it's safe to use as a filename on all platforms.
  * Trims to 80 chars, strips filesystem-hostile punctuation.

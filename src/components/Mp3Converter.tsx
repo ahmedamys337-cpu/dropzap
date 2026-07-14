@@ -32,7 +32,7 @@ export default function Mp3Converter() {
   const convert = async () => {
     if (!file) return;
     setConverting(true);
-    setProgress(10);
+    setProgress(0);
     setPhase("uploading");
     setDlProgress(null);
 
@@ -40,17 +40,46 @@ export default function Mp3Converter() {
       const formData = new FormData();
       formData.append("file", file);
 
-      setProgress(30);
-      setPhase("converting");
-      const res = await fetch("/api/convert/mp3", {
-        method: "POST",
-        body: formData,
+      const res = await new Promise<Response>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "/api/convert/mp3", true);
+        xhr.responseType = "arraybuffer";
+        xhr.upload.addEventListener("progress", (e) => {
+          if (e.lengthComputable) {
+            const pct = Math.min(Math.round((e.loaded / e.total) * 50), 50);
+            setProgress(pct);
+          }
+        });
+        xhr.addEventListener("load", () => {
+          if (xhr.status < 200 || xhr.status >= 300) {
+            let msg = "Conversion failed";
+            try {
+              const text = new TextDecoder().decode(xhr.response as ArrayBuffer);
+              const data = JSON.parse(text);
+              msg = data.error || msg;
+            } catch {}
+            reject(new Error(msg));
+            return;
+          }
+          // Preserve response headers so we can read Content-Length below.
+          const headers = new Headers();
+          headers.set("Content-Type", "audio/mpeg");
+          const cl = xhr.getResponseHeader("Content-Length");
+          if (cl) headers.set("Content-Length", cl);
+          resolve(
+            new Response(xhr.response as ArrayBuffer, {
+              status: xhr.status,
+              headers,
+            })
+          );
+        });
+        xhr.addEventListener("error", () => reject(new Error("Upload failed")));
+        xhr.addEventListener("abort", () => reject(new Error("Upload aborted")));
+        xhr.send(formData);
       });
 
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Conversion failed");
-      }
+      setPhase("converting");
+      setProgress(50);
 
       setPhase("downloading");
       setProgress(60);

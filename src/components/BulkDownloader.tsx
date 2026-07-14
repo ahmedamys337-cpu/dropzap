@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/use-toast";
-import { fetchWithProgress, formatBytes, type DownloadProgress as ProgressInfo } from "@/lib/download";
+import { downloadWithFallback, formatBytes, type DownloadProgress as ProgressInfo } from "@/lib/download";
 import { Download, Loader2, Plus, Trash2, Play, CheckCircle2, XCircle, Clock, ExternalLink } from "lucide-react";
 
 interface QueueItem {
@@ -57,13 +57,22 @@ export default function BulkDownloader() {
       const filename = `download-${item.id.slice(0, 8)}.mp4`;
       const streamUrl = `/api/stream?url=${encodeURIComponent(item.url)}&name=${encodeURIComponent(filename)}`;
 
-      const { blob } = await fetchWithProgress(streamUrl, (p) => {
+      const result = await downloadWithFallback(streamUrl, (p) => {
         setQueue((prev) =>
           prev.map((q) => (q.id === item.id ? { ...q, progress: p } : q))
         );
       });
 
-      const blobUrl = URL.createObjectURL(blob);
+      if ("direct" in result) {
+        setQueue((prev) =>
+          prev.map((q) =>
+            q.id === item.id ? { ...q, status: "ready", downloadUrl: item.url, filename, progress: null } : q
+          )
+        );
+        return;
+      }
+
+      const blobUrl = URL.createObjectURL(result.blob);
       const a = document.createElement("a");
       a.href = blobUrl;
       a.download = filename;
