@@ -21,11 +21,24 @@ import {
 } from "lucide-react";
 
 // Dynamic imports for code splitting and reduced initial bundle size
+const HomeTabs = dynamic(() => import("@/components/HomeTabs"), {
+  ssr: false,
+  loading: () => (
+    <div className="space-y-6" style={{ minHeight: "400px" }}>
+      <div className="pb-2 -mx-4 px-4">
+        <div className="glass-strong h-auto p-1.5 gap-1 flex w-full justify-start flex-nowrap rounded-lg" style={{ minHeight: "44px" }} />
+      </div>
+      <div className="space-y-4 py-2">
+        <div className="h-12 animate-pulse rounded-lg bg-foreground/[0.06]" />
+        <div className="h-14 animate-pulse rounded-lg bg-foreground/[0.04]" />
+      </div>
+    </div>
+  ),
+});
 const ThemeToggle = dynamic(() => import("@/components/ThemeToggle").then(m => m.ThemeToggle), { ssr: false });
 const TrustBar = dynamic(() => import("@/components/TrustBar"), { ssr: false });
 const SupportedPlatforms = dynamic(() => import("@/components/SupportedPlatforms"), { ssr: false });
 const CitableFacts = dynamic(() => import("@/components/CitableFacts"), { ssr: false });
-const HomeTabs = dynamic(() => import("@/components/HomeTabs"), { ssr: false });
 const CompetitorBanner = dynamic(() => import("@/components/CompetitorBanner"), { ssr: false });
 
 const ToolCard = ({

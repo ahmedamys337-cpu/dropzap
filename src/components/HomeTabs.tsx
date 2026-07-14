@@ -2,7 +2,6 @@
 
 import dynamic from "next/dynamic";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import InstagramDownloader from "@/components/InstagramDownloader";
 import {
   Instagram,
   Twitter,
@@ -13,9 +12,16 @@ import {
 } from "lucide-react";
 
 const TabSkeleton = () => (
-  <div className="h-40 animate-pulse rounded-lg bg-foreground/[0.04]" />
+  <div className="space-y-4 py-2">
+    <div className="h-12 animate-pulse rounded-lg bg-foreground/[0.06]" />
+    <div className="h-14 animate-pulse rounded-lg bg-foreground/[0.04]" />
+  </div>
 );
 
+const InstagramDownloader = dynamic(
+  () => import("@/components/InstagramDownloader"),
+  { loading: TabSkeleton, ssr: false },
+);
 const ThumbnailDownloader = dynamic(
   () => import("@/components/ThumbnailDownloader"),
   { loading: TabSkeleton, ssr: false },
