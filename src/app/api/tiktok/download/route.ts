@@ -4,10 +4,15 @@ import { execFile } from "child_process";
 import { promisify } from "util";
 import { tmpdir } from "os";
 import { join } from "path";
-import { readFile, unlink } from "fs/promises";
+import { unlink, stat } from "fs/promises";
+import { createReadStream } from "fs";
 import { randomUUID } from "crypto";
+import { withConcurrencyLimit } from "@/lib/concurrency";
 
 const execFileAsync = promisify(execFile);
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
@@ -30,24 +35,40 @@ export async function POST(request: NextRequest) {
     const id = randomUUID().slice(0, 8);
     tempPath = join(tmpdir(), `tkdl-${id}.mp4`);
 
-    await execFileAsync("yt-dlp", [
-      url,
-      "-o", tempPath,
-      "--no-check-certificates",
-      "--no-warnings",
-      "-f", "best[ext=mp4]/best",
-      "--no-watermark",
-    ], { timeout: 120000 });
+    await withConcurrencyLimit(async () => {
+      await execFileAsync("yt-dlp", [
+        url,
+        "-o", tempPath,
+        "--no-check-certificates",
+        "--no-warnings",
+        "-f", "best[ext=mp4]/best",
+        "--no-watermark",
+      ], { timeout: 120000 });
+    });
 
-    const fileBuffer = await readFile(tempPath);
-    unlink(tempPath).catch(() => {});
+    const fileStat = await stat(tempPath);
+    const nodeStream = createReadStream(tempPath);
+    const webStream = new ReadableStream({
+      start(controller) {
+        nodeStream.on("data", (chunk: any) => controller.enqueue(new Uint8Array(chunk)));
+        nodeStream.on("end", () => {
+          controller.close();
+          setTimeout(() => unlink(tempPath).catch(() => {}), 5000);
+        });
+        nodeStream.on("error", (err) => controller.error(err));
+      },
+      cancel() {
+        nodeStream.destroy();
+        unlink(tempPath).catch(() => {});
+      },
+    });
 
     const headers = new Headers();
     headers.set("Content-Type", "video/mp4");
     headers.set("Content-Disposition", 'attachment; filename="tiktok-video.mp4"');
-    headers.set("Content-Length", fileBuffer.length.toString());
+    headers.set("Content-Length", fileStat.size.toString());
 
-    return new NextResponse(fileBuffer, { status: 200, headers });
+    return new Response(webStream, { status: 200, headers });
   } catch (err: any) {
     if (tempPath) unlink(tempPath).catch(() => {});
     console.error("TikTok download error:", err.message);

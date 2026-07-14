@@ -70,7 +70,8 @@ export async function GET(request: NextRequest) {
 
     // Build response headers to force download
     const headers = new Headers();
-    headers.set("Content-Disposition", `attachment; filename="${encodeURIComponent(filename)}"`);
+    const safeAscii = filename.replace(/[^\x20-\x7E]/g, "").replace(/"/g, "");
+    headers.set("Content-Disposition", `attachment; filename="${safeAscii}"; filename*=UTF-8''${encodeURIComponent(filename)}`);
     headers.set("Content-Type", contentType);
     if (contentLength) {
       headers.set("Content-Length", contentLength);

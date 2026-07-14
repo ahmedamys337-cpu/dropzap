@@ -49,11 +49,17 @@ export default function Mp3Converter() {
 
       const blob = await res.blob();
       const name = file.name.replace(/\.[^.]+$/, ".mp3");
+      const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
+      a.href = blobUrl;
       a.download = name;
+      a.style.display = "none";
+      document.body.appendChild(a);
       a.click();
-      URL.revokeObjectURL(a.href);
+      setTimeout(() => {
+        try { document.body.removeChild(a); } catch {}
+        URL.revokeObjectURL(blobUrl);
+      }, 1000);
       setProgress(100);
       toast({ title: "Converted", description: `${name} is ready` });
     } catch (err: any) {

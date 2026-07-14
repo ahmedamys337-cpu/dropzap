@@ -5,7 +5,6 @@ import { alternativePages } from "@/lib/alternatives-data";
 import { blogPosts } from "@/lib/blog-data";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import Breadcrumbs from "@/components/Breadcrumbs";
-import AdBanner from "@/components/AdBanner";
 import { Zap, ArrowRight, Check, X } from "lucide-react";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital";
@@ -144,10 +143,6 @@ export default function AlternativePage({ params }: Props) {
         </div>
       </section>
 
-      <div className="max-w-6xl mx-auto px-4 pt-2">
-        <AdBanner slot="top" />
-      </div>
-
       {/* Side-by-side comparison table */}
       <section className="max-w-4xl mx-auto px-4 py-12" aria-labelledby="comparison-heading">
         <h2 id="comparison-heading" className="text-2xl sm:text-3xl font-bold text-center mb-8">
@@ -281,10 +276,6 @@ export default function AlternativePage({ params }: Props) {
           </div>
         </section>
       )}
-
-      <div className="max-w-6xl mx-auto px-4 pb-6">
-        <AdBanner slot="bottom" />
-      </div>
 
       <footer className="mt-6 py-10 border-t border-border/50">
         <div className="max-w-6xl mx-auto px-4 text-center">

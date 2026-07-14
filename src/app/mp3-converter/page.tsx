@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import Breadcrumbs from "@/components/Breadcrumbs";
-import AdBanner from "@/components/AdBanner";
 import {
   Zap,
   FileAudio,
@@ -278,10 +277,6 @@ export default function Mp3ConverterPage() {
             </li>
           </ul>
 
-          <div className="my-8">
-            <AdBanner slot="middle" />
-          </div>
-
           <h2>How it works on each device</h2>
 
           <h3 className="flex items-center gap-2">
@@ -424,9 +419,6 @@ export default function Mp3ConverterPage() {
           </div>
         </section>
 
-        <div className="my-8">
-          <AdBanner slot="bottom" />
-        </div>
       </section>
     </main>
   );

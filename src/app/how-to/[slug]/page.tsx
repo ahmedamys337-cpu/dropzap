@@ -6,7 +6,6 @@ import {
   PLATFORM_INFO,
   type HowToPage,
 } from "@/lib/how-to-pages-data";
-import AdBanner from "@/components/AdBanner";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import { Zap, ArrowLeft, CheckCircle2, ArrowRight } from "lucide-react";
 
@@ -253,8 +252,6 @@ export default function HowToPage({ params }: Props) {
           </p>
         </aside>
 
-        <AdBanner slot="top" />
-
         <div className="prose prose-invert prose-lg max-w-none mt-8 prose-headings:font-bold prose-headings:text-foreground prose-p:text-muted-foreground prose-p:leading-relaxed prose-a:text-purple-400 prose-a:no-underline hover:prose-a:underline prose-li:text-muted-foreground prose-strong:text-foreground">
           {page.intro.split("\n\n").map((para, i) => (
             <p key={i}>{para}</p>
@@ -300,8 +297,6 @@ export default function HowToPage({ params }: Props) {
           <h2>Is it legal to download {platform.name} content?</h2>
           <p>{platform.legal}</p>
         </div>
-
-        <AdBanner slot="middle" />
 
         {/* Related how-to rail. Same-platform first, then other
            platforms. Three is the sweet spot — enough internal

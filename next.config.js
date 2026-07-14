@@ -13,6 +13,7 @@ const nextConfig = {
       { protocol: 'https', hostname: '**.tiktokcdn.com' },
       { protocol: 'https', hostname: '**.fbcdn.net' },
       { protocol: 'https', hostname: '**.redd.it' },
+      { protocol: 'https', hostname: '**.pinimg.com' },
     ],
     formats: ['image/avif', 'image/webp'],
   },
@@ -83,9 +84,9 @@ const nextConfig = {
     //   worker-src   — blob: needed for any future web-worker downloads.
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://stats.g.doubleclick.net",
+      "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://stats.g.doubleclick.net",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https: http: https://i.ytimg.com https://img.youtube.com https://*.cdninstagram.com https://*.twimg.com https://*.tiktokcdn.com https://*.fbcdn.net https://*.redd.it",
+      "img-src 'self' data: blob: https://i.ytimg.com https://img.youtube.com https://*.cdninstagram.com https://*.twimg.com https://*.tiktokcdn.com https://*.fbcdn.net https://*.redd.it https://*.pinimg.com",
       "font-src 'self' data:",
       "connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://stats.g.doubleclick.net https://api.cobalt.tools https://cobalt-api.kwiatekmiki.com https://co.eepy.today",
       "frame-src 'self'",

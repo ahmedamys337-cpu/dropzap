@@ -1,5 +1,4 @@
 import { ThemeToggle } from "@/components/ThemeToggle";
-import AdBanner from "@/components/AdBanner";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import {
   Zap,
@@ -316,10 +315,6 @@ export default function PlatformLanding({ platform, children }: PlatformLandingP
           {platform.description}
         </p>
       </section>
-      <div className="max-w-6xl mx-auto px-4 pb-8">
-        <AdBanner slot="top" />
-      </div>
-
       {/* Intro Content */}
       <section className="max-w-4xl mx-auto px-4 py-8">
         <h2 className="text-2xl font-bold mb-4">
@@ -367,11 +362,6 @@ export default function PlatformLanding({ platform, children }: PlatformLandingP
           ))}
         </div>
       </section>
-
-      {/* Ad: Middle */}
-      <div className="max-w-6xl mx-auto px-4 py-4">
-        <AdBanner slot="middle" />
-      </div>
 
       {/* Deep Content - Formats & Devices */}
       <section className="max-w-4xl mx-auto px-4 py-8 space-y-6">
@@ -505,11 +495,6 @@ export default function PlatformLanding({ platform, children }: PlatformLandingP
             ))}
         </div>
       </section>
-
-      {/* Ad: Bottom */}
-      <div className="max-w-6xl mx-auto px-4 pb-6">
-        <AdBanner slot="bottom" />
-      </div>
 
       {/* Footer */}
       <footer className="mt-6 py-10 border-t border-border/50">

@@ -16,6 +16,8 @@ interface QueueItem {
   error?: string;
 }
 
+const VALID_URL_PATTERN = /^https?:\/\/(www\.)?(instagram\.com|tiktok\.com|twitter\.com|x\.com|facebook\.com|reddit\.com|pinterest\.com|threads\.net)\//i;
+
 export default function BulkDownloader() {
   const [input, setInput] = useState("");
   const [queue, setQueue] = useState<QueueItem[]>([]);
@@ -25,6 +27,10 @@ export default function BulkDownloader() {
   const addUrl = () => {
     const trimmed = input.trim();
     if (!trimmed) return;
+    if (!VALID_URL_PATTERN.test(trimmed)) {
+      toast({ title: "Invalid URL", description: "Only Instagram, TikTok, Twitter/X, Facebook, Reddit, Pinterest, and Threads URLs are supported.", variant: "destructive" });
+      return;
+    }
     if (queue.some((q) => q.url === trimmed)) {
       toast({ title: "Duplicate", description: "This URL is already in the queue", variant: "destructive" });
       return;
@@ -49,12 +55,23 @@ export default function BulkDownloader() {
       const filename = `download-${item.id.slice(0, 8)}.mp4`;
       const streamUrl = `/api/stream?url=${encodeURIComponent(item.url)}&name=${encodeURIComponent(filename)}`;
 
-      // Trigger download via hidden iframe
-      const iframe = document.createElement("iframe");
-      iframe.style.display = "none";
-      iframe.src = streamUrl;
-      document.body.appendChild(iframe);
-      setTimeout(() => { try { document.body.removeChild(iframe); } catch {} }, 120000);
+      const res = await fetch(streamUrl);
+      if (!res.ok) {
+        const text = await res.text().catch(() => "Download failed");
+        throw new Error(text || `Download failed (${res.status})`);
+      }
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = filename;
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        try { document.body.removeChild(a); } catch {}
+        URL.revokeObjectURL(blobUrl);
+      }, 1000);
 
       setQueue((prev) =>
         prev.map((q) =>
@@ -162,7 +179,7 @@ export default function BulkDownloader() {
         <div className="text-center py-12 text-muted-foreground">
           <Download className="h-12 w-12 mx-auto mb-3 opacity-30" />
           <p>Add URLs above to start bulk downloading</p>
-          <p className="text-xs mt-1">Supports YouTube, Instagram, Twitter, and TikTok URLs</p>
+          <p className="text-xs mt-1">Supports Instagram, TikTok, Twitter/X, Facebook, Reddit, Pinterest, and Threads URLs</p>
         </div>
       )}
     </div>

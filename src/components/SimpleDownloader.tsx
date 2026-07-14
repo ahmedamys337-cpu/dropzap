@@ -9,22 +9,6 @@ import { addDownloadHistory } from "@/lib/download-history";
 import DownloadSuccessActions from "@/components/DownloadSuccessActions";
 import DownloadErrorFallback from "@/components/DownloadErrorFallback";
 import { Download, Loader2, Clipboard, X, CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
-
-/**
- * Single-button downloader used by every "non-YouTube" platform (TikTok,
- * Twitter, Reddit, Instagram, Facebook, Pinterest, Threads).
- *
- * Flow:
- *   1. User pastes a URL and clicks the platform-coloured Download button.
- *   2. The 5-second ad overlay opens AND a fetch() to /api/stream starts
- *      in the background (server-side yt-dlp warm-up runs in parallel).
- *   3. When the fetch completes the response blob is turned into a local
- *      object-URL and a native download is triggered automatically.
- *   4. If the server returns an error (e.g. private post, IP block) the
- *      banner shows the actual error text instead of a browser "site
- *      unavailable" message — the user knows exactly what went wrong and
- *      can retry.
- */
 interface SimpleDownloaderProps {
   /** Friendly platform name used in toast/history (e.g. "TikTok"). */
   platform: string;
@@ -109,8 +93,6 @@ export default function SimpleDownloader({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const fetchBlobRef = useRef<{ blob: Blob; name: string } | null>(null);
-  const fetchErrRef = useRef<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => () => {
@@ -191,9 +173,6 @@ export default function SimpleDownloader({
     params.set("url", url);
     params.set("name", defaultName);
     const streamUrl = `${basePath}?${params.toString()}`;
-
-    fetchBlobRef.current = null;
-    fetchErrRef.current = null;
 
     setErrorMsg(null);
     setPhase("downloading");

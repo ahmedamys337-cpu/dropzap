@@ -173,14 +173,6 @@ export default function DownloadCountdown({ streamUrl, filename, onClose }: Down
           </h3>
           <p className="text-sm text-muted-foreground truncate px-4">{filename}</p>
 
-          {/* === AD ZONE: Interstitial Ad === */}
-          <div className="w-full min-h-[200px] bg-white/5 rounded-lg border border-dashed border-white/20 flex items-center justify-center">
-            <div id="ad-interstitial" className="w-full h-full flex items-center justify-center">
-              <span className="text-xs text-muted-foreground">Advertisement</span>
-            </div>
-          </div>
-          {/* === END AD ZONE === */}
-
           {/* Countdown timer */}
           {!ready && phase === "waiting" && (
             <div className="space-y-3">

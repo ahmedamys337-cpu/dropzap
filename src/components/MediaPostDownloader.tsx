@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { triggerNativeDownload, proxyDownloadUrl, safeFilename } from "@/lib/download";
-import AdCountdown from "@/components/AdCountdown";
 import {
   Download,
   Loader2,
@@ -43,7 +42,7 @@ interface MediaInfo {
   items: MediaItem[];
 }
 
-type Phase = "idle" | "processing" | "ad" | "ready";
+type Phase = "idle" | "processing" | "ready";
 
 export interface MediaPostDownloaderProps {
   /** Display name for the platform, e.g. "Instagram". Shown in error toasts. */
@@ -97,7 +96,7 @@ export default function MediaPostDownloader({
       if (!res.ok) throw new Error(data.error || "Could not fetch media");
       if (!data.items?.length) throw new Error("No media found at that URL");
       setInfo(data);
-      setPhase("ad");
+      setPhase("ready");
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
       setPhase("idle");
@@ -209,14 +208,6 @@ export default function MediaPostDownloader({
           <p className="font-medium">Processing the link to download.</p>
           <p className="text-sm text-muted-foreground">Stay on the page.</p>
         </div>
-      )}
-
-      {phase === "ad" && (
-        <AdCountdown
-          seconds={5}
-          onComplete={() => setPhase("ready")}
-          onClose={() => setPhase("ready")}
-        />
       )}
 
       {phase === "ready" && info && (

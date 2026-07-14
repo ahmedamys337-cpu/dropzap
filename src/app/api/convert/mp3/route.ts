@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
+import { withConcurrencyLimit } from "@/lib/concurrency";
 import { tmpdir } from "os";
 import { join } from "path";
 import { writeFile, readFile, unlink } from "fs/promises";
@@ -43,15 +44,17 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer());
     await writeFile(inputPath, buffer);
 
-    await execFileAsync("ffmpeg", [
-      "-i", inputPath,
-      "-vn",
-      "-acodec", "libmp3lame",
-      "-ab", "192k",
-      "-ar", "44100",
-      "-y",
-      outputPath,
-    ], { timeout: 300000 });
+    await withConcurrencyLimit(async () => {
+      await execFileAsync("ffmpeg", [
+        "-i", inputPath,
+        "-vn",
+        "-acodec", "libmp3lame",
+        "-ab", "192k",
+        "-ar", "44100",
+        "-y",
+        outputPath,
+      ], { timeout: 300000 });
+    });
 
     const mp3Buffer = await readFile(outputPath);
 

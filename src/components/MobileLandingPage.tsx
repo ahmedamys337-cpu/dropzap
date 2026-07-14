@@ -8,7 +8,6 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import Breadcrumbs from "@/components/Breadcrumbs";
-import AdBanner from "@/components/AdBanner";
 import type { MobilePageData } from "@/lib/mobile-pages-data";
 
 const SITE_URL =
@@ -179,10 +178,6 @@ export default function MobileLandingPage({ data }: Props) {
           ))}
         </div>
 
-        <div className="my-10">
-          <AdBanner slot="top" />
-        </div>
-
         {/* Where files go — answers the #1 mobile FAQ as a dedicated
            highlighted section so it can win the featured snippet. */}
         <section className="my-10 rounded-2xl bg-white/5 border border-white/10 p-6">
@@ -268,10 +263,6 @@ export default function MobileLandingPage({ data }: Props) {
             ))}
           </div>
         </section>
-
-        <div className="my-10">
-          <AdBanner slot="middle" />
-        </div>
 
         <section className="my-12">
           <h2 className="text-3xl font-bold mb-6">Frequently asked questions</h2>

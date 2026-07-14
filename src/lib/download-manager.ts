@@ -22,7 +22,7 @@ export interface DownloadJob {
 const jobs = new Map<string, DownloadJob>();
 
 // Clean up old jobs every 10 minutes
-setInterval(() => {
+const cleanupInterval = setInterval(() => {
   const now = Date.now();
   for (const [id, job] of jobs) {
     if (now - job.createdAt > 30 * 60 * 1000) {
@@ -33,6 +33,7 @@ setInterval(() => {
     }
   }
 }, 10 * 60 * 1000);
+cleanupInterval.unref();
 
 export function getJob(id: string): DownloadJob | undefined {
   return jobs.get(id);

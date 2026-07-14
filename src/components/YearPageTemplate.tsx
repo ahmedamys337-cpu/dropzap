@@ -1,7 +1,6 @@
 import Link from "next/link";
 import type { YearPageData } from "@/lib/year-pages-data";
 import Breadcrumbs from "@/components/Breadcrumbs";
-import AdBanner from "@/components/AdBanner";
 import {
   Zap,
   Trophy,
@@ -217,10 +216,6 @@ export default function YearPageTemplate({ data }: Props) {
           <p>{data.methodology}</p>
         </div>
 
-        <div className="my-8">
-          <AdBanner slot="top" />
-        </div>
-
         <section className="my-10 space-y-6">
           <h2 className="text-3xl font-bold">The ranking</h2>
           {data.ranked.map((tool) => {
@@ -338,10 +333,6 @@ export default function YearPageTemplate({ data }: Props) {
             <ArrowRight className="h-5 w-5" />
           </Link>
         </section>
-
-        <div className="my-8">
-          <AdBanner slot="middle" />
-        </div>
 
         <section className="my-10">
           <h2 className="text-3xl font-bold mb-5">Frequently asked questions</h2>

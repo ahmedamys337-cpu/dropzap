@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { glossaryEntries, type GlossaryEntry } from "@/lib/glossary-data";
-import AdBanner from "@/components/AdBanner";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import { Zap, ArrowLeft, ArrowRight, BookOpen } from "lucide-react";
 
@@ -207,8 +206,6 @@ export default function GlossaryEntryPage({ params }: Props) {
             {entry.shortDefinition}
           </p>
         </aside>
-
-        <AdBanner slot="top" />
 
         <div className="prose prose-invert prose-lg max-w-none mt-8 prose-headings:font-bold prose-headings:text-foreground prose-p:text-muted-foreground prose-p:leading-relaxed prose-a:text-purple-400 prose-a:no-underline hover:prose-a:underline prose-strong:text-foreground">
           {entry.longDefinition.split("\n\n").map((para, i) => (

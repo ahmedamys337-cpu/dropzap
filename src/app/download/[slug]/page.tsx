@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { programmaticPages } from "@/lib/programmatic-seo";
-import AdBanner from "@/components/AdBanner";
 import { Zap, ArrowRight } from "lucide-react";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital";
@@ -94,8 +93,6 @@ export default function ProgrammaticPage({ params }: Props) {
         </Link>
       </section>
 
-      <AdBanner slot="top" className="max-w-3xl mx-auto px-4 my-4" />
-
       <article className="max-w-3xl mx-auto px-4 py-8">
         <div
           className="prose prose-invert prose-lg max-w-none
@@ -108,8 +105,6 @@ export default function ProgrammaticPage({ params }: Props) {
           dangerouslySetInnerHTML={{ __html: page.body }}
         />
       </article>
-
-      <AdBanner slot="bottom" className="max-w-3xl mx-auto px-4 mb-8" />
 
       <footer className="py-10 border-t border-border/50">
         <div className="max-w-4xl mx-auto px-4 text-center">

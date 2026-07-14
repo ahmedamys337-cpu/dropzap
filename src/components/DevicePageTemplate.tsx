@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import Breadcrumbs from "@/components/Breadcrumbs";
-import AdBanner from "@/components/AdBanner";
 import { Zap, ArrowRight } from "lucide-react";
 import type { DevicePage } from "@/lib/device-pages-data";
 
@@ -134,10 +133,6 @@ export default function DevicePageTemplate({
         </div>
       </section>
 
-      <div className="max-w-6xl mx-auto px-4 pt-2">
-        <AdBanner slot="top" />
-      </div>
-
       {/* Long-form sections */}
       <article className="max-w-3xl mx-auto px-4 py-8">
         <div className="prose prose-invert prose-lg max-w-none
@@ -225,10 +220,6 @@ export default function DevicePageTemplate({
           </div>
         </section>
       )}
-
-      <div className="max-w-6xl mx-auto px-4 pb-6">
-        <AdBanner slot="bottom" />
-      </div>
 
       <footer className="mt-6 py-10 border-t border-border/50">
         <div className="max-w-6xl mx-auto px-4 text-center">

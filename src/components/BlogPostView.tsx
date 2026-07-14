@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { blogPosts } from "@/lib/blog-data";
 import { blogQuickAnswers } from "@/lib/blog-quick-answers";
-import AdBanner from "@/components/AdBanner";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import { Zap, ArrowLeft, CheckCircle2 } from "lucide-react";
 import type { BlogPost } from "@/lib/blog-data";
@@ -150,8 +149,6 @@ export default function BlogPostView({ post, lang }: BlogPostViewProps) {
           </aside>
         )}
 
-        <AdBanner slot="top" />
-
         <div className="prose prose-invert prose-lg max-w-none mt-8 prose-headings:font-bold prose-headings:text-foreground prose-p:text-muted-foreground prose-p:leading-relaxed prose-a:text-purple-400 prose-a:no-underline hover:prose-a:underline prose-li:text-muted-foreground prose-strong:text-foreground prose-code:bg-white/10 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-table:text-sm prose-th:text-foreground prose-td:text-muted-foreground"
           dangerouslySetInnerHTML={{ __html: post.content }} />
 
@@ -168,8 +165,6 @@ export default function BlogPostView({ post, lang }: BlogPostViewProps) {
             </div>
           </section>
         )}
-
-        <div className="mt-10"><AdBanner slot="bottom" /></div>
 
         <div className="mt-10 glass rounded-xl p-6 text-center">
           <h3 className="font-bold text-lg mb-2">Ready to start downloading?</h3>
