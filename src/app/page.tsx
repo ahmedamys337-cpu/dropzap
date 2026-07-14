@@ -25,8 +25,8 @@ const HomeTabs = dynamic(() => import("@/components/HomeTabs"), {
   ssr: false,
   loading: () => (
     <div className="space-y-6" style={{ minHeight: "400px" }}>
-      <div className="pb-2 -mx-4 px-4">
-        <div className="glass-strong h-auto p-1.5 gap-1 flex w-full justify-start flex-nowrap rounded-lg" style={{ minHeight: "44px" }} />
+      <div className="pb-2">
+        <div className="glass-strong h-auto p-1.5 gap-1 flex w-full flex-wrap justify-center rounded-lg" style={{ minHeight: "44px" }} />
       </div>
       <div className="space-y-4 py-2">
         <div className="h-12 animate-pulse rounded-lg bg-foreground/[0.06]" />
