@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { triggerNativeDownload, proxyDownloadUrl, safeFilename, downloadWithFallback, type DownloadProgress as ProgressInfo } from "@/lib/download";
-import DownloadProgressBar from "@/components/DownloadProgressBar";
+import FunDownloadProgressBar from "@/components/FunDownloadProgressBar";
 import {
   Download,
   Loader2,
@@ -310,7 +310,7 @@ export default function MediaPostDownloader({
                       )}
                     </Button>
                     {downloadingIdx === idx && item.type === "video" && (
-                      <DownloadProgressBar progress={progress} label="Downloading" />
+                      <FunDownloadProgressBar progress={progress} label="Downloading" />
                     )}
                   </div>
                 </div>

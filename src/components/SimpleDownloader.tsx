@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { safeFilename, downloadWithFallback, type DownloadProgress as ProgressInfo } from "@/lib/download";
-import DownloadProgressBar from "@/components/DownloadProgressBar";
+import FunDownloadProgressBar from "@/components/FunDownloadProgressBar";
 import { addDownloadHistory } from "@/lib/download-history";
 import DownloadSuccessActions from "@/components/DownloadSuccessActions";
 import DownloadErrorFallback from "@/components/DownloadErrorFallback";
@@ -320,7 +320,7 @@ export default function SimpleDownloader({
 
       {/* Real-time download progress bar with percentage, speed, and ETA */}
       {isDownloading && (
-        <DownloadProgressBar progress={progress} label="Downloading" />
+        <FunDownloadProgressBar progress={progress} label="Downloading" />
       )}
 
       {/* Error banner — shows server error text so user knows exactly what failed. */}

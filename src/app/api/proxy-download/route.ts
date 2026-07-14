@@ -51,18 +51,29 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    // Platform-specific headers make CDN blocks much less likely.
+    const proxyHeaders: Record<string, string> = {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+      "Accept": "image/avif,image/webp,image/apng,image/png,image/jpeg,*/*",
+      "Accept-Language": "en-US,en;q=0.9",
+    };
+    if (/tiktokcdn/i.test(cdnUrl)) {
+      proxyHeaders["Referer"] = "https://www.tiktok.com/";
+      proxyHeaders["Origin"] = "https://www.tiktok.com";
+    } else if (/cdninstagram|scontent/i.test(cdnUrl)) {
+      proxyHeaders["Referer"] = "https://www.instagram.com/";
+    }
+
     // Fetch from CDN
     const cdnRes = await fetch(cdnUrl, {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-      },
+      headers: proxyHeaders,
+      redirect: "follow",
     });
 
     if (!cdnRes.ok || !cdnRes.body) {
-      return new Response(JSON.stringify({ error: "Failed to fetch from source" }), {
-        status: 502,
-        headers: { "Content-Type": "application/json" },
-      });
+      // Last resort: redirect the browser straight to the CDN URL. The user
+      // may get the image opened inline, but it's better than a broken download.
+      return Response.redirect(cdnUrl, 302);
     }
 
     // Get content info from CDN response
@@ -86,9 +97,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (err: any) {
     logger.error("Proxy download error:", err.message);
-    return new Response(JSON.stringify({ error: "Download failed" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    // Graceful fallback: send the user to the original URL instead of an error page.
+    return Response.redirect(cdnUrl, 302);
   }
 }

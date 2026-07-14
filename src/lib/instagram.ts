@@ -347,47 +347,8 @@ export async function fetchInstagramVideoUrl(postUrl: string): Promise<string | 
 export async function fetchInstagramThumbnailData(
   postUrl: string,
 ): Promise<{ thumbnail: string; title: string; width?: number; height?: number } | null> {
-  const privateResult = await fetchInstagramPrivateMedia(postUrl);
-  if (privateResult) {
-    const { item } = privateResult;
-    let mediaNode: any = item;
-    if (item.carousel_media && item.carousel_media.length > 0) {
-      mediaNode = item.carousel_media[0];
-    }
-    const candidates = mediaNode.image_versions2?.candidates;
-    if (Array.isArray(candidates) && candidates.length > 0) {
-      const best = candidates.sort(
-        (a: any, b: any) => (b.width || 0) * (b.height || 0) - (a.width || 0) * (a.height || 0),
-      )[0];
-      const caption = item.caption?.text || mediaNode.caption?.text || "";
-      return {
-        thumbnail: best.url,
-        title: caption || "Instagram post",
-        width: best.width,
-        height: best.height,
-      };
-    }
-  }
-
-  const shortcode = extractIgShortcode(postUrl);
-  if (shortcode) {
-    const cookieHeader = getInstagramCookieHeader();
-    const publicJson = await fetchInstagramPublicJson(shortcode, cookieHeader);
-    if (publicJson && publicJson.images.length > 0) {
-      return {
-        thumbnail: publicJson.images[0],
-        title: "Instagram post",
-      };
-    }
-  }
-
-  const scraped = await scrapeInstagramPage(postUrl, getInstagramCookieHeader());
-  if (scraped && scraped.images.length > 0) {
-    return {
-      thumbnail: scraped.images[0],
-      title: "Instagram post",
-    };
-  }
-
-  return null;
+  // Use the same robust extraction chain that makes the reel downloader work.
+  const media = await fetchInstagramMedia(postUrl);
+  if (!media || media.images.length === 0) return null;
+  return { thumbnail: media.images[0], title: "Instagram post" };
 }
