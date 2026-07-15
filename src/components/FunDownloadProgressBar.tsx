@@ -7,10 +7,20 @@ interface FunDownloadProgressBarProps {
   label?: string;
 }
 
-/* Zap mascot: small, clean SVG that runs or pulls along the bar */
-function ZapMascot({ running, pulling, done }: { running?: boolean; pulling?: boolean; done?: boolean }) {
+/* ── Zap mascot SVG ─────────────────────────────────────────────────── */
+function ZapMascot({
+  pushing,
+  digging,
+  done,
+  facingRight,
+}: {
+  pushing?: boolean;
+  digging?: boolean;
+  done?: boolean;
+  facingRight?: boolean;
+}) {
   return (
-    <svg viewBox="0 0 48 48" className="h-10 w-10 drop-shadow-sm">
+    <svg viewBox="0 0 48 48" className="h-12 w-12 drop-shadow-md" style={{ transform: facingRight ? "scaleX(-1)" : undefined }}>
       {/* Head */}
       <circle cx="24" cy="18" r="10" fill="#fbbf24" stroke="#b45309" strokeWidth="2" />
       {/* Hard hat */}
@@ -19,8 +29,8 @@ function ZapMascot({ running, pulling, done }: { running?: boolean; pulling?: bo
       {/* Eyes */}
       {done ? (
         <>
-          <path d="M20 18 L23 21 M23 18 L20 21" stroke="#1f2937" strokeWidth="2" strokeLinecap="round" />
-          <path d="M25 18 L28 21 M28 18 L25 21" stroke="#1f2937" strokeWidth="2" strokeLinecap="round" />
+          <path d="M20 17 L23 20 M23 17 L20 20" stroke="#1f2937" strokeWidth="2" strokeLinecap="round" />
+          <path d="M25 17 L28 20 M28 17 L25 20" stroke="#1f2937" strokeWidth="2" strokeLinecap="round" />
         </>
       ) : (
         <>
@@ -36,13 +46,27 @@ function ZapMascot({ running, pulling, done }: { running?: boolean; pulling?: bo
       <rect x="15" y="28" width="18" height="13" rx="3" fill="#3b82f6" stroke="#1e40af" strokeWidth="2" />
       {/* Belt */}
       <rect x="15" y="35" width="18" height="3" fill="#1e3a8a" />
-      {/* Arms */}
-      {pulling ? (
+      {/* Arms: pushing forward when pushing, digging when digging */}
+      {pushing ? (
         <>
-          <path d="M15 31 Q10 33 12 38" stroke="#fbbf24" strokeWidth="3" strokeLinecap="round" fill="none" />
-          <circle cx="12" cy="38" r="2.5" fill="#fbbf24" stroke="#b45309" strokeWidth="1" />
-          <path d="M33 31 Q38 33 36 38" stroke="#fbbf24" strokeWidth="3" strokeLinecap="round" fill="none" />
-          <circle cx="36" cy="38" r="2.5" fill="#fbbf24" stroke="#b45309" strokeWidth="1" />
+          <path d="M15 30 L8 34" stroke="#fbbf24" strokeWidth="3.5" strokeLinecap="round" fill="none">
+            <animate attributeName="d" values="M15 30 L8 34;M15 30 L6 32;M15 30 L8 34" dur="0.5s" repeatCount="indefinite" />
+          </path>
+          <circle cx="8" cy="34" r="3" fill="#fbbf24" stroke="#b45309" strokeWidth="1">
+            <animate attributeName="cx" values="8;6;8" dur="0.5s" repeatCount="indefinite" />
+          </circle>
+          <path d="M33 30 L40 34" stroke="#fbbf24" strokeWidth="3.5" strokeLinecap="round" fill="none" />
+          <circle cx="40" cy="34" r="3" fill="#fbbf24" stroke="#b45309" strokeWidth="1" />
+        </>
+      ) : digging ? (
+        <>
+          {/* Both arms forward digging */}
+          <path d="M15 30 L10 36" stroke="#fbbf24" strokeWidth="3.5" strokeLinecap="round" fill="none">
+            <animate attributeName="d" values="M15 30 L10 36;M15 30 L8 40;M15 30 L10 36" dur="0.3s" repeatCount="indefinite" />
+          </path>
+          <path d="M33 30 L38 36" stroke="#fbbf24" strokeWidth="3.5" strokeLinecap="round" fill="none">
+            <animate attributeName="d" values="M33 30 L38 36;M33 30 L40 40;M33 30 L38 36" dur="0.3s" repeatCount="indefinite" />
+          </path>
         </>
       ) : (
         <>
@@ -51,14 +75,16 @@ function ZapMascot({ running, pulling, done }: { running?: boolean; pulling?: bo
         </>
       )}
       {/* Legs */}
-      {running ? (
+      {digging ? (
         <>
-          <path d="M19 41 L16 47" stroke="#fbbf24" strokeWidth="3.5" strokeLinecap="round">
-            <animate attributeName="d" values="M19 41 L16 47;M19 41 L22 47;M19 41 L16 47" dur="0.4s" repeatCount="indefinite" />
-          </path>
-          <path d="M29 41 L32 47" stroke="#fbbf24" strokeWidth="3.5" strokeLinecap="round">
-            <animate attributeName="d" values="M29 41 L32 47;M29 41 L26 47;M29 41 L32 47" dur="0.4s" repeatCount="indefinite" />
-          </path>
+          <path d="M19 41 L16 47" stroke="#fbbf24" strokeWidth="3.5" strokeLinecap="round" />
+          <path d="M29 41 L32 47" stroke="#fbbf24" strokeWidth="3.5" strokeLinecap="round" />
+        </>
+      ) : pushing ? (
+        <>
+          {/* Bracing legs */}
+          <path d="M19 41 L14 47" stroke="#fbbf24" strokeWidth="3.5" strokeLinecap="round" />
+          <path d="M29 41 L34 47" stroke="#fbbf24" strokeWidth="3.5" strokeLinecap="round" />
         </>
       ) : (
         <>
@@ -66,30 +92,43 @@ function ZapMascot({ running, pulling, done }: { running?: boolean; pulling?: bo
           <path d="M29 41 L30 47" stroke="#fbbf24" strokeWidth="3.5" strokeLinecap="round" />
         </>
       )}
-      {/* Running motion lines */}
-      {running && (
+      {/* Sweat drops when pushing/digging */}
+      {(pushing || digging) && !done && (
         <>
-          <line x1="8" y1="30" x2="4" y2="30" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" opacity="0.5">
-            <animate attributeName="x1" values="8;2;8" dur="0.5s" repeatCount="indefinite" />
-            <animate attributeName="opacity" values="0.5;0;0.5" dur="0.5s" repeatCount="indefinite" />
-          </line>
-          <line x1="8" y1="36" x2="4" y2="36" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" opacity="0.5">
-            <animate attributeName="x1" values="8;2;8" dur="0.5s" repeatCount="indefinite" begin="0.2s" />
-            <animate attributeName="opacity" values="0.5;0;0.5" dur="0.5s" repeatCount="indefinite" begin="0.2s" />
-          </line>
+          <ellipse cx="36" cy="10" rx="1.5" ry="2.5" fill="#60a5fa" opacity="0.8">
+            <animate attributeName="cy" values="10;3;10" dur="0.6s" repeatCount="indefinite" />
+            <animate attributeName="opacity" values="0.8;0;0.8" dur="0.6s" repeatCount="indefinite" />
+          </ellipse>
+          <ellipse cx="40" cy="14" rx="1" ry="2" fill="#60a5fa" opacity="0.6">
+            <animate attributeName="cy" values="14;7;14" dur="0.6s" repeatCount="indefinite" begin="0.3s" />
+            <animate attributeName="opacity" values="0.6;0;0.6" dur="0.6s" repeatCount="indefinite" begin="0.3s" />
+          </ellipse>
         </>
       )}
-      {/* Sweat when pulling hard */}
-      {pulling && !done && (
+      {/* Digging dirt particles */}
+      {digging && !done && (
         <>
-          <circle cx="36" cy="10" r="1.5" fill="#60a5fa" opacity="0.8">
-            <animate attributeName="cy" values="10;4;10" dur="0.7s" repeatCount="indefinite" />
-            <animate attributeName="opacity" values="0.8;0;0.8" dur="0.7s" repeatCount="indefinite" />
+          <circle cx="6" cy="42" r="1.5" fill="#92400e" opacity="0.7">
+            <animate attributeName="cx" values="6;2;6" dur="0.4s" repeatCount="indefinite" />
+            <animate attributeName="cy" values="42;38;42" dur="0.4s" repeatCount="indefinite" />
+            <animate attributeName="opacity" values="0.7;0;0.7" dur="0.4s" repeatCount="indefinite" />
           </circle>
-          <circle cx="40" cy="14" r="1" fill="#60a5fa" opacity="0.6">
-            <animate attributeName="cy" values="14;8;14" dur="0.7s" repeatCount="indefinite" begin="0.3s" />
-            <animate attributeName="opacity" values="0.6;0;0.6" dur="0.7s" repeatCount="indefinite" begin="0.3s" />
+          <circle cx="42" cy="42" r="1.5" fill="#92400e" opacity="0.7">
+            <animate attributeName="cx" values="42;46;42" dur="0.4s" repeatCount="indefinite" begin="0.2s" />
+            <animate attributeName="cy" values="42;38;42" dur="0.4s" repeatCount="indefinite" begin="0.2s" />
+            <animate attributeName="opacity" values="0.7;0;0.7" dur="0.4s" repeatCount="indefinite" begin="0.2s" />
           </circle>
+        </>
+      )}
+      {/* Effort lines when pushing */}
+      {pushing && !done && (
+        <>
+          <line x1="3" y1="28" x2="0" y2="28" stroke="#f59e0b" strokeWidth="1.5" strokeLinecap="round" opacity="0.6">
+            <animate attributeName="opacity" values="0.6;0;0.6" dur="0.4s" repeatCount="indefinite" />
+          </line>
+          <line x1="3" y1="34" x2="0" y2="34" stroke="#f59e0b" strokeWidth="1.5" strokeLinecap="round" opacity="0.6">
+            <animate attributeName="opacity" values="0;0.6;0" dur="0.4s" repeatCount="indefinite" />
+          </line>
         </>
       )}
     </svg>
@@ -112,34 +151,69 @@ export default function FunDownloadProgressBar({ progress, label = "Downloading"
     <div className="space-y-3 rounded-2xl border border-blue-400/30 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40 px-4 py-4 animate-in fade-in duration-200">
       <div className="flex items-center justify-between text-sm">
         <span className="font-bold text-blue-800 dark:text-blue-200">
-          {isDone ? "Zap got it! 🎉" : isFetching ? "Zap is warming up…" : hasRealProgress ? `${pct}% — Zap is pulling!` : `${label}…`}
+          {isDone ? "Zap got it! 🎉" : isFetching ? "Zap is digging for your file…" : hasRealProgress ? `${pct}% — Zap is pushing!` : `${label}…`}
         </span>
         <span className="text-xs font-medium text-blue-600/80 dark:text-blue-300/80">
-          {speed > 0 ? `${formatBytes(speed)}/s` : isDone ? "finished" : isFetching ? "connecting…" : "downloading…"}
+          {speed > 0 ? `${formatBytes(speed)}/s` : isDone ? "finished" : isFetching ? "digging…" : "pushing…"}
         </span>
       </div>
 
-      {/* Progress track with Zap running on top */}
-      <div className="relative h-14 w-full">
-        {/* Track */}
-        <div className="absolute top-1/2 left-0 right-0 h-3 -translate-y-1/2 rounded-full bg-blue-200/40 dark:bg-blue-900/40 overflow-hidden">
-          {isFetching ? (
-            <div className="absolute inset-y-0 w-1/3 rounded-full bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 animate-indeterminate" />
-          ) : (
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-blue-500 via-cyan-400 to-pink-500 transition-all duration-300 ease-out"
-              style={{ width: `${pct}%` }}
-            />
-          )}
-        </div>
+      {/* Animation area */}
+      <div className="relative h-20 w-full overflow-hidden rounded-xl bg-gradient-to-b from-sky-50/40 to-blue-50/20 dark:from-sky-900/20 dark:to-blue-950/20">
+        {isFetching ? (
+          /* ── Fetching: Zap digging ── */
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="animate-bounce" style={{ animationDuration: "0.8s" }}>
+              <ZapMascot digging={true} done={false} />
+            </div>
+          </div>
+        ) : (
+          /* ── Downloading: Two Zaps pushing bar back & forth ── */
+          <>
+            {/* The blue bar in the middle */}
+            <div className="absolute top-1/2 left-0 right-0 h-4 -translate-y-1/2 px-8">
+              <div className="relative h-full rounded-full bg-blue-200/40 dark:bg-blue-900/40 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-blue-500 via-cyan-400 to-pink-500 transition-all duration-300 ease-out"
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+            </div>
 
-        {/* Zap mascot positioned along the bar */}
-        <div
-          className="absolute top-0 -translate-x-1/2 transition-all duration-300 ease-out"
-          style={{ left: isDone ? "100%" : isFetching ? "15%" : `${pct}%` }}
-        >
-          <ZapMascot running={isFetching} pulling={!isFetching && !isDone} done={isDone} />
-        </div>
+            {/* Left Zap pushing right → */}
+            <div
+              className="absolute top-1/2 -translate-y-1/2"
+              style={{
+                left: "8px",
+                transform: `translateX(${isDone ? 0 : 0}px) translateY(-50%)`,
+              }}
+            >
+              <div style={{ animation: isDone ? "none" : "pushRight 0.8s ease-in-out infinite" }}>
+                <ZapMascot pushing={!isDone} done={isDone} facingRight={true} />
+              </div>
+            </div>
+
+            {/* Right Zap pushing left ← */}
+            <div
+              className="absolute top-1/2 -translate-y-1/2"
+              style={{
+                right: "8px",
+                transform: `translateX(${isDone ? 0 : 0}px) translateY(-50%)`,
+              }}
+            >
+              <div style={{ animation: isDone ? "none" : "pushLeft 0.8s ease-in-out infinite" }}>
+                <ZapMascot pushing={!isDone} done={isDone} facingRight={false} />
+              </div>
+            </div>
+
+            {/* Percentage in center */}
+            {hasRealProgress && (
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-xs font-bold text-white drop-shadow-md z-10">
+                {pct}%
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       <div className="flex justify-between text-xs text-blue-700/70 dark:text-blue-300/70">
@@ -151,6 +225,17 @@ export default function FunDownloadProgressBar({ progress, label = "Downloading"
           <span>~{formatEta(eta)} to go</span>
         )}
       </div>
+
+      <style jsx>{`
+        @keyframes pushRight {
+          0%, 100% { transform: translateX(0); }
+          50% { transform: translateX(6px); }
+        }
+        @keyframes pushLeft {
+          0%, 100% { transform: translateX(0); }
+          50% { transform: translateX(-6px); }
+        }
+      `}</style>
     </div>
   );
 }

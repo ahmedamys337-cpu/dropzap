@@ -347,7 +347,45 @@ export async function fetchInstagramVideoUrl(postUrl: string): Promise<string | 
 export async function fetchInstagramThumbnailData(
   postUrl: string,
 ): Promise<{ thumbnail: string; title: string; width?: number; height?: number } | null> {
-  // Use the same robust extraction chain that makes the reel downloader work.
+  // 0. Quick og:image from the embed page (lighter, less likely to be blocked)
+  const shortcode = extractIgShortcode(postUrl);
+  if (shortcode) {
+    try {
+      const embedUrl = `https://www.instagram.com/p/${shortcode}/embed/`;
+      const res = await fetch(embedUrl, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+          "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          "Accept-Language": "en-US,en;q=0.9",
+        },
+        redirect: "follow",
+        signal: AbortSignal.timeout(10000),
+      });
+      if (res.ok) {
+        const html = await res.text();
+        // og:image
+        const ogMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
+        if (ogMatch) {
+          const thumbUrl = ogMatch[1].replace(/&amp;/g, "&");
+          if (/^https?:\/\//.test(thumbUrl)) {
+            return { thumbnail: thumbUrl, title: "Instagram post" };
+          }
+        }
+        // Also try extracting image from embed page's inline JSON
+        const imgMatch = html.match(/"display_url"\s*:\s*"(https?:\\?\/\\?\/[^"]+)"/i);
+        if (imgMatch) {
+          const thumbUrl = imgMatch[1].replace(/\\u0026/g, "&").replace(/\\\//g, "/");
+          if (/^https?:\/\//.test(thumbUrl)) {
+            return { thumbnail: thumbUrl, title: "Instagram post" };
+          }
+        }
+      }
+    } catch (e: any) {
+      console.warn("[instagram:thumbnail] embed page scrape failed:", e?.message);
+    }
+  }
+
+  // 1. Use the full extraction chain
   const media = await fetchInstagramMedia(postUrl);
   if (!media || media.images.length === 0) return null;
   return { thumbnail: media.images[0], title: "Instagram post" };

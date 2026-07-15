@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
 import { Download, Loader2, Clipboard, X, Image as ImageIcon, Sparkles, AlertCircle } from "lucide-react";
-import { downloadImageClientSide } from "@/lib/download";
+import { downloadImageClientSide, proxyDownloadUrl } from "@/lib/download";
 
 interface Thumb {
   label: string;
@@ -183,9 +183,10 @@ export default function InstagramThumbnailDownloader() {
             <div className="relative bg-black">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={data.thumbnails[0].url}
+                src={proxyDownloadUrl(data.thumbnails[0].url, "ig-thumb.jpg") + "&inline=1"}
                 alt="Instagram thumbnail"
                 className="w-full h-auto"
+                onError={(e) => { (e.target as HTMLImageElement).src = data!.thumbnails[0].url; }}
               />
               <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 px-3 py-1 text-xs font-semibold text-white shadow-lg">
                 <Sparkles className="h-3 w-3" />

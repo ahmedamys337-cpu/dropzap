@@ -38,6 +38,7 @@ function isAllowedHost(urlStr: string): boolean {
 export async function GET(request: NextRequest) {
   const cdnUrl = request.nextUrl.searchParams.get("url");
   const filename = request.nextUrl.searchParams.get("name") || "download.mp4";
+  const inline = request.nextUrl.searchParams.get("inline") === "1";
 
   if (!cdnUrl) {
     return new Response(JSON.stringify({ error: "URL required" }), {
@@ -83,10 +84,12 @@ export async function GET(request: NextRequest) {
     const contentLength = cdnRes.headers.get("content-length");
     const contentType = cdnRes.headers.get("content-type") || "video/mp4";
 
-    // Build response headers to force download
+    // Build response headers
     const headers = new Headers();
     const safeAscii = filename.replace(/[^\x20-\x7E]/g, "").replace(/"/g, "");
-    headers.set("Content-Disposition", `attachment; filename="${safeAscii}"; filename*=UTF-8''${encodeURIComponent(filename)}`);
+    if (!inline) {
+      headers.set("Content-Disposition", `attachment; filename="${safeAscii}"; filename*=UTF-8''${encodeURIComponent(filename)}`);
+    }
     headers.set("Content-Type", contentType);
     if (contentLength) {
       headers.set("Content-Length", contentLength);
