@@ -148,28 +148,48 @@ export default function FunDownloadProgressBar({ progress, label = "Downloading"
   const isFetching = phase === "fetching";
 
   return (
-    <div className="space-y-3 rounded-2xl border border-blue-400/30 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40 px-4 py-4 animate-in fade-in duration-200">
-      <div className="flex items-center justify-between text-sm">
-        <span className="font-bold text-blue-800 dark:text-blue-200">
-          {isDone ? "Zap got it! 🎉" : isFetching ? "Zap is digging for your file…" : hasRealProgress ? `${pct}% — Zap is pushing!` : `${label}…`}
-        </span>
-        <span className="text-xs font-medium text-blue-600/80 dark:text-blue-300/80">
-          {speed > 0 ? `${formatBytes(speed)}/s` : isDone ? "finished" : isFetching ? "digging…" : "pushing…"}
-        </span>
-      </div>
-
-      {/* Animation area */}
-      <div className="relative h-20 w-full overflow-hidden rounded-xl bg-gradient-to-b from-sky-50/40 to-blue-50/20 dark:from-sky-900/20 dark:to-blue-950/20">
-        {isFetching ? (
-          /* ── Fetching: Zap digging ── */
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="animate-bounce" style={{ animationDuration: "0.8s" }}>
-              <ZapMascot digging={true} done={false} />
+    <div className="rounded-2xl border border-blue-400/30 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40 p-4 animate-in fade-in duration-200">
+      {isFetching ? (
+        /* ── Fetching: card with Zap on left, digging text, indeterminate bar ── */
+        <div className="space-y-3">
+          <div className="flex items-start gap-3">
+            <div className="relative flex-shrink-0">
+              <ZapMascot digging={!isDone} done={isDone} />
+              <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 rounded bg-blue-600 px-1 py-0.5 text-[8px] font-extrabold uppercase tracking-wider text-white shadow-sm">
+                Zap
+              </span>
+            </div>
+            <div className="min-w-0 flex-1 space-y-2">
+              <div className="flex items-start justify-between gap-2">
+                <span className="font-bold text-blue-800 dark:text-blue-200">
+                  Zap is digging for your {label.toLowerCase()}…
+                </span>
+                <span className="flex-shrink-0 rounded-full bg-blue-200/70 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-blue-700 dark:bg-blue-800/40 dark:text-blue-300">
+                  Hang tight!
+                </span>
+              </div>
+              <div className="h-2.5 w-full rounded-full bg-blue-200/50 dark:bg-blue-900/40 overflow-hidden">
+                <div className="h-full w-1/3 rounded-full bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 animate-indeterminate" />
+              </div>
             </div>
           </div>
-        ) : (
-          /* ── Downloading: Two Zaps pushing bar back & forth ── */
-          <>
+          <p className="text-xs text-blue-700/80 dark:text-blue-300/80">
+            The server is negotiating with downloading. This usually takes 5-30 seconds.
+          </p>
+        </div>
+      ) : (
+        /* ── Downloading / Done: Two Zaps pushing bar back & forth ── */
+        <div className="space-y-3">
+          <div className="flex items-center justify-between text-sm">
+            <span className="font-bold text-blue-800 dark:text-blue-200">
+              {isDone ? "Zap got it! 🎉" : hasRealProgress ? `${pct}% — Zap is pushing!` : `${label}…`}
+            </span>
+            <span className="text-xs font-medium text-blue-600/80 dark:text-blue-300/80">
+              {speed > 0 ? `${formatBytes(speed)}/s` : isDone ? "finished" : "pushing…"}
+            </span>
+          </div>
+
+          <div className="relative h-20 w-full overflow-hidden rounded-xl bg-gradient-to-b from-sky-50/40 to-blue-50/20 dark:from-sky-900/20 dark:to-blue-950/20">
             {/* The blue bar in the middle */}
             <div className="absolute top-1/2 left-0 right-0 h-4 -translate-y-1/2 px-8">
               <div className="relative h-full rounded-full bg-blue-200/40 dark:bg-blue-900/40 overflow-hidden">
@@ -181,26 +201,14 @@ export default function FunDownloadProgressBar({ progress, label = "Downloading"
             </div>
 
             {/* Left Zap pushing right → */}
-            <div
-              className="absolute top-1/2 -translate-y-1/2"
-              style={{
-                left: "8px",
-                transform: `translateX(${isDone ? 0 : 0}px) translateY(-50%)`,
-              }}
-            >
+            <div className="absolute top-1/2 left-2 -translate-y-1/2">
               <div style={{ animation: isDone ? "none" : "pushRight 0.8s ease-in-out infinite" }}>
                 <ZapMascot pushing={!isDone} done={isDone} facingRight={true} />
               </div>
             </div>
 
             {/* Right Zap pushing left ← */}
-            <div
-              className="absolute top-1/2 -translate-y-1/2"
-              style={{
-                right: "8px",
-                transform: `translateX(${isDone ? 0 : 0}px) translateY(-50%)`,
-              }}
-            >
+            <div className="absolute top-1/2 right-2 -translate-y-1/2">
               <div style={{ animation: isDone ? "none" : "pushLeft 0.8s ease-in-out infinite" }}>
                 <ZapMascot pushing={!isDone} done={isDone} facingRight={false} />
               </div>
@@ -212,19 +220,19 @@ export default function FunDownloadProgressBar({ progress, label = "Downloading"
                 {pct}%
               </div>
             )}
-          </>
-        )}
-      </div>
+          </div>
 
-      <div className="flex justify-between text-xs text-blue-700/70 dark:text-blue-300/70">
-        <span>
-          {formatBytes(downloaded)}
-          {total ? ` / ${formatBytes(total)}` : ""}
-        </span>
-        {eta !== null && eta !== undefined && eta > 0 && !isDone && (
-          <span>~{formatEta(eta)} to go</span>
-        )}
-      </div>
+          <div className="flex justify-between text-xs text-blue-700/70 dark:text-blue-300/70">
+            <span>
+              {formatBytes(downloaded)}
+              {total ? ` / ${formatBytes(total)}` : ""}
+            </span>
+            {eta !== null && eta !== undefined && eta > 0 && !isDone && (
+              <span>~{formatEta(eta)} to go</span>
+            )}
+          </div>
+        </div>
+      )}
 
       <style jsx>{`
         @keyframes pushRight {
