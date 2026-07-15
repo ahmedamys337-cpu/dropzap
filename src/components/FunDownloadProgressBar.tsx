@@ -168,8 +168,8 @@ export default function FunDownloadProgressBar({ progress, label = "Downloading"
                   Hang tight!
                 </span>
               </div>
-              <div className="h-2.5 w-full rounded-full bg-blue-200/50 dark:bg-blue-900/40 overflow-hidden">
-                <div className="h-full w-1/3 rounded-full bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 animate-indeterminate" />
+              <div className="relative h-2.5 w-full rounded-full bg-blue-200/50 dark:bg-blue-900/40 overflow-hidden">
+                <div className="move-bar absolute inset-y-0 w-1/4 rounded-full bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400" />
               </div>
             </div>
           </div>
@@ -235,6 +235,14 @@ export default function FunDownloadProgressBar({ progress, label = "Downloading"
       )}
 
       <style jsx>{`
+        @keyframes moveBar {
+          0% { transform: translateX(0); }
+          50% { transform: translateX(300%); }
+          100% { transform: translateX(0); }
+        }
+        .move-bar {
+          animation: moveBar 1.6s ease-in-out infinite;
+        }
         @keyframes pushRight {
           0%, 100% { transform: translateX(0); }
           50% { transform: translateX(6px); }
