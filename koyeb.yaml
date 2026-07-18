@@ -1,0 +1,54 @@
+# DropZap — Koyeb deployment manifest
+# Deploy with: koyeb app deploy --file koyeb.yaml
+#
+# Prerequisites:
+#   1. Sign up at https://app.koyeb.com (free, no credit card)
+#   2. Get API token: https://app.koyeb.com/account/api
+#   3. Install CLI: https://www.koyeb.com/docs/cli/installation
+#   4. Login: koyeb login
+#   5. Deploy: koyeb app deploy --file koyeb.yaml
+#
+# Free tier: 512MB RAM, 0.1 vCPU, scales to zero after 1hr idle
+# Keep awake with UptimeRobot pinging /api/health every 5 minutes
+
+name: dropzap
+
+services:
+  - name: web
+    type: web
+    git:
+      branch: main
+      docker:
+        dockerfile: Dockerfile
+    instance_types:
+      - type: nano
+    regions:
+      - fra
+    ports:
+      - port: 3000
+        protocol: http
+    routes:
+      - path: /
+        port: 3000
+    health_checks:
+      - port: 3000
+        protocol: http
+        path: /api/health
+        interval: 30
+        timeout: 5
+        healthy_threshold: 1
+        unhealthy_threshold: 3
+    scaling:
+      min: 0
+      max: 1
+    env:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"
+      - key: PORT
+        value: "3000"
+      - key: HOSTNAME
+        value: 0.0.0.0
+      - key: NEXT_PUBLIC_SITE_URL
+        value: https://www.dropzap.digital
