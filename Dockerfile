@@ -1,8 +1,7 @@
 FROM node:20-slim
 WORKDIR /app
-RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg curl ca-certificates && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-ARG YTDLP_CACHEBUST=2026-07-04-1
-RUN echo "ytdlp cachebust: $YTDLP_CACHEBUST" && curl -fsSL https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp_linux -o /usr/local/bin/yt-dlp && chmod a+rx /usr/local/bin/yt-dlp && /usr/local/bin/yt-dlp --version
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg curl ca-certificates python3 python3-pip && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+RUN pip3 install --no-cache-dir yt-dlp
 COPY package.json package-lock.json* ./
 RUN npm ci
 COPY . .
