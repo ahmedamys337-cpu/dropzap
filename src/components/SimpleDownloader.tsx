@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { safeFilename, triggerNativeDownload, type DownloadProgress as ProgressInfo } from "@/lib/download";
+import { safeFilename, downloadWithFallback, type DownloadProgress as ProgressInfo } from "@/lib/download";
 import FunDownloadProgressBar from "@/components/FunDownloadProgressBar";
 import { addDownloadHistory } from "@/lib/download-history";
 import DownloadSuccessActions from "@/components/DownloadSuccessActions";
@@ -129,8 +129,19 @@ export default function SimpleDownloader({
     return `${base}.${ext}`;
   };
 
-  const doDownload = (downloadUrl: string, name: string) => {
-    triggerNativeDownload(downloadUrl, name);
+  const doDownload = (blob: Blob, name: string) => {
+    const objectUrl = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = objectUrl;
+    a.download = name;
+    a.rel = "noopener";
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      try { document.body.removeChild(a); } catch {}
+      URL.revokeObjectURL(objectUrl);
+    }, 1000);
     setPhase("downloaded");
 
     // Save to local history so users can re-download later.
@@ -174,15 +185,24 @@ export default function SimpleDownloader({
     setPhase("downloading");
     onDownload?.(`${platform} ${mediaTypeLabel}`, url, mediaTypeLabel);
 
-    // Trigger browser-native download immediately
-    // This shows in the browser's download manager instead of buffering in the website
-    doDownload(streamUrl, defaultName);
+    const controller = new AbortController();
+    abortRef.current = controller;
 
-    // Show a brief progress indicator then mark as done
-    setProgress({ phase: "fetching", downloaded: 0, total: null, speed: 0, eta: null, percent: null });
-    setTimeout(() => {
-      setProgress({ phase: "done", downloaded: 0, total: null, speed: 0, eta: 0, percent: 100 });
-    }, 2000);
+    downloadWithFallback(streamUrl, (p) => setProgress(p), controller.signal)
+      .then((result) => {
+        if ("direct" in result) {
+          // Large file: browser is handling the native download.
+          return;
+        }
+        const finalName = inferFilename(result.response, result.blob, defaultName);
+        doDownload(result.blob, finalName);
+      })
+      .catch((err: any) => {
+        if (err?.name === "AbortError") return;
+        const msg = err?.message || "Network error. Check your connection and try again.";
+        setErrorMsg(msg);
+        setPhase("error");
+      });
   };
 
   const paste = async () => {
