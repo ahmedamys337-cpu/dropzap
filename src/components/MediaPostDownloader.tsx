@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { triggerNativeDownload, proxyDownloadUrl, safeFilename, type DownloadProgress as ProgressInfo } from "@/lib/download";
+import { triggerNativeDownload, proxyDownloadUrl, safeFilename, downloadWithFallback, type DownloadProgress as ProgressInfo } from "@/lib/download";
 import FunDownloadProgressBar from "@/components/FunDownloadProgressBar";
 import {
   Download,
@@ -122,7 +122,14 @@ export default function MediaPostDownloader({
     try {
       if (item.type === "video") {
         const streamUrl = `/api/stream?url=${encodeURIComponent(url)}&name=${encodeURIComponent(name)}`;
-        // Trigger browser-native download immediately
+        // Use downloadWithFallback to show progress while server prepares the file
+        const result = await downloadWithFallback(streamUrl, (p) => setProgress(p));
+        if ("direct" in result) {
+          // Large file: browser is handling the native download.
+          setDoneIdx((prev) => new Set(prev).add(idx));
+          return;
+        }
+        // Trigger native download with the stream URL (not blob)
         triggerNativeDownload(streamUrl, name);
       } else {
         triggerNativeDownload(proxyDownloadUrl(item.url, name), name);

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { safeFilename, triggerNativeDownload, type DownloadProgress as ProgressInfo } from "@/lib/download";
+import { safeFilename, triggerNativeDownload, downloadWithFallback, type DownloadProgress as ProgressInfo } from "@/lib/download";
 import FunDownloadProgressBar from "@/components/FunDownloadProgressBar";
 import { addDownloadHistory } from "@/lib/download-history";
 import DownloadSuccessActions from "@/components/DownloadSuccessActions";
@@ -131,7 +131,6 @@ export default function SimpleDownloader({
 
   const doDownload = (downloadUrl: string, name: string) => {
     triggerNativeDownload(downloadUrl, name);
-    setPhase("downloaded");
 
     // Save to local history so users can re-download later.
     addDownloadHistory({
@@ -174,12 +173,28 @@ export default function SimpleDownloader({
     setPhase("downloading");
     onDownload?.(`${platform} ${mediaTypeLabel}`, url, mediaTypeLabel);
 
-    // Trigger browser-native download immediately
-    // The server will handle the download and stream it with proper Content-Disposition headers
-    doDownload(streamUrl, defaultName);
+    const controller = new AbortController();
+    abortRef.current = controller;
 
-    // Immediately show success - browser handles the actual download progress
-    setPhase("downloaded");
+    // Use downloadWithFallback to show progress while server prepares the file
+    downloadWithFallback(streamUrl, (p) => setProgress(p), controller.signal)
+      .then((result) => {
+        if ("direct" in result) {
+          // Large file: browser is handling the native download.
+          setPhase("downloaded");
+          return;
+        }
+        // For smaller files, trigger native download with the blob
+        const finalName = inferFilename(result.response, result.blob, defaultName);
+        doDownload(streamUrl, finalName);
+        setPhase("downloaded");
+      })
+      .catch((err: any) => {
+        if (err?.name === "AbortError") return;
+        const msg = err?.message || "Network error. Check your connection and try again.";
+        setErrorMsg(msg);
+        setPhase("error");
+      });
   };
 
   const paste = async () => {
