@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { safeFilename, downloadWithFallback, type DownloadProgress as ProgressInfo } from "@/lib/download";
+import { safeFilename, triggerNativeDownload, type DownloadProgress as ProgressInfo } from "@/lib/download";
 import FunDownloadProgressBar from "@/components/FunDownloadProgressBar";
 import { addDownloadHistory } from "@/lib/download-history";
 import DownloadSuccessActions from "@/components/DownloadSuccessActions";
@@ -129,19 +129,8 @@ export default function SimpleDownloader({
     return `${base}.${ext}`;
   };
 
-  const doDownload = (blob: Blob, name: string) => {
-    const objectUrl = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = objectUrl;
-    a.download = name;
-    a.rel = "noopener";
-    a.style.display = "none";
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => {
-      try { document.body.removeChild(a); } catch {}
-      URL.revokeObjectURL(objectUrl);
-    }, 1000);
+  const doDownload = (downloadUrl: string, name: string) => {
+    triggerNativeDownload(downloadUrl, name);
     setPhase("downloaded");
 
     // Save to local history so users can re-download later.
@@ -185,24 +174,12 @@ export default function SimpleDownloader({
     setPhase("downloading");
     onDownload?.(`${platform} ${mediaTypeLabel}`, url, mediaTypeLabel);
 
-    const controller = new AbortController();
-    abortRef.current = controller;
+    // Trigger browser-native download immediately
+    // The server will handle the download and stream it with proper Content-Disposition headers
+    doDownload(streamUrl, defaultName);
 
-    downloadWithFallback(streamUrl, (p) => setProgress(p), controller.signal)
-      .then((result) => {
-        if ("direct" in result) {
-          // Large file: browser is handling the native download.
-          return;
-        }
-        const finalName = inferFilename(result.response, result.blob, defaultName);
-        doDownload(result.blob, finalName);
-      })
-      .catch((err: any) => {
-        if (err?.name === "AbortError") return;
-        const msg = err?.message || "Network error. Check your connection and try again.";
-        setErrorMsg(msg);
-        setPhase("error");
-      });
+    // Immediately show success - browser handles the actual download progress
+    setPhase("downloaded");
   };
 
   const paste = async () => {
