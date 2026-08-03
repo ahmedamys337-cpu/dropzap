@@ -91,7 +91,57 @@ async function fetchTikTokThumbnail(url: string): Promise<ThumbnailResult> {
 }
 
 async function fetchInstagramThumbnail(url: string): Promise<ThumbnailResult> {
-  // Try simple page scraping first (more reliable)
+  // Try embed page first (most reliable, designed for embedding)
+  const shortcode = url.match(/instagram\.com\/(?:p|reel|reels|tv)\/([A-Za-z0-9_-]+)/i)?.[1];
+  if (shortcode) {
+    try {
+      const embedUrl = `https://www.instagram.com/p/${shortcode}/embed/`;
+      const res = await fetch(embedUrl, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+          "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          "Accept-Language": "en-US,en;q=0.9",
+        },
+        redirect: "follow",
+        signal: AbortSignal.timeout(10000),
+      });
+      if (res.ok) {
+        const html = await res.text();
+        
+        // Try og:image first
+        const ogMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
+        if (ogMatch) {
+          const thumbUrl = ogMatch[1].replace(/&amp;/g, "&");
+          if (/^https?:\/\//.test(thumbUrl)) {
+            logger.log("[thumbnail:instagram] Got thumbnail from embed page");
+            return {
+              platform: "instagram",
+              title: "Instagram post",
+              thumbnails: [{ label: "Instagram Thumbnail", url: thumbUrl, width: 1080, height: 1080 }],
+            };
+          }
+        }
+        
+        // Fallback to display_url in JSON
+        const imgMatch = html.match(/"display_url"\s*:\s*"(https?:\\?\/\\?\/[^"]+)"/i);
+        if (imgMatch) {
+          const thumbUrl = imgMatch[1].replace(/\\u0026/g, "&").replace(/\\\//g, "/");
+          if (/^https?:\/\//.test(thumbUrl)) {
+            logger.log("[thumbnail:instagram] Got thumbnail from embed JSON");
+            return {
+              platform: "instagram",
+              title: "Instagram post",
+              thumbnails: [{ label: "Instagram Thumbnail", url: thumbUrl, width: 1080, height: 1080 }],
+            };
+          }
+        }
+      }
+    } catch (e: any) {
+      logger.warn("[thumbnail:instagram] Embed page scrape failed:", e?.message);
+    }
+  }
+
+  // Fallback to the main page
   try {
     const res = await fetch(url, {
       headers: {
@@ -105,11 +155,11 @@ async function fetchInstagramThumbnail(url: string): Promise<ThumbnailResult> {
     if (res.ok) {
       const html = await res.text();
       
-      // Try og:image first
       const ogMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
       if (ogMatch) {
         const thumbUrl = ogMatch[1].replace(/&amp;/g, "&");
         if (/^https?:\/\//.test(thumbUrl)) {
+          logger.log("[thumbnail:instagram] Got thumbnail from main page");
           return {
             platform: "instagram",
             title: "Instagram post",
@@ -117,25 +167,13 @@ async function fetchInstagramThumbnail(url: string): Promise<ThumbnailResult> {
           };
         }
       }
-      
-      // Fallback to og:video:thumbnail
-      const ogVideoThumb = html.match(/<meta[^>]+property=["']og:video:thumbnail["'][^>]+content=["']([^"']+)["']/i);
-      if (ogVideoThumb) {
-        const thumbUrl = ogVideoThumb[1].replace(/&amp;/g, "&");
-        if (/^https?:\/\//.test(thumbUrl)) {
-          return {
-            platform: "instagram",
-            title: "Instagram post",
-            thumbnails: [{ label: "Instagram Thumbnail", url: thumbUrl, width: 1080, height: 1920 }],
-          };
-        }
-      }
     }
   } catch (e: any) {
-    logger.warn("[thumbnail:instagram] Simple page scrape failed:", e?.message);
+    logger.warn("[thumbnail:instagram] Main page scrape failed:", e?.message);
   }
 
-  // Fallback to the complex extraction
+  // Last resort: complex extraction
+  logger.log("[thumbnail:instagram] Falling back to complex extraction");
   const data = await fetchInstagramThumbnailData(url);
   if (!data) throw new Error("Instagram thumbnail extraction failed");
   return {
