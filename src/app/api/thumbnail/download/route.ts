@@ -97,14 +97,25 @@ export async function POST(request: NextRequest) {
   if (platform === "tiktok") {
     imageUrl = await fetchTikTokThumbnailUrl(url);
   } else if (platform === "instagram") {
-    const media = await fetchInstagramMedia(url);
-    if (media && media.images.length > 0) {
-      imageUrl = media.images[0];
+    try {
+      const media = await fetchInstagramMedia(url);
+      if (media && media.images.length > 0) {
+        imageUrl = media.images[0];
+        logger.log(`[thumbnail:download] Instagram thumbnail resolved via ${media.source}`);
+      } else {
+        logger.warn("[thumbnail:download] fetchInstagramMedia returned no images");
+      }
+    } catch (e: any) {
+      logger.error("[thumbnail:download] fetchInstagramMedia failed:", e?.message);
     }
   }
 
   if (!imageUrl) {
-    return new Response("Could not resolve a fresh thumbnail URL", { status: 502 });
+    logger.error(`[thumbnail:download] Could not resolve thumbnail URL for ${platform}`);
+    return new Response(JSON.stringify({ error: "Could not resolve a fresh thumbnail URL" }), {
+      status: 502,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   const response = await fetchImageAsResponse(imageUrl, filename);
@@ -112,6 +123,7 @@ export async function POST(request: NextRequest) {
 
   // If we resolved the URL but can't proxy it from the datacenter, tell the
   // client to download it directly from the browser (residential IP usually works).
+  logger.log(`[thumbnail:download] Returning URL for client-side download: ${imageUrl}`);
   return new Response(JSON.stringify({ url: imageUrl, useClient: true }), {
     status: 200,
     headers: { "Content-Type": "application/json" },
