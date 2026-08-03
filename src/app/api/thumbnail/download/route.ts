@@ -51,6 +51,47 @@ async function fetchTikTokThumbnailUrl(postUrl: string): Promise<string | null> 
   return null;
 }
 
+async function fetchInstagramThumbnailUrlSimple(postUrl: string): Promise<string | null> {
+  try {
+    // Simple approach: scrape og:image from the Instagram page
+    const res = await fetch(postUrl, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+      },
+      redirect: "follow",
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
+    
+    // Try og:image first
+    const ogMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
+    if (ogMatch) {
+      const thumbUrl = ogMatch[1].replace(/&amp;/g, "&");
+      if (/^https?:\/\//.test(thumbUrl)) return thumbUrl;
+    }
+    
+    // Fallback to og:video:thumbnail
+    const ogVideoThumb = html.match(/<meta[^>]+property=["']og:video:thumbnail["'][^>]+content=["']([^"']+)["']/i);
+    if (ogVideoThumb) {
+      const thumbUrl = ogVideoThumb[1].replace(/&amp;/g, "&");
+      if (/^https?:\/\//.test(thumbUrl)) return thumbUrl;
+    }
+    
+    // Fallback to image URL in JSON
+    const imgMatch = html.match(/"display_url"\s*:\s*"(https?:\\?\/\\?\/[^"]+)"/i);
+    if (imgMatch) {
+      const thumbUrl = imgMatch[1].replace(/\\u0026/g, "&").replace(/\\\//g, "/");
+      if (/^https?:\/\//.test(thumbUrl)) return thumbUrl;
+    }
+  } catch (e: any) {
+    logger.warn("[thumbnail:download] Instagram page scrape failed:", e?.message);
+  }
+  return null;
+}
+
 async function fetchImageAsResponse(imageUrl: string, filename: string): Promise<Response | null> {
   if (!isAllowedHost(imageUrl)) return null;
 
@@ -97,16 +138,23 @@ export async function POST(request: NextRequest) {
   if (platform === "tiktok") {
     imageUrl = await fetchTikTokThumbnailUrl(url);
   } else if (platform === "instagram") {
-    try {
-      const media = await fetchInstagramMedia(url);
-      if (media && media.images.length > 0) {
-        imageUrl = media.images[0];
-        logger.log(`[thumbnail:download] Instagram thumbnail resolved via ${media.source}`);
-      } else {
-        logger.warn("[thumbnail:download] fetchInstagramMedia returned no images");
+    // Use simpler page scraping approach first
+    imageUrl = await fetchInstagramThumbnailUrlSimple(url);
+    if (!imageUrl) {
+      // Fallback to the more complex extraction
+      try {
+        const media = await fetchInstagramMedia(url);
+        if (media && media.images.length > 0) {
+          imageUrl = media.images[0];
+          logger.log(`[thumbnail:download] Instagram thumbnail resolved via ${media.source} (fallback)`);
+        } else {
+          logger.warn("[thumbnail:download] fetchInstagramMedia returned no images");
+        }
+      } catch (e: any) {
+        logger.error("[thumbnail:download] fetchInstagramMedia failed:", e?.message);
       }
-    } catch (e: any) {
-      logger.error("[thumbnail:download] fetchInstagramMedia failed:", e?.message);
+    } else {
+      logger.log("[thumbnail:download] Instagram thumbnail resolved via simple page scrape");
     }
   }
 
