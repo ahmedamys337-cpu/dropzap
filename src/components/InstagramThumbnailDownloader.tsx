@@ -65,35 +65,13 @@ export default function InstagramThumbnailDownloader() {
     setDownloading(true);
     const filename = `instagram-thumbnail-${thumb.width || 0}x${thumb.height || 0}.jpg`;
     try {
-      const res = await fetch("/api/thumbnail/download", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, platform: "instagram" }),
-      });
-
-      const contentType = res.headers.get("content-type") || "";
-
-      // Server streamed the image bytes successfully
-      if (res.ok && !contentType.includes("application/json")) {
-        const blob = await res.blob();
-        const blobUrl = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = blobUrl;
-        a.download = filename;
-        a.rel = "noopener";
-        a.style.display = "none";
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(() => { try { document.body.removeChild(a); } catch {}; URL.revokeObjectURL(blobUrl); }, 1000);
-        return;
-      }
-
-      // Server couldn't proxy it; try downloading from the browser instead
-      const json = await res.json().catch(() => ({}));
-      const imageUrl = json?.url || thumb.url;
+      // Direct download using the thumbnail URL we already have
+      const imageUrl = thumb.url;
       const ok = await downloadImageClientSide(imageUrl, filename);
       if (!ok) {
         toast({ title: "Download started", description: "The image opened in a new tab — right-click and Save As.", variant: "default" });
+      } else {
+        toast({ title: "Download complete", description: "Thumbnail saved successfully", variant: "default" });
       }
     } catch (e: any) {
       toast({ title: "Download failed", description: e?.message || "Could not download thumbnail", variant: "destructive" });

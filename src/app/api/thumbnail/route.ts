@@ -91,6 +91,51 @@ async function fetchTikTokThumbnail(url: string): Promise<ThumbnailResult> {
 }
 
 async function fetchInstagramThumbnail(url: string): Promise<ThumbnailResult> {
+  // Try simple page scraping first (more reliable)
+  try {
+    const res = await fetch(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+      },
+      redirect: "follow",
+      signal: AbortSignal.timeout(10000),
+    });
+    if (res.ok) {
+      const html = await res.text();
+      
+      // Try og:image first
+      const ogMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
+      if (ogMatch) {
+        const thumbUrl = ogMatch[1].replace(/&amp;/g, "&");
+        if (/^https?:\/\//.test(thumbUrl)) {
+          return {
+            platform: "instagram",
+            title: "Instagram post",
+            thumbnails: [{ label: "Instagram Thumbnail", url: thumbUrl, width: 1080, height: 1080 }],
+          };
+        }
+      }
+      
+      // Fallback to og:video:thumbnail
+      const ogVideoThumb = html.match(/<meta[^>]+property=["']og:video:thumbnail["'][^>]+content=["']([^"']+)["']/i);
+      if (ogVideoThumb) {
+        const thumbUrl = ogVideoThumb[1].replace(/&amp;/g, "&");
+        if (/^https?:\/\//.test(thumbUrl)) {
+          return {
+            platform: "instagram",
+            title: "Instagram post",
+            thumbnails: [{ label: "Instagram Thumbnail", url: thumbUrl, width: 1080, height: 1920 }],
+          };
+        }
+      }
+    }
+  } catch (e: any) {
+    logger.warn("[thumbnail:instagram] Simple page scrape failed:", e?.message);
+  }
+
+  // Fallback to the complex extraction
   const data = await fetchInstagramThumbnailData(url);
   if (!data) throw new Error("Instagram thumbnail extraction failed");
   return {
