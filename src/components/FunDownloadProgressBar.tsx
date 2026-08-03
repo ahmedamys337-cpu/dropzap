@@ -162,10 +162,10 @@ export default function FunDownloadProgressBar({ progress, label = "Downloading"
             <div className="min-w-0 flex-1 space-y-2">
               <div className="flex items-start justify-between gap-2">
                 <span className="font-bold text-blue-800 dark:text-blue-200">
-                  Zap is digging for your {label.toLowerCase()}…
+                  Starting {label.toLowerCase()}…
                 </span>
                 <span className="flex-shrink-0 rounded-full bg-blue-200/70 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-blue-700 dark:bg-blue-800/40 dark:text-blue-300">
-                  Hang tight!
+                  Quick!
                 </span>
               </div>
               <div className="relative h-2.5 w-full rounded-full bg-blue-200/50 dark:bg-blue-900/40 overflow-hidden">
@@ -174,7 +174,7 @@ export default function FunDownloadProgressBar({ progress, label = "Downloading"
             </div>
           </div>
           <p className="text-xs text-blue-700/80 dark:text-blue-300/80">
-            The server is negotiating with downloading. This usually takes 5-30 seconds.
+            Your browser is handling the download. Check your download bar.
           </p>
         </div>
       ) : (

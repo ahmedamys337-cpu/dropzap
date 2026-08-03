@@ -68,7 +68,7 @@ function contentDispositionHeader(filename: string): string {
 // file lets ffmpeg produce a regular, seekable mp4 with a proper moov atom
 // that plays everywhere AND lets us return a real Content-Length so the
 // browser's download UI shows percentage / total size.
-function runYtDlp(args: string[], timeoutMs = 90000): Promise<{ code: number; stderr: string }> {
+function runYtDlp(args: string[], timeoutMs = 60000): Promise<{ code: number; stderr: string }> {
   return new Promise((resolve) => {
     const proc = spawn("yt-dlp", args, { stdio: ["ignore", "pipe", "pipe"] });
     let stderr = "";
@@ -277,10 +277,10 @@ export async function GET(request: NextRequest) {
       "--no-warnings",
       "--no-playlist",
       "--no-part",
-      "--socket-timeout", "30",
-      // Download 8 DASH fragments in parallel to speed up platforms that
+      "--socket-timeout", "20",
+      // Download 16 DASH fragments in parallel to speed up platforms that
       // deliver video and audio as fragmented streams.
-      "--concurrent-fragments", "8",
+      "--concurrent-fragments", "16",
       "-f", fmtArg,
     ];
 
