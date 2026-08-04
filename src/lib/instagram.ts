@@ -37,6 +37,90 @@ export function isInstagramStoryUrl(url: string): boolean {
   return /instagram\.com\/stories\//i.test(url);
 }
 
+export function isInstagramProfileUrl(url: string): boolean {
+  return /instagram\.com\/[^\/\?]+$/i.test(url) && !isInstagramStoryUrl(url);
+}
+
+export function extractUsernameFromUrl(url: string): string | null {
+  if (isInstagramStoryUrl(url)) {
+    const match = url.match(/instagram\.com\/stories\/([^\/]+)/i);
+    return match ? match[1] : null;
+  } else if (isInstagramProfileUrl(url)) {
+    const match = url.match(/instagram\.com\/([^\/\?]+)/i);
+    return match ? match[1] : null;
+  }
+  return null;
+}
+
+// Fetch Instagram stories using web scraping
+async function fetchInstagramStoriesWeb(username: string): Promise<{ images: string[]; videos: string[] } | null> {
+  try {
+    const url = `https://www.instagram.com/${username}/`;
+    const res = await fetch(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+      },
+      redirect: "follow",
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
+
+    // Try to extract story data from embedded JSON
+    const stories: string[] = [];
+    const videos: string[] = [];
+
+    // Look for story data in the page
+    const storyMatch = html.match(/"stories"\s*:\s*\[([^\]]+)\]/i);
+    if (storyMatch) {
+      try {
+        const storyData = JSON.parse(`[${storyMatch[1]}]`);
+        for (const item of storyData) {
+          if (item?.display_url) stories.push(item.display_url);
+          if (item?.video_versions?.[0]?.url) videos.push(item.video_versions[0].url);
+        }
+      } catch {}
+    }
+
+    // Fallback: look for image URLs in the page
+    if (stories.length === 0) {
+      const imgMatches = html.match(/https?:\/\/[^"\s]+\.(?:jpg|jpeg|png)/gi);
+      if (imgMatches) {
+        stories.push(...imgMatches.filter(u => u.includes("cdninstagram.com")).slice(0, 10));
+      }
+    }
+
+    return { images: stories, videos };
+  } catch (e: any) {
+    console.warn("[instagram] Story web scrape failed:", e?.message);
+    return null;
+  }
+}
+
+// Fetch Instagram stories - main function
+export async function fetchInstagramStories(url: string): Promise<{ username: string; images: string[]; videos: string[] } | null> {
+  const username = extractUsernameFromUrl(url);
+  if (!username) return null;
+
+  // Try web scraping first
+  const webResult = await fetchInstagramStoriesWeb(username);
+  if (webResult && (webResult.images.length > 0 || webResult.videos.length > 0)) {
+    return { username, ...webResult };
+  }
+
+  // Fallback: try the regular media extraction for specific story URLs
+  if (isInstagramStoryUrl(url)) {
+    const media = await fetchInstagramMedia(url);
+    if (media) {
+      return { username, images: media.images, videos: media.video ? [media.video] : [] };
+    }
+  }
+
+  return null;
+}
+
 export function getInstagramCookieHeader(): string {
   // Try cookies for both subdomains; IG sets some cookies on i.instagram.com
   // and others on www.instagram.com. Combine when both exist.

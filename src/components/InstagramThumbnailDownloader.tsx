@@ -28,13 +28,16 @@ export default function InstagramStoryDownloader() {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const isValid = (u: string) => /instagram\.com\/stories\//i.test(u);
+  const isValid = (u: string) => {
+    // Accept both story URLs and profile URLs
+    return /instagram\.com\/(stories\/[^\/]+|[^\/]+)$/i.test(u);
+  };
 
   const fetchStories = async () => {
     if (!url || !isValid(url)) {
       toast({
         title: "Invalid URL",
-        description: "Please paste a valid Instagram Story URL (e.g., instagram.com/stories/username/story_id).",
+        description: "Please paste a valid Instagram Story URL (e.g., instagram.com/stories/username/story_id) or profile URL (e.g., instagram.com/username).",
         variant: "destructive",
       });
       return;
@@ -101,7 +104,7 @@ export default function InstagramStoryDownloader() {
     <div className="space-y-5">
       <div className="relative">
         <Input
-          placeholder="Paste Instagram Story URL..."
+          placeholder="Paste Instagram Story or profile URL..."
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && !loading && fetchStories()}
