@@ -11,6 +11,7 @@ import {
   FileAudio,
   Facebook,
   Image as ImageIcon,
+  Video,
 } from "lucide-react";
 
 const TabSkeleton = () => (
@@ -80,8 +81,8 @@ export default function HomeTabs() {
               "hover:bg-gradient-to-r hover:from-purple-600 hover:via-pink-600 hover:to-orange-500 hover:border-transparent"
             )}
           >
-            <Instagram className="h-3.5 w-3.5 shrink-0" />
-            <span className="truncate">IG Thumb</span>
+            <Video className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">IG Story</span>
           </TabsTrigger>
           <TabsTrigger
             value="tiktok-thumbnail"
@@ -189,12 +190,12 @@ export default function HomeTabs() {
             <div className="glass rounded-2xl p-6 space-y-4 border-l-4 border-l-pink-600 transition-shadow duration-200 hover:shadow-lg">
               <div className="flex items-center gap-3 pb-2 border-b border-pink-600/20">
                 <div className="shrink-0 h-10 w-10 rounded-lg bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500 flex items-center justify-center shadow-lg shadow-pink-600/30">
-                  <Instagram className="h-5 w-5 text-white" />
+                  <Video className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold">Instagram Thumbnail Downloader</h2>
+                  <h2 className="text-xl font-bold">Instagram Story Downloader</h2>
                   <p className="text-sm text-muted-foreground">
-                    Download Instagram Reel and post cover images in original quality
+                    Download Instagram stories (images and videos) in original quality
                   </p>
                 </div>
               </div>
