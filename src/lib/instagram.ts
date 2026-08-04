@@ -24,9 +24,17 @@ export function shortcodeToMediaId(shortcode: string): string | null {
 }
 
 export function extractIgShortcode(url: string): string | null {
-  // Matches /p/<code>, /reel/<code>, /tv/<code>, /reels/<code>
+  // Matches /p/<code>, /reel/<code>, /tv/<code>, /reels/<code>, /stories/<username>/<story_id>
   const m = url.match(/instagram\.com\/(?:p|reel|reels|tv)\/([A-Za-z0-9_-]+)/i);
-  return m ? m[1] : null;
+  if (m) return m[1];
+
+  // For stories, extract the story ID from /stories/username/story_id
+  const storyMatch = url.match(/instagram\.com\/stories\/[^\/]+\/([A-Za-z0-9_-]+)/i);
+  return storyMatch ? storyMatch[1] : null;
+}
+
+export function isInstagramStoryUrl(url: string): boolean {
+  return /instagram\.com\/stories\//i.test(url);
 }
 
 export function getInstagramCookieHeader(): string {

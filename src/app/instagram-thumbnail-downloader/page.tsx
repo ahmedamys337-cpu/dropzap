@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import InstagramThumbnailDownloader from "@/components/InstagramThumbnailDownloader";
+import InstagramStoryDownloader from "@/components/InstagramThumbnailDownloader";
 import { Zap, Instagram } from "lucide-react";
 
 export default function InstagramThumbnailDownloaderPage() {
@@ -26,17 +26,17 @@ export default function InstagramThumbnailDownloaderPage() {
       <section className="max-w-3xl mx-auto px-4 pt-16 pb-8 text-center">
         <div className="inline-flex items-center gap-2 rounded-full bg-pink-600/20 text-pink-400 px-4 py-1.5 text-sm font-semibold mb-6">
           <Instagram className="h-4 w-4" />
-          Instagram Cover Downloader
+          Instagram Story Downloader
         </div>
         <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4">
-          Instagram Thumbnail Downloader
+          Instagram Story Downloader
         </h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-          Paste an Instagram post or Reel URL and grab the cover image in original quality. Great for saving previews, inspiration, and content planning.
+          Paste an Instagram Story URL and download all stories (images and videos) in original quality. Save stories before they disappear in 24 hours.
         </p>
 
         <div className="glass rounded-2xl p-6 sm:p-8 text-left">
-          <InstagramThumbnailDownloader />
+          <InstagramStoryDownloader />
         </div>
       </section>
     </main>
