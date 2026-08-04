@@ -42,11 +42,12 @@ export function isInstagramProfileUrl(url: string): boolean {
 }
 
 export function extractUsernameFromUrl(url: string): string | null {
-  if (isInstagramStoryUrl(url)) {
-    const match = url.match(/instagram\.com\/stories\/([^\/]+)/i);
+  const urlWithoutQuery = url.split('?')[0];
+  if (isInstagramStoryUrl(urlWithoutQuery)) {
+    const match = urlWithoutQuery.match(/instagram\.com\/stories\/([^\/]+)/i);
     return match ? match[1] : null;
-  } else if (isInstagramProfileUrl(url)) {
-    const match = url.match(/instagram\.com\/([^\/\?]+)/i);
+  } else if (isInstagramProfileUrl(urlWithoutQuery)) {
+    const match = urlWithoutQuery.match(/instagram\.com\/([^\/]+)/i);
     return match ? match[1] : null;
   }
   return null;

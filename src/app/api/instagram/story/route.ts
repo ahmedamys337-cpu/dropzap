@@ -37,8 +37,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Accept both story URLs and profile URLs
-    const isValidUrl = /instagram\.com\/(stories\/[^\/]+|[^\/\?]+)$/i.test(url);
+    // Accept both story URLs and profile URLs (with or without query parameters)
+    const urlWithoutQuery = url.split('?')[0];
+    const isValidUrl = /instagram\.com\/(stories\/[^\/]+|[^\/]+)$/i.test(urlWithoutQuery);
     if (!isValidUrl) {
       return NextResponse.json(
         { error: "Please provide a valid Instagram Story URL (e.g., instagram.com/stories/username/story_id) or profile URL (e.g., instagram.com/username)" },

@@ -29,8 +29,9 @@ export default function InstagramStoryDownloader() {
   const { toast } = useToast();
 
   const isValid = (u: string) => {
-    // Accept both story URLs and profile URLs
-    return /instagram\.com\/(stories\/[^\/]+|[^\/]+)$/i.test(u);
+    // Accept both story URLs and profile URLs (with or without query parameters)
+    const urlWithoutQuery = u.split('?')[0];
+    return /instagram\.com\/(stories\/[^\/]+|[^\/]+)$/i.test(urlWithoutQuery);
   };
 
   const fetchStories = async () => {
