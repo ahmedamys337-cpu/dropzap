@@ -63,32 +63,45 @@ async function fetchInstagramStoriesWeb(username: string): Promise<{ images: str
         "Accept-Language": "en-US,en;q=0.9",
       },
       redirect: "follow",
-      signal: AbortSignal.timeout(10000),
+      signal: AbortSignal.timeout(15000),
     });
     if (!res.ok) return null;
     const html = await res.text();
 
-    // Try to extract story data from embedded JSON
     const stories: string[] = [];
     const videos: string[] = [];
 
-    // Look for story data in the page
-    const storyMatch = html.match(/"stories"\s*:\s*\[([^\]]+)\]/i);
-    if (storyMatch) {
-      try {
-        const storyData = JSON.parse(`[${storyMatch[1]}]`);
-        for (const item of storyData) {
-          if (item?.display_url) stories.push(item.display_url);
-          if (item?.video_versions?.[0]?.url) videos.push(item.video_versions[0].url);
-        }
-      } catch {}
+    // Try multiple patterns to extract story data
+    const patterns = [
+      /"stories"\s*:\s*\[([^\]]+)\]/i,
+      /"story"\s*:\s*\[([^\]]+)\]/i,
+      /"tray"\s*:\s*\[([^\]]+)\]/i,
+      /"items"\s*:\s*\[([^\]]+)\]/i,
+    ];
+
+    for (const pattern of patterns) {
+      const match = html.match(pattern);
+      if (match) {
+        try {
+          const storyData = JSON.parse(`[${match[1]}]`);
+          for (const item of storyData) {
+            if (item?.display_url || item?.image_versions2?.candidates?.[0]?.url) {
+              stories.push(item.display_url || item.image_versions2.candidates[0].url);
+            }
+            if (item?.video_versions?.[0]?.url || item?.video_url) {
+              videos.push(item.video_versions?.[0]?.url || item.video_url);
+            }
+          }
+          if (stories.length > 0 || videos.length > 0) break;
+        } catch {}
+      }
     }
 
     // Fallback: look for image URLs in the page
     if (stories.length === 0) {
-      const imgMatches = html.match(/https?:\/\/[^"\s]+\.(?:jpg|jpeg|png)/gi);
+      const imgMatches = html.match(/https?:\/\/[^"\s]+cdninstagram\.com[^"\s]+\.(?:jpg|jpeg|png)/gi);
       if (imgMatches) {
-        stories.push(...imgMatches.filter(u => u.includes("cdninstagram.com")).slice(0, 10));
+        stories.push(...imgMatches.slice(0, 10));
       }
     }
 
@@ -99,18 +112,94 @@ async function fetchInstagramStoriesWeb(username: string): Promise<{ images: str
   }
 }
 
+// Fetch Instagram stories using yt-dlp
+async function fetchInstagramStoriesYtDlp(url: string): Promise<{ images: string[]; videos: string[] } | null> {
+  try {
+    const { spawn } = await import("child_process");
+    const args = [
+      url,
+      "--dump-json",
+      "--no-playlist",
+      "--no-warnings",
+      "--no-check-certificates",
+      "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    ];
+
+    return new Promise((resolve) => {
+      const proc = spawn("yt-dlp", args, { stdio: ["ignore", "pipe", "pipe"] });
+      let stdout = "";
+      let stderr = "";
+
+      proc.stdout?.on("data", (data: Buffer) => {
+        stdout += data.toString();
+      });
+
+      proc.stderr?.on("data", (data: Buffer) => {
+        stderr += data.toString();
+      });
+
+      proc.on("close", (code) => {
+        if (code !== 0) {
+          console.warn("[instagram] yt-dlp story fetch failed:", stderr);
+          resolve(null);
+          return;
+        }
+
+        try {
+          const json = JSON.parse(stdout);
+          const images: string[] = [];
+          const videos: string[] = [];
+
+          if (json?.thumbnails) {
+            for (const thumb of json.thumbnails) {
+              if (thumb?.url) images.push(thumb.url);
+            }
+          }
+
+          if (json?.url) {
+            videos.push(json.url);
+          }
+
+          if (images.length > 0 || videos.length > 0) {
+            resolve({ images, videos });
+          } else {
+            resolve(null);
+          }
+        } catch (e) {
+          console.warn("[instagram] Failed to parse yt-dlp story JSON:", e);
+          resolve(null);
+        }
+      });
+
+      setTimeout(() => {
+        proc.kill();
+        resolve(null);
+      }, 30000);
+    });
+  } catch (e: any) {
+    console.warn("[instagram] yt-dlp story fetch error:", e?.message);
+    return null;
+  }
+}
+
 // Fetch Instagram stories - main function
 export async function fetchInstagramStories(url: string): Promise<{ username: string; images: string[]; videos: string[] } | null> {
   const username = extractUsernameFromUrl(url);
   if (!username) return null;
 
-  // Try web scraping first
+  // Try yt-dlp first (most reliable)
+  const ytDlpResult = await fetchInstagramStoriesYtDlp(url);
+  if (ytDlpResult && (ytDlpResult.images.length > 0 || ytDlpResult.videos.length > 0)) {
+    return { username, ...ytDlpResult };
+  }
+
+  // Fallback: web scraping
   const webResult = await fetchInstagramStoriesWeb(username);
   if (webResult && (webResult.images.length > 0 || webResult.videos.length > 0)) {
     return { username, ...webResult };
   }
 
-  // Fallback: try the regular media extraction for specific story URLs
+  // Last resort: try the regular media extraction for specific story URLs
   if (isInstagramStoryUrl(url)) {
     const media = await fetchInstagramMedia(url);
     if (media) {
