@@ -176,7 +176,7 @@ export default function InstagramStoryDownloader() {
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
                       src={story.url}
-                      alt={story.type === 'video' ? `Instagram story video ${index + 1}` : `Instagram story photo ${index + 1}`}
+                      alt={`Instagram story photo ${index + 1}`}
                       className="w-full h-full object-cover"
                     />
                   )}
