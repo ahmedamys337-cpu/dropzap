@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Mail, MessageCircle, Bug, Briefcase } from "lucide-react";
+import Breadcrumbs, { Crumb } from "@/components/Breadcrumbs";
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital";
@@ -12,6 +13,11 @@ export const metadata: Metadata = {
     "Get in touch with the DropZap team. Send us bug reports, feature requests, business inquiries, or DMCA notices.",
   robots: { index: true, follow: true },
 };
+
+const crumbs: Crumb[] = [
+  { label: "Home", href: "/" },
+  { label: "Contact" },
+];
 
 const contactOptions = [
   {
@@ -55,12 +61,7 @@ const contactOptions = [
 export default function ContactPage() {
   return (
     <main className="max-w-3xl mx-auto px-4 py-16">
-      <Link
-        href="/"
-        className="text-sm text-muted-foreground hover:text-foreground mb-8 inline-block"
-      >
-        ← Back to DropZap
-      </Link>
+      <Breadcrumbs items={crumbs} />
 
       <h1 className="text-4xl font-bold mb-4">Contact Us</h1>
       <p className="text-lg text-muted-foreground mb-10">

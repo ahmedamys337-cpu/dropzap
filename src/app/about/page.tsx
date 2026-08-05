@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Zap, Shield, Globe, Heart } from "lucide-react";
+import Breadcrumbs, { Crumb } from "@/components/Breadcrumbs";
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital";
@@ -26,15 +27,15 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
+const crumbs: Crumb[] = [
+  { label: "Home", href: "/" },
+  { label: "About" },
+];
+
 export default function AboutPage() {
   return (
     <main className="max-w-3xl mx-auto px-4 py-16">
-      <Link
-        href="/"
-        className="text-sm text-muted-foreground hover:text-foreground mb-8 inline-block"
-      >
-        ← Back to DropZap
-      </Link>
+      <Breadcrumbs items={crumbs} />
 
       <h1 className="text-4xl font-bold mb-4">About DropZap</h1>
       <p className="text-lg text-muted-foreground mb-12">

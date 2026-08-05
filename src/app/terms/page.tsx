@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Breadcrumbs, { Crumb } from "@/components/Breadcrumbs";
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital";
@@ -11,12 +12,15 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
+const crumbs: Crumb[] = [
+  { label: "Home", href: "/" },
+  { label: "Terms of Service" },
+];
+
 export default function TermsPage() {
   return (
     <main className="max-w-3xl mx-auto px-4 py-16">
-      <Link href="/" className="text-sm text-muted-foreground hover:text-foreground mb-8 inline-block">
-        ← Back to DropZap
-      </Link>
+      <Breadcrumbs items={crumbs} />
       <h1 className="text-3xl font-bold mb-2">Terms of Service</h1>
       <p className="text-sm text-muted-foreground mb-10">Last updated: {new Date().getFullYear()}</p>
 

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { blogPosts, blogCategories } from "@/lib/blog-data";
 import { Zap } from "lucide-react";
+import Breadcrumbs, { Crumb } from "@/components/Breadcrumbs";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.dropzap.digital";
 
@@ -25,9 +26,15 @@ export const metadata: Metadata = {
   },
 };
 
+const crumbs: Crumb[] = [
+  { label: "Home", href: "/" },
+  { label: "Blog" },
+];
+
 export default function BlogIndex() {
   return (
     <main className="min-h-screen gradient-bg animate-gradient">
+      <Breadcrumbs items={crumbs} className="relative z-50" />
       <header className="sticky top-0 z-50 w-full glass-strong">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
