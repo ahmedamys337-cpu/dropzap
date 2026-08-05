@@ -184,7 +184,7 @@ export default function TikTokThumbnailDownloader() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={proxyDownloadUrl(data.thumbnails[0].url, "tiktok-thumb.jpg") + "&inline=1"}
-                alt="TikTok thumbnail"
+                alt={`TikTok video thumbnail preview for ${data.title || 'video'}`}
                 className="w-full h-auto"
                 onError={(e) => { (e.target as HTMLImageElement).src = data!.thumbnails[0].url; }}
               />

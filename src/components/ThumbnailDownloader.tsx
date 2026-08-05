@@ -151,7 +151,7 @@ export default function ThumbnailDownloader() {
             <div className="relative bg-black">
               <Image
                 src={hero.url}
-                alt={`${hero.label} thumbnail`}
+                alt={`YouTube video thumbnail ${hero.label} for ${data.title}`}
                 width={hero.width}
                 height={hero.height}
                 className="w-full h-auto"
@@ -193,7 +193,7 @@ export default function ThumbnailDownloader() {
                   >
                     <Image
                       src={thumb.url}
-                      alt={`${thumb.label} thumbnail`}
+                      alt={`YouTube video thumbnail ${thumb.label} for ${data.title}`}
                       width={thumb.width}
                       height={thumb.height}
                       className="w-full aspect-video object-cover"

@@ -254,7 +254,7 @@ export default function MediaPostDownloader({
                       item.thumbnail ? (
                         <Image
                           src={item.thumbnail}
-                          alt={`Item ${idx + 1}`}
+                          alt={`${platform} video thumbnail ${idx + 1}${info.title ? ` for ${info.title}` : ''}`}
                           width={640}
                           height={360}
                           unoptimized
@@ -269,7 +269,7 @@ export default function MediaPostDownloader({
                     ) : (
                       <Image
                         src={item.url}
-                        alt={`Item ${idx + 1}`}
+                        alt={`${platform} image ${idx + 1}${info.title ? ` from ${info.title}` : ''}`}
                         width={item.width || 800}
                         height={item.height || 600}
                         unoptimized

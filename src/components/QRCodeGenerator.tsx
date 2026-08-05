@@ -56,7 +56,7 @@ export default function QRCodeGenerator({ url, size = 180 }: Props) {
           >
             <p className="text-sm font-semibold text-slate-900 dark:text-white">Scan to open this download</p>
             {dataUrl ? (
-              <Image src={dataUrl} alt="QR code to share this download" width={size} height={size} className="rounded-xl" unoptimized />
+              <Image src={dataUrl} alt={`QR code for ${url} - scan to open this download page`} width={size} height={size} className="rounded-xl" unoptimized />
             ) : (
               <div className="h-[180px] w-[180px] bg-muted rounded-xl animate-pulse" />
             )}
