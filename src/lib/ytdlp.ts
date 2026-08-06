@@ -154,12 +154,51 @@ export function getSafeProxyListForLogging(): string[] {
 }
 
 // In-memory cache for video info (5 min TTL)
-type CacheEntry = { data: any; expires: number };
+type CacheEntry = { data: VideoInfo; expires: number };
 const infoCache = new Map<string, CacheEntry>();
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 const MAX_CACHE_SIZE = 200;
 
-function cacheGet(key: string): any | null {
+interface VideoInfo {
+  title?: string;
+  fulltitle?: string;
+  extractor?: string;
+  extractor_key?: string;
+  formats?: Format[];
+  thumbnails?: Thumbnail[];
+  url?: string;
+  ext?: string;
+  width?: number;
+  height?: number;
+  display_url?: string;
+  video_url?: string;
+  _type?: string;
+  entries?: VideoInfo[];
+  [key: string]: unknown;
+}
+
+interface Format {
+  url?: string;
+  ext?: string;
+  vcodec?: string;
+  acodec?: string;
+  height?: number;
+  width?: number;
+  filesize?: number;
+  abr?: number;
+  tbr?: number;
+  http_headers?: Record<string, string>;
+  [key: string]: unknown;
+}
+
+interface Thumbnail {
+  url?: string;
+  width?: number;
+  height?: number;
+  [key: string]: unknown;
+}
+
+function cacheGet(key: string): VideoInfo | null {
   const entry = infoCache.get(key);
   if (!entry) return null;
   if (Date.now() > entry.expires) {
@@ -169,7 +208,7 @@ function cacheGet(key: string): any | null {
   return entry.data;
 }
 
-function cacheSet(key: string, data: any) {
+function cacheSet(key: string, data: VideoInfo) {
   // Simple LRU-ish: drop oldest if over limit
   if (infoCache.size >= MAX_CACHE_SIZE) {
     const firstKey = infoCache.keys().next().value;
@@ -178,7 +217,7 @@ function cacheSet(key: string, data: any) {
   infoCache.set(key, { data, expires: Date.now() + CACHE_TTL_MS });
 }
 
-export async function getVideoInfo(url: string): Promise<any> {
+export async function getVideoInfo(url: string): Promise<VideoInfo> {
   const cached = cacheGet(url);
   if (cached) return cached;
 
@@ -196,10 +235,11 @@ export async function getVideoInfo(url: string): Promise<any> {
   ], { timeout: 45000, maxBuffer: 10 * 1024 * 1024 });
   if (stderr) console.error("[yt-dlp stderr]", stderr.slice(0, 500));
 
-  let data: any;
+  let data: VideoInfo;
   try {
-    data = JSON.parse(stdout);
-  } catch (parseErr: any) {
+    data = JSON.parse(stdout) as VideoInfo;
+  } catch (parseErr: unknown) {
+    const errMsg = parseErr instanceof Error ? parseErr.message : String(parseErr);
     throw new Error(`yt-dlp returned non-JSON output: ${stdout.slice(0, 200)}`);
   }
   cacheSet(url, data);
@@ -216,7 +256,7 @@ export async function getVideoInfo(url: string): Promise<any> {
 //   video: best avc1 with height <= cap → best mp4 → best video-only
 //   audio: best m4a (AAC) → best webm/opus → any audio-only
 export type PickedFormat = {
-  url: string;
+  url?: string;
   http_headers?: Record<string, string>;
   ext?: string;
   vcodec?: string;
@@ -230,11 +270,11 @@ export type PickedFormat = {
 };
 
 export function pickFormats(
-  info: any,
+  info: VideoInfo,
   heightCap: number | null,
   audioOnly: boolean,
 ): { video: PickedFormat | null; audio: PickedFormat | null } {
-  const all = (info?.formats || []) as any[];
+  const all = (info?.formats || []) as Format[];
   if (!Array.isArray(all) || all.length === 0) {
     return { video: null, audio: null };
   }
@@ -243,7 +283,7 @@ export function pickFormats(
   const audioCandidates = all.filter(
     (f) => f?.url && f.acodec && f.acodec !== "none" && (!f.vcodec || f.vcodec === "none"),
   );
-  const scoreAudio = (f: any) => {
+  const scoreAudio = (f: Format) => {
     let s = 0;
     if (f.ext === "m4a") s += 1000;
     if (f.acodec?.startsWith("mp4a")) s += 500;
@@ -252,7 +292,15 @@ export function pickFormats(
     return s;
   };
   audioCandidates.sort((a, b) => scoreAudio(b) - scoreAudio(a));
-  const audio = audioCandidates[0] || null;
+  const audio: PickedFormat | null = audioCandidates[0] ? {
+    url: audioCandidates[0].url,
+    http_headers: audioCandidates[0].http_headers,
+    ext: audioCandidates[0].ext,
+    vcodec: audioCandidates[0].vcodec,
+    acodec: audioCandidates[0].acodec,
+    height: audioCandidates[0].height,
+    filesize: audioCandidates[0].filesize,
+  } : null;
 
   if (audioOnly) return { video: null, audio };
 
@@ -267,7 +315,7 @@ export function pickFormats(
       f.height &&
       f.height <= cap,
   );
-  const scoreVideo = (f: any) => {
+  const scoreVideo = (f: Format) => {
     let s = (f.height || 0) * 100;
     if (f.vcodec?.startsWith("avc1")) s += 50_000; // strong avc1 preference
     if (f.ext === "mp4") s += 10_000;
@@ -275,7 +323,15 @@ export function pickFormats(
     return s;
   };
   videoCandidates.sort((a, b) => scoreVideo(b) - scoreVideo(a));
-  let video: any = videoCandidates[0] || null;
+  let video: PickedFormat | null = videoCandidates[0] ? {
+    url: videoCandidates[0].url,
+    http_headers: videoCandidates[0].http_headers,
+    ext: videoCandidates[0].ext,
+    vcodec: videoCandidates[0].vcodec,
+    acodec: videoCandidates[0].acodec,
+    height: videoCandidates[0].height,
+    filesize: videoCandidates[0].filesize,
+  } : null;
 
   // Combined-stream fallback. When YouTube has gated us hard (cookies stale,
   // bot-flagged IP, etc.) it sometimes returns ONLY a single progressive
@@ -292,14 +348,23 @@ export function pickFormats(
         f.height && f.height <= cap,
     );
     if (combined) {
-      video = { ...combined, combined: true };
+      video = {
+        url: combined.url,
+        http_headers: combined.http_headers,
+        ext: combined.ext,
+        vcodec: combined.vcodec,
+        acodec: combined.acodec,
+        height: combined.height,
+        filesize: combined.filesize,
+        combined: true,
+      };
     }
   }
 
   return { video, audio };
 }
 
-export async function getVideoInfoSkipDownload(url: string): Promise<any> {
+export async function getVideoInfoSkipDownload(url: string): Promise<VideoInfo> {
   const cached = cacheGet(url);
   if (cached) return cached;
 
@@ -316,10 +381,11 @@ export async function getVideoInfoSkipDownload(url: string): Promise<any> {
     ...getProxyArgs(),
   ], { timeout: 30000, maxBuffer: 10 * 1024 * 1024 });
 
-  let data: any;
+  let data: VideoInfo;
   try {
-    data = JSON.parse(stdout);
-  } catch (parseErr: any) {
+    data = JSON.parse(stdout) as VideoInfo;
+  } catch (parseErr: unknown) {
+    const errMsg = parseErr instanceof Error ? parseErr.message : String(parseErr);
     throw new Error(`yt-dlp returned non-JSON output: ${stdout.slice(0, 200)}`);
   }
   cacheSet(url, data);

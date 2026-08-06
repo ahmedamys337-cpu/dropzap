@@ -1,6 +1,11 @@
 const rateMap = new Map<string, { count: number; lastReset: number }>();
-const WINDOW_MS = 10000;
-const MAX_REQUESTS = 10;
+const WINDOW_MS = 60000; // 1 minute window (increased from 10s for better UX)
+const MAX_REQUESTS = 30; // 30 requests per minute (increased from 10 for reasonable usage)
+
+// NOTE: This in-memory rate limiting works for single-instance deployments.
+// For multi-instance deployments (e.g., Render with multiple containers),
+// consider using Redis or an external rate-limiting store to share state
+// across instances. Each instance maintains its own rate limit state currently.
 
 // Prune stale entries every 5 minutes to prevent unbounded memory growth.
 // Without this, every unique IP that ever hits the server stays in the map
