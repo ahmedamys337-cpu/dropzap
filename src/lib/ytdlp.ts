@@ -6,46 +6,35 @@ import { tmpdir } from "os";
 
 const execFileAsync = promisify(execFile);
 
-// Log yt-dlp version on startup. YouTube ships anti-bot updates ~weekly
-// and yt-dlp counter-fixes ~daily; a stale binary is by far the most
-// common cause of "HD worked yesterday, only 360p today" regressions.
-// This single log line in Render's startup output answers the question
-// "is the latest fix actually deployed?" in 3 seconds.
-//
-// Skip during `next build` — Next.js imports this module from each page's
-// data-collection pass, where yt-dlp isn't installed yet (it lives only in
-// the Stage 3 runner image of our Dockerfile). Without this guard the build
-// log fills with a dozen scary-looking ENOENT lines per build.
-if (process.env.NEXT_PHASE !== "phase-production-build") {
+// Lazy initialization state
+let _initialized = false;
+let cookiesFilePath: string | null = null;
+
+// Initialize module at runtime (not during Next.js build)
+function initializeModule() {
+  if (_initialized) return;
+  _initialized = true;
+
+  // Skip during Next.js build
+  if (process.env.NEXT_PHASE === "phase-production-build") {
+    return;
+  }
+
+  // Log yt-dlp version on startup
   execFile("yt-dlp", ["--version"], (err) => {
     if (err) console.error("[yt-dlp] version check failed:", err.message);
   });
-}
 
-// Write cookies from env var to a temp file once at startup. We prefer the
-// new MEDIA_COOKIES name (since the same file holds IG/FB/X/etc. cookies,
-// not just YouTube's), but fall back to the legacy YOUTUBE_COOKIES name so
-// existing deployments keep working until the env var is renamed.
-//
-// Whichever variable is present, the file format is unchanged: a single
-// Netscape cookies.txt blob. yt-dlp filters by domain at request time, so
-// it doesn't matter that the file holds cookies for many platforms — only
-// the cookies whose domain matches the URL being downloaded are sent.
-//
-// MEDIA_COOKIES_INSTAGRAM can be used to add/override Instagram cookies
-// without touching the shared MEDIA_COOKIES blob.
-const cookiesSources: { name: string; value?: string }[] = [
-  { name: "MEDIA_COOKIES", value: process.env.MEDIA_COOKIES },
-  { name: "MEDIA_COOKIES_INSTAGRAM", value: process.env.MEDIA_COOKIES_INSTAGRAM },
-  { name: "YOUTUBE_COOKIES", value: process.env.YOUTUBE_COOKIES },
-].filter((s) => !!s.value);
+  // Write cookies from env var to a temp file
+  const cookiesSources: { name: string; value?: string }[] = [
+    { name: "MEDIA_COOKIES", value: process.env.MEDIA_COOKIES },
+    { name: "MEDIA_COOKIES_INSTAGRAM", value: process.env.MEDIA_COOKIES_INSTAGRAM },
+    { name: "YOUTUBE_COOKIES", value: process.env.YOUTUBE_COOKIES },
+  ].filter((s) => !!s.value);
 
-const cookiesEnvSource = cookiesSources.map((s) => s.name).join(", ") || null;
-const cookiesEnvValue = cookiesSources.map((s) => s.value).join("\n");
+  const cookiesEnvSource = cookiesSources.map((s) => s.name).join(", ") || null;
+  const cookiesEnvValue = cookiesSources.map((s) => s.value).join("\n");
 
-let cookiesFilePath: string | null = null;
-// Skip cookie file writing during Next.js build to avoid file system issues
-if (process.env.NEXT_PHASE !== "phase-production-build") {
   if (cookiesEnvValue && cookiesEnvSource) {
     try {
       cookiesFilePath = join(tmpdir(), "yt-cookies.txt");
@@ -65,6 +54,7 @@ if (process.env.NEXT_PHASE !== "phase-production-build") {
 }
 
 function getCookiesArgs(): string[] {
+  initializeModule();
   return cookiesFilePath ? ["--cookies", cookiesFilePath] : [];
 }
 
@@ -76,6 +66,7 @@ function getCookiesArgs(): string[] {
 // Returns [] when no cookies env var is configured, so callers can
 // always spread it into their args list without conditional checks.
 export function getGenericCookiesArgs(): string[] {
+  initializeModule();
   return getCookiesArgs();
 }
 
@@ -92,6 +83,7 @@ export function getGenericCookiesArgs(): string[] {
 // sent for any subdomain of foo.com; an exact-match cookie (no leading dot)
 // only matches that exact host. We replicate that here.
 export function getCookieHeader(hostname: string): string {
+  initializeModule();
   if (!cookiesFilePath) return "";
   let raw = "";
   try { raw = readFileSync(cookiesFilePath, "utf-8"); } catch { return ""; }
