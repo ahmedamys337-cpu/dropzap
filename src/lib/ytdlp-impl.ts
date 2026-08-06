@@ -1,0 +1,295 @@
+import { execFile } from "child_process";
+import { promisify } from "util";
+import { writeFileSync, readFileSync } from "fs";
+import { join } from "path";
+import { tmpdir } from "os";
+import type { VideoInfo, Format, Thumbnail, PickedFormat } from "./ytdlp-types";
+
+const execFileAsync = promisify(execFile);
+
+// Lazy initialization state
+let _initialized = false;
+let cookiesFilePath: string | null = null;
+let _proxyList: string[] | null = null;
+
+function getProxyList(): string[] {
+  if (_proxyList !== null) return _proxyList;
+  
+  if (process.env.YOUTUBE_PROXIES) {
+    _proxyList = process.env.YOUTUBE_PROXIES
+      .split(/[\r\n,]+/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        if (line.startsWith("http://") || line.startsWith("https://")) return line;
+        const parts = line.split(":");
+        if (parts.length === 4) {
+          const [host, port, user, pass] = parts;
+          return `http://${user}:${pass}@${host}:${port}`;
+        }
+        if (line.includes("@")) return `http://${line}`;
+        return `http://${line}`;
+      });
+  } else {
+    _proxyList = [];
+  }
+  return _proxyList;
+}
+
+// Initialize module at runtime
+function initializeModule() {
+  if (_initialized) return;
+  _initialized = true;
+
+  // Log yt-dlp version on startup
+  execFile("yt-dlp", ["--version"], (err) => {
+    if (err) console.error("[yt-dlp] version check failed:", err.message);
+  });
+
+  // Write cookies from env var to a temp file
+  const cookiesSources: { name: string; value?: string }[] = [
+    { name: "MEDIA_COOKIES", value: process.env.MEDIA_COOKIES },
+    { name: "MEDIA_COOKIES_INSTAGRAM", value: process.env.MEDIA_COOKIES_INSTAGRAM },
+    { name: "YOUTUBE_COOKIES", value: process.env.YOUTUBE_COOKIES },
+  ].filter((s) => !!s.value);
+
+  const cookiesEnvSource = cookiesSources.map((s) => s.name).join(", ") || null;
+  const cookiesEnvValue = cookiesSources.map((s) => s.value).join("\n");
+
+  if (cookiesEnvValue && cookiesEnvSource) {
+    try {
+      cookiesFilePath = join(tmpdir(), "yt-cookies.txt");
+      writeFileSync(cookiesFilePath, cookiesEnvValue, "utf-8");
+      const cookieLines = cookiesEnvValue
+        .split(/\r?\n/)
+        .filter((l) => l && !l.startsWith("#"))
+        .length;
+      console.log(`[yt-dlp] cookies loaded from ${cookiesEnvSource} (${cookieLines} cookie lines) -> ${cookiesFilePath}`);
+    } catch (e) {
+      console.error("[yt-dlp] Failed to write cookies file:", e);
+      cookiesFilePath = null;
+    }
+  } else {
+    console.log("[yt-dlp] no cookie env vars configured (MEDIA_COOKIES, MEDIA_COOKIES_INSTAGRAM, YOUTUBE_COOKIES)");
+  }
+}
+
+function getCookiesArgs(): string[] {
+  initializeModule();
+  return cookiesFilePath ? ["--cookies", cookiesFilePath] : [];
+}
+
+export function getGenericCookiesArgs(): string[] {
+  initializeModule();
+  return getCookiesArgs();
+}
+
+export function getCookieHeader(hostname: string): string {
+  initializeModule();
+  if (!cookiesFilePath) return "";
+  let raw = "";
+  try {
+    raw = readFileSync(cookiesFilePath, "utf-8");
+  } catch { return ""; }
+  const host = hostname.toLowerCase();
+  const pairs: string[] = [];
+  for (const rawLine of raw.split(/\r?\n/)) {
+    let line = rawLine;
+    if (!line) continue;
+    if (line.startsWith("#HttpOnly_")) line = line.slice("#HttpOnly_".length);
+    if (line.startsWith("#")) continue;
+    const cols = line.split("\t");
+    if (cols.length < 7) continue;
+    const [domainRaw, , , , , name, value] = cols;
+    const domain = domainRaw.toLowerCase();
+    const isWild = domain.startsWith(".");
+    const bare = isWild ? domain.slice(1) : domain;
+    const match = isWild
+      ? host === bare || host.endsWith("." + bare)
+      : host === bare;
+    if (!match) continue;
+    if (!name) continue;
+    pairs.push(`${name}=${value ?? ""}`);
+  }
+  return pairs.join("; ");
+}
+
+export function getProxyArgs(): string[] {
+  const proxyList = getProxyList();
+  if (proxyList.length === 0) return [];
+  const proxy = proxyList[Math.floor(Math.random() * proxyList.length)];
+  return ["--proxy", proxy];
+}
+
+export function getSafeProxyListForLogging(): string[] {
+  const proxyList = getProxyList();
+  return proxyList.map((p) => p.replace(/\/\/([^:]+):([^@]+)@/, "//$1:***@"));
+}
+
+// In-memory cache for video info (5 min TTL)
+type CacheEntry = { data: VideoInfo; expires: number };
+const infoCache = new Map<string, CacheEntry>();
+const CACHE_TTL_MS = 5 * 60 * 1000;
+const MAX_CACHE_SIZE = 200;
+
+function cacheGet(key: string): VideoInfo | null {
+  const entry = infoCache.get(key);
+  if (!entry) return null;
+  if (Date.now() > entry.expires) {
+    infoCache.delete(key);
+    return null;
+  }
+  return entry.data;
+}
+
+function cacheSet(key: string, data: VideoInfo) {
+  if (infoCache.size >= MAX_CACHE_SIZE) {
+    const firstKey = infoCache.keys().next().value;
+    if (firstKey) infoCache.delete(firstKey);
+  }
+  infoCache.set(key, { data, expires: Date.now() + CACHE_TTL_MS });
+}
+
+export async function getVideoInfo(url: string): Promise<VideoInfo> {
+  const cached = cacheGet(url);
+  if (cached) return cached;
+
+  const { stdout, stderr } = await execFileAsync("yt-dlp", [
+    url,
+    "--dump-single-json",
+    "--no-check-certificates",
+    "--no-warnings",
+    "--no-playlist",
+    "--skip-download",
+    "--no-check-formats",
+    "--socket-timeout", "30",
+    ...getGenericCookiesArgs(),
+    ...getProxyArgs(),
+  ], { timeout: 45000, maxBuffer: 10 * 1024 * 1024 });
+  if (stderr) console.error("[yt-dlp stderr]", stderr.slice(0, 500));
+
+  let data: VideoInfo;
+  try {
+    data = JSON.parse(stdout) as VideoInfo;
+  } catch (parseErr: unknown) {
+    const errMsg = parseErr instanceof Error ? parseErr.message : String(parseErr);
+    throw new Error(`yt-dlp returned non-JSON output: ${stdout.slice(0, 200)}`);
+  }
+  cacheSet(url, data);
+  return data;
+}
+
+export function pickFormats(
+  info: VideoInfo,
+  heightCap: number | null,
+  audioOnly: boolean,
+): { video: PickedFormat | null; audio: PickedFormat | null } {
+  const all = (info?.formats || []) as Format[];
+  if (!Array.isArray(all) || all.length === 0) {
+    return { video: null, audio: null };
+  }
+
+  const audioCandidates = all.filter(
+    (f) => f?.url && f.acodec && f.acodec !== "none" && (!f.vcodec || f.vcodec === "none"),
+  );
+  const scoreAudio = (f: Format) => {
+    let s = 0;
+    if (f.ext === "m4a") s += 1000;
+    if (f.acodec?.startsWith("mp4a")) s += 500;
+    s += f.abr || 0;
+    s += (f.tbr || 0) / 1000;
+    return s;
+  };
+  audioCandidates.sort((a, b) => scoreAudio(b) - scoreAudio(a));
+  const audio: PickedFormat | null = audioCandidates[0] ? {
+    url: audioCandidates[0].url,
+    http_headers: audioCandidates[0].http_headers,
+    ext: audioCandidates[0].ext,
+    vcodec: audioCandidates[0].vcodec,
+    acodec: audioCandidates[0].acodec,
+    height: audioCandidates[0].height,
+    filesize: audioCandidates[0].filesize,
+  } : null;
+
+  if (audioOnly) return { video: null, audio };
+
+  const cap = heightCap ?? 1080;
+  const videoCandidates = all.filter(
+    (f) =>
+      f?.url &&
+      f.vcodec &&
+      f.vcodec !== "none" &&
+      (!f.acodec || f.acodec === "none") &&
+      f.height &&
+      f.height <= cap,
+  );
+  const scoreVideo = (f: Format) => {
+    let s = (f.height || 0) * 100;
+    if (f.vcodec?.startsWith("avc1")) s += 50_000;
+    if (f.ext === "mp4") s += 10_000;
+    s += (f.tbr || 0);
+    return s;
+  };
+  videoCandidates.sort((a, b) => scoreVideo(b) - scoreVideo(a));
+  let video: PickedFormat | null = videoCandidates[0] ? {
+    url: videoCandidates[0].url,
+    http_headers: videoCandidates[0].http_headers,
+    ext: videoCandidates[0].ext,
+    vcodec: videoCandidates[0].vcodec,
+    acodec: videoCandidates[0].acodec,
+    height: videoCandidates[0].height,
+    filesize: videoCandidates[0].filesize,
+  } : null;
+
+  if (!video) {
+    const combined = all.find(
+      (f) =>
+        f?.url &&
+        f.vcodec && f.vcodec !== "none" &&
+        f.acodec && f.acodec !== "none" &&
+        f.height && f.height <= cap,
+    );
+    if (combined) {
+      video = {
+        url: combined.url,
+        http_headers: combined.http_headers,
+        ext: combined.ext,
+        vcodec: combined.vcodec,
+        acodec: combined.acodec,
+        height: combined.height,
+        filesize: combined.filesize,
+        combined: true,
+      };
+    }
+  }
+
+  return { video, audio };
+}
+
+export async function getVideoInfoSkipDownload(url: string): Promise<VideoInfo> {
+  const cached = cacheGet(url);
+  if (cached) return cached;
+
+  const { stdout } = await execFileAsync("yt-dlp", [
+    url,
+    "--dump-single-json",
+    "--no-check-certificates",
+    "--no-warnings",
+    "--no-playlist",
+    "--skip-download",
+    "--no-check-formats",
+    "--socket-timeout", "20",
+    ...getGenericCookiesArgs(),
+    ...getProxyArgs(),
+  ], { timeout: 30000, maxBuffer: 10 * 1024 * 1024 });
+
+  let data: VideoInfo;
+  try {
+    data = JSON.parse(stdout) as VideoInfo;
+  } catch (parseErr: unknown) {
+    const errMsg = parseErr instanceof Error ? parseErr.message : String(parseErr);
+    throw new Error(`yt-dlp returned non-JSON output: ${stdout.slice(0, 200)}`);
+  }
+  cacheSet(url, data);
+  return data;
+}

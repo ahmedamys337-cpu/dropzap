@@ -1,416 +1,56 @@
-// Lazy initialization state
-let _initialized = false;
-let cookiesFilePath: string | null = null;
-let _execFileAsync: any = null;
-let _proxyList: string[] | null = null;
+// Import types from separate file for build safety
+import type { VideoInfo, Format, Thumbnail, PickedFormat } from "./ytdlp-types";
 
-// Check if we're in a build environment - if so, skip all Node.js operations
-const isBuildTime = process.env.NEXT_PHASE === "phase-production-build" || typeof window !== "undefined";
+// Re-export types for consumers
+export type { VideoInfo, Format, Thumbnail, PickedFormat };
 
-function getExecFileAsync() {
+// Build-safe stubs - these will be replaced with real implementation at runtime
+const isBuildTime = typeof window !== "undefined" || process.env.NEXT_PHASE === "phase-production-build";
+
+let _impl: any = null;
+
+function getImpl() {
+  if (_impl) return _impl;
   if (isBuildTime) return null;
-  if (!_execFileAsync) {
-    const { execFile } = require("child_process");
-    const { promisify } = require("util");
-    _execFileAsync = promisify(execFile);
-  }
-  return _execFileAsync;
+  _impl = require("./ytdlp-impl");
+  return _impl;
 }
 
-function getProxyList(): string[] {
-  if (_proxyList !== null) return _proxyList;
-  if (isBuildTime) {
-    _proxyList = [];
-    return _proxyList;
-  }
-  
-  if (process.env.YOUTUBE_PROXIES) {
-    _proxyList = process.env.YOUTUBE_PROXIES
-      .split(/[\r\n,]+/)
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .map((line) => {
-        if (line.startsWith("http://") || line.startsWith("https://")) return line;
-        const parts = line.split(":");
-        if (parts.length === 4) {
-          const [host, port, user, pass] = parts;
-          return `http://${user}:${pass}@${host}:${port}`;
-        }
-        if (line.includes("@")) return `http://${line}`;
-        return `http://${line}`;
-      });
-  } else {
-    _proxyList = [];
-  }
-  return _proxyList;
-}
-
-// Initialize module at runtime (not during Next.js build)
-function initializeModule() {
-  if (_initialized) return;
-  _initialized = true;
-
-  // Skip during Next.js build
-  if (isBuildTime) return;
-
-  // Dynamic import Node.js modules only at runtime
-  const { execFile } = require("child_process");
-  const { writeFileSync } = require("fs");
-  const { join } = require("path");
-  const { tmpdir } = require("os");
-
-  // Log yt-dlp version on startup
-  execFile("yt-dlp", ["--version"], (err: any) => {
-    if (err) console.error("[yt-dlp] version check failed:", err.message);
-  });
-
-  // Write cookies from env var to a temp file
-  const cookiesSources: { name: string; value?: string }[] = [
-    { name: "MEDIA_COOKIES", value: process.env.MEDIA_COOKIES },
-    { name: "MEDIA_COOKIES_INSTAGRAM", value: process.env.MEDIA_COOKIES_INSTAGRAM },
-    { name: "YOUTUBE_COOKIES", value: process.env.YOUTUBE_COOKIES },
-  ].filter((s) => !!s.value);
-
-  const cookiesEnvSource = cookiesSources.map((s) => s.name).join(", ") || null;
-  const cookiesEnvValue = cookiesSources.map((s) => s.value).join("\n");
-
-  if (cookiesEnvValue && cookiesEnvSource) {
-    try {
-      cookiesFilePath = join(tmpdir(), "yt-cookies.txt");
-      writeFileSync(cookiesFilePath, cookiesEnvValue, "utf-8");
-      const cookieLines = cookiesEnvValue
-        .split(/\r?\n/)
-        .filter((l) => l && !l.startsWith("#"))
-        .length;
-      console.log(`[yt-dlp] cookies loaded from ${cookiesEnvSource} (${cookieLines} cookie lines) -> ${cookiesFilePath}`);
-    } catch (e: any) {
-      console.error("[yt-dlp] Failed to write cookies file:", e);
-      cookiesFilePath = null;
-    }
-  } else {
-    console.log("[yt-dlp] no cookie env vars configured (MEDIA_COOKIES, MEDIA_COOKIES_INSTAGRAM, YOUTUBE_COOKIES)");
-  }
-}
-
-function getCookiesArgs(): string[] {
-  initializeModule();
-  return cookiesFilePath ? ["--cookies", cookiesFilePath] : [];
-}
-
-// Public counterpart for endpoints outside the YouTube pipeline (e.g.
-// /api/photos, /api/auto for IG/FB/Reddit/X/Pinterest/Threads). Instagram
-// in particular often returns 401 for anonymous extraction of newer
-// posts; passing the same cookies file (which can carry IG/FB/etc.
-// cookies alongside YouTube's) bumps success rates significantly.
-// Returns [] when no cookies env var is configured, so callers can
-// always spread it into their args list without conditional checks.
 export function getGenericCookiesArgs(): string[] {
-  initializeModule();
-  return getCookiesArgs();
+  const impl = getImpl();
+  return impl ? impl.getGenericCookiesArgs() : [];
 }
 
-// Build a Cookie header string for a given hostname from the same Netscape
-// cookies file yt-dlp uses. Needed by endpoints that bypass yt-dlp and call
-// platform APIs directly (e.g. Instagram's private /api/v1/media/.../info/
-// endpoint, which yt-dlp can't see). Returns "" if no cookies file is set
-// or no cookies match the host's domain.
-//
-// Netscape cookies.txt format (tab-separated, one cookie per line):
-//   domain  HTTPONLY_FLAG  path  secure  expires  name  value
-// Lines starting with `#` are comments, except `#HttpOnly_` which prefixes
-// HttpOnly cookies. Domain matching: a cookie with domain `.foo.com` is
-// sent for any subdomain of foo.com; an exact-match cookie (no leading dot)
-// only matches that exact host. We replicate that here.
 export function getCookieHeader(hostname: string): string {
-  initializeModule();
-  if (!cookiesFilePath) return "";
-  let raw = "";
-  try {
-    const { readFileSync } = require("fs");
-    raw = readFileSync(cookiesFilePath, "utf-8");
-  } catch { return ""; }
-  const host = hostname.toLowerCase();
-  const pairs: string[] = [];
-  for (const rawLine of raw.split(/\r?\n/)) {
-    let line = rawLine;
-    if (!line) continue;
-    if (line.startsWith("#HttpOnly_")) line = line.slice("#HttpOnly_".length);
-    if (line.startsWith("#")) continue;
-    const cols = line.split("\t");
-    if (cols.length < 7) continue;
-    const [domainRaw, , , , , name, value] = cols;
-    const domain = domainRaw.toLowerCase();
-    const isWild = domain.startsWith(".");
-    const bare = isWild ? domain.slice(1) : domain;
-    const match = isWild
-      ? host === bare || host.endsWith("." + bare)
-      : host === bare;
-    if (!match) continue;
-    if (!name) continue;
-    pairs.push(`${name}=${value ?? ""}`);
-  }
-  return pairs.join("; ");
+  const impl = getImpl();
+  return impl ? impl.getCookieHeader(hostname) : "";
 }
 
-// Pick a random proxy per request to spread load and avoid bans.
-// Credentials are stripped from any logged output to prevent leakage.
 export function getProxyArgs(): string[] {
-  const proxyList = getProxyList();
-  if (proxyList.length === 0) return [];
-  const proxy = proxyList[Math.floor(Math.random() * proxyList.length)];
-  return ["--proxy", proxy];
+  const impl = getImpl();
+  return impl ? impl.getProxyArgs() : [];
 }
 
 export function getSafeProxyListForLogging(): string[] {
-  const proxyList = getProxyList();
-  return proxyList.map((p) => p.replace(/\/\/([^:]+):([^@]+)@/, "//$1:***@"));
-}
-
-// In-memory cache for video info (5 min TTL)
-type CacheEntry = { data: VideoInfo; expires: number };
-const infoCache = new Map<string, CacheEntry>();
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
-const MAX_CACHE_SIZE = 200;
-
-export interface VideoInfo {
-  title?: string;
-  fulltitle?: string;
-  extractor?: string;
-  extractor_key?: string;
-  formats?: Format[];
-  thumbnails?: Thumbnail[];
-  url?: string;
-  ext?: string;
-  width?: number;
-  height?: number;
-  display_url?: string;
-  video_url?: string;
-  _type?: string;
-  entries?: VideoInfo[];
-  [key: string]: unknown;
-}
-
-export interface Format {
-  url?: string;
-  ext?: string;
-  vcodec?: string;
-  acodec?: string;
-  height?: number;
-  width?: number;
-  filesize?: number;
-  abr?: number;
-  tbr?: number;
-  http_headers?: Record<string, string>;
-  [key: string]: unknown;
-}
-
-export interface Thumbnail {
-  url?: string;
-  width?: number;
-  height?: number;
-  [key: string]: unknown;
-}
-
-function cacheGet(key: string): VideoInfo | null {
-  const entry = infoCache.get(key);
-  if (!entry) return null;
-  if (Date.now() > entry.expires) {
-    infoCache.delete(key);
-    return null;
-  }
-  return entry.data;
-}
-
-function cacheSet(key: string, data: VideoInfo) {
-  // Simple LRU-ish: drop oldest if over limit
-  if (infoCache.size >= MAX_CACHE_SIZE) {
-    const firstKey = infoCache.keys().next().value;
-    if (firstKey) infoCache.delete(firstKey);
-  }
-  infoCache.set(key, { data, expires: Date.now() + CACHE_TTL_MS });
+  const impl = getImpl();
+  return impl ? impl.getSafeProxyListForLogging() : [];
 }
 
 export async function getVideoInfo(url: string): Promise<VideoInfo> {
-  if (isBuildTime) return {} as VideoInfo;
-  
-  const cached = cacheGet(url);
-  if (cached) return cached;
-
-  const execFileAsync = getExecFileAsync();
-  if (!execFileAsync) return {} as VideoInfo;
-  
-  const { stdout, stderr } = await execFileAsync("yt-dlp", [
-    url,
-    "--dump-single-json",
-    "--no-check-certificates",
-    "--no-warnings",
-    "--no-playlist",
-    "--skip-download",
-    "--no-check-formats",
-    "--socket-timeout", "30",
-    ...getGenericCookiesArgs(),
-    ...getProxyArgs(),
-  ], { timeout: 45000, maxBuffer: 10 * 1024 * 1024 });
-  if (stderr) console.error("[yt-dlp stderr]", stderr.slice(0, 500));
-
-  let data: VideoInfo;
-  try {
-    data = JSON.parse(stdout) as VideoInfo;
-  } catch (parseErr: unknown) {
-    const errMsg = parseErr instanceof Error ? parseErr.message : String(parseErr);
-    throw new Error(`yt-dlp returned non-JSON output: ${stdout.slice(0, 200)}`);
-  }
-  cacheSet(url, data);
-  return data;
+  const impl = getImpl();
+  return impl ? impl.getVideoInfo(url) : {} as VideoInfo;
 }
-
-// Pick the best matching video and/or audio format from a cached info
-// blob. Returned formats include the signed googlevideo.com `url` and
-// the `http_headers` yt-dlp would normally send. We use these to drive
-// ffmpeg directly, bypassing yt-dlp (and the proxy) for the actual byte
-// transfer.
-//
-// Selection rules mirror what we'd ask yt-dlp for via -f:
-//   video: best avc1 with height <= cap → best mp4 → best video-only
-//   audio: best m4a (AAC) → best webm/opus → any audio-only
-export type PickedFormat = {
-  url?: string;
-  http_headers?: Record<string, string>;
-  ext?: string;
-  vcodec?: string;
-  acodec?: string;
-  height?: number;
-  filesize?: number;
-  // True when this format already contains both video and audio in a single
-  // URL (YouTube's "progressive" itag 18 = 360p mp4, etc.). The muxer uses
-  // this to avoid a separate audio -i input and just copy both streams.
-  combined?: boolean;
-};
 
 export function pickFormats(
   info: VideoInfo,
   heightCap: number | null,
   audioOnly: boolean,
 ): { video: PickedFormat | null; audio: PickedFormat | null } {
-  const all = (info?.formats || []) as Format[];
-  if (!Array.isArray(all) || all.length === 0) {
-    return { video: null, audio: null };
-  }
-
-  // ---- audio pick ---------------------------------------------------------
-  const audioCandidates = all.filter(
-    (f) => f?.url && f.acodec && f.acodec !== "none" && (!f.vcodec || f.vcodec === "none"),
-  );
-  const scoreAudio = (f: Format) => {
-    let s = 0;
-    if (f.ext === "m4a") s += 1000;
-    if (f.acodec?.startsWith("mp4a")) s += 500;
-    s += f.abr || 0;
-    s += (f.tbr || 0) / 1000;
-    return s;
-  };
-  audioCandidates.sort((a, b) => scoreAudio(b) - scoreAudio(a));
-  const audio: PickedFormat | null = audioCandidates[0] ? {
-    url: audioCandidates[0].url,
-    http_headers: audioCandidates[0].http_headers,
-    ext: audioCandidates[0].ext,
-    vcodec: audioCandidates[0].vcodec,
-    acodec: audioCandidates[0].acodec,
-    height: audioCandidates[0].height,
-    filesize: audioCandidates[0].filesize,
-  } : null;
-
-  if (audioOnly) return { video: null, audio };
-
-  // ---- video pick ---------------------------------------------------------
-  const cap = heightCap ?? 1080;
-  const videoCandidates = all.filter(
-    (f) =>
-      f?.url &&
-      f.vcodec &&
-      f.vcodec !== "none" &&
-      (!f.acodec || f.acodec === "none") &&
-      f.height &&
-      f.height <= cap,
-  );
-  const scoreVideo = (f: Format) => {
-    let s = (f.height || 0) * 100;
-    if (f.vcodec?.startsWith("avc1")) s += 50_000; // strong avc1 preference
-    if (f.ext === "mp4") s += 10_000;
-    s += (f.tbr || 0);
-    return s;
-  };
-  videoCandidates.sort((a, b) => scoreVideo(b) - scoreVideo(a));
-  let video: PickedFormat | null = videoCandidates[0] ? {
-    url: videoCandidates[0].url,
-    http_headers: videoCandidates[0].http_headers,
-    ext: videoCandidates[0].ext,
-    vcodec: videoCandidates[0].vcodec,
-    acodec: videoCandidates[0].acodec,
-    height: videoCandidates[0].height,
-    filesize: videoCandidates[0].filesize,
-  } : null;
-
-  // Combined-stream fallback. When YouTube has gated us hard (cookies stale,
-  // bot-flagged IP, etc.) it sometimes returns ONLY a single progressive
-  // mp4 with audio baked in (typically itag 18, 360p). The strict pure-
-  // video filter above rejects it because acodec is present. Without this
-  // fallback the caller falls through to the 4-minute yt-dlp temp-file
-  // path. Detect it here and pass it along as a combined pick.
-  if (!video) {
-    const combined = all.find(
-      (f) =>
-        f?.url &&
-        f.vcodec && f.vcodec !== "none" &&
-        f.acodec && f.acodec !== "none" &&
-        f.height && f.height <= cap,
-    );
-    if (combined) {
-      video = {
-        url: combined.url,
-        http_headers: combined.http_headers,
-        ext: combined.ext,
-        vcodec: combined.vcodec,
-        acodec: combined.acodec,
-        height: combined.height,
-        filesize: combined.filesize,
-        combined: true,
-      };
-    }
-  }
-
-  return { video, audio };
+  const impl = getImpl();
+  return impl ? impl.pickFormats(info, heightCap, audioOnly) : { video: null, audio: null };
 }
 
 export async function getVideoInfoSkipDownload(url: string): Promise<VideoInfo> {
-  if (isBuildTime) return {} as VideoInfo;
-  
-  const cached = cacheGet(url);
-  if (cached) return cached;
-
-  const execFileAsync = getExecFileAsync();
-  if (!execFileAsync) return {} as VideoInfo;
-  
-  const { stdout } = await execFileAsync("yt-dlp", [
-    url,
-    "--dump-single-json",
-    "--no-check-certificates",
-    "--no-warnings",
-    "--no-playlist",
-    "--skip-download",
-    "--no-check-formats",
-    "--socket-timeout", "20",
-    ...getGenericCookiesArgs(),
-    ...getProxyArgs(),
-  ], { timeout: 30000, maxBuffer: 10 * 1024 * 1024 });
-
-  let data: VideoInfo;
-  try {
-    data = JSON.parse(stdout) as VideoInfo;
-  } catch (parseErr: unknown) {
-    const errMsg = parseErr instanceof Error ? parseErr.message : String(parseErr);
-    throw new Error(`yt-dlp returned non-JSON output: ${stdout.slice(0, 200)}`);
-  }
-  cacheSet(url, data);
-  return data;
+  const impl = getImpl();
+  return impl ? impl.getVideoInfoSkipDownload(url) : {} as VideoInfo;
 }
