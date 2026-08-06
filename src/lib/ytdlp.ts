@@ -2,8 +2,13 @@
 let _initialized = false;
 let cookiesFilePath: string | null = null;
 let _execFileAsync: any = null;
+let _proxyList: string[] | null = null;
+
+// Check if we're in a build environment - if so, skip all Node.js operations
+const isBuildTime = process.env.NEXT_PHASE === "phase-production-build" || typeof window !== "undefined";
 
 function getExecFileAsync() {
+  if (isBuildTime) return null;
   if (!_execFileAsync) {
     const { execFile } = require("child_process");
     const { promisify } = require("util");
@@ -12,15 +17,41 @@ function getExecFileAsync() {
   return _execFileAsync;
 }
 
+function getProxyList(): string[] {
+  if (_proxyList !== null) return _proxyList;
+  if (isBuildTime) {
+    _proxyList = [];
+    return _proxyList;
+  }
+  
+  if (process.env.YOUTUBE_PROXIES) {
+    _proxyList = process.env.YOUTUBE_PROXIES
+      .split(/[\r\n,]+/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        if (line.startsWith("http://") || line.startsWith("https://")) return line;
+        const parts = line.split(":");
+        if (parts.length === 4) {
+          const [host, port, user, pass] = parts;
+          return `http://${user}:${pass}@${host}:${port}`;
+        }
+        if (line.includes("@")) return `http://${line}`;
+        return `http://${line}`;
+      });
+  } else {
+    _proxyList = [];
+  }
+  return _proxyList;
+}
+
 // Initialize module at runtime (not during Next.js build)
 function initializeModule() {
   if (_initialized) return;
   _initialized = true;
 
-  // Skip during Next.js build - check multiple possible build indicators
-  if (typeof window !== "undefined") return; // Client-side
-  if (process.env.NEXT_PHASE === "phase-production-build") return; // Next.js build
-  if (process.env.NODE_ENV === "test") return; // Test environment
+  // Skip during Next.js build
+  if (isBuildTime) return;
 
   // Dynamic import Node.js modules only at runtime
   const { execFile } = require("child_process");
@@ -121,41 +152,17 @@ export function getCookieHeader(hostname: string): string {
   return pairs.join("; ");
 }
 
-// Parse YOUTUBE_PROXIES env var into a list of proxy URLs
-// Accepts these formats (one per line):
-//   host:port:user:pass         (Webshare default download format)
-//   user:pass@host:port
-//   http://user:pass@host:port
-let proxyList: string[] = [];
-if (process.env.YOUTUBE_PROXIES) {
-  proxyList = process.env.YOUTUBE_PROXIES
-    .split(/[\r\n,]+/)
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => {
-      if (line.startsWith("http://") || line.startsWith("https://")) return line;
-      // host:port:user:pass -> http://user:pass@host:port
-      const parts = line.split(":");
-      if (parts.length === 4) {
-        const [host, port, user, pass] = parts;
-        return `http://${user}:${pass}@${host}:${port}`;
-      }
-      // user:pass@host:port -> http://user:pass@host:port
-      if (line.includes("@")) return `http://${line}`;
-      // host:port (no auth) -> http://host:port
-      return `http://${line}`;
-    });
-}
-
 // Pick a random proxy per request to spread load and avoid bans.
 // Credentials are stripped from any logged output to prevent leakage.
 export function getProxyArgs(): string[] {
+  const proxyList = getProxyList();
   if (proxyList.length === 0) return [];
   const proxy = proxyList[Math.floor(Math.random() * proxyList.length)];
   return ["--proxy", proxy];
 }
 
 export function getSafeProxyListForLogging(): string[] {
+  const proxyList = getProxyList();
   return proxyList.map((p) => p.replace(/\/\/([^:]+):([^@]+)@/, "//$1:***@"));
 }
 
@@ -224,10 +231,14 @@ function cacheSet(key: string, data: VideoInfo) {
 }
 
 export async function getVideoInfo(url: string): Promise<VideoInfo> {
+  if (isBuildTime) return {} as VideoInfo;
+  
   const cached = cacheGet(url);
   if (cached) return cached;
 
   const execFileAsync = getExecFileAsync();
+  if (!execFileAsync) return {} as VideoInfo;
+  
   const { stdout, stderr } = await execFileAsync("yt-dlp", [
     url,
     "--dump-single-json",
@@ -372,10 +383,14 @@ export function pickFormats(
 }
 
 export async function getVideoInfoSkipDownload(url: string): Promise<VideoInfo> {
+  if (isBuildTime) return {} as VideoInfo;
+  
   const cached = cacheGet(url);
   if (cached) return cached;
 
   const execFileAsync = getExecFileAsync();
+  if (!execFileAsync) return {} as VideoInfo;
+  
   const { stdout } = await execFileAsync("yt-dlp", [
     url,
     "--dump-single-json",
