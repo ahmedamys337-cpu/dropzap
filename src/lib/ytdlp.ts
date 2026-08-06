@@ -1,27 +1,35 @@
-import { execFile } from "child_process";
-import { promisify } from "util";
-import { writeFileSync, readFileSync } from "fs";
-import { join } from "path";
-import { tmpdir } from "os";
-
-const execFileAsync = promisify(execFile);
-
 // Lazy initialization state
 let _initialized = false;
 let cookiesFilePath: string | null = null;
+let _execFileAsync: any = null;
+
+function getExecFileAsync() {
+  if (!_execFileAsync) {
+    const { execFile } = require("child_process");
+    const { promisify } = require("util");
+    _execFileAsync = promisify(execFile);
+  }
+  return _execFileAsync;
+}
 
 // Initialize module at runtime (not during Next.js build)
 function initializeModule() {
   if (_initialized) return;
   _initialized = true;
 
-  // Skip during Next.js build
-  if (process.env.NEXT_PHASE === "phase-production-build") {
-    return;
-  }
+  // Skip during Next.js build - check multiple possible build indicators
+  if (typeof window !== "undefined") return; // Client-side
+  if (process.env.NEXT_PHASE === "phase-production-build") return; // Next.js build
+  if (process.env.NODE_ENV === "test") return; // Test environment
+
+  // Dynamic import Node.js modules only at runtime
+  const { execFile } = require("child_process");
+  const { writeFileSync } = require("fs");
+  const { join } = require("path");
+  const { tmpdir } = require("os");
 
   // Log yt-dlp version on startup
-  execFile("yt-dlp", ["--version"], (err) => {
+  execFile("yt-dlp", ["--version"], (err: any) => {
     if (err) console.error("[yt-dlp] version check failed:", err.message);
   });
 
@@ -44,7 +52,7 @@ function initializeModule() {
         .filter((l) => l && !l.startsWith("#"))
         .length;
       console.log(`[yt-dlp] cookies loaded from ${cookiesEnvSource} (${cookieLines} cookie lines) -> ${cookiesFilePath}`);
-    } catch (e) {
+    } catch (e: any) {
       console.error("[yt-dlp] Failed to write cookies file:", e);
       cookiesFilePath = null;
     }
@@ -86,7 +94,10 @@ export function getCookieHeader(hostname: string): string {
   initializeModule();
   if (!cookiesFilePath) return "";
   let raw = "";
-  try { raw = readFileSync(cookiesFilePath, "utf-8"); } catch { return ""; }
+  try {
+    const { readFileSync } = require("fs");
+    raw = readFileSync(cookiesFilePath, "utf-8");
+  } catch { return ""; }
   const host = hostname.toLowerCase();
   const pairs: string[] = [];
   for (const rawLine of raw.split(/\r?\n/)) {
@@ -216,6 +227,7 @@ export async function getVideoInfo(url: string): Promise<VideoInfo> {
   const cached = cacheGet(url);
   if (cached) return cached;
 
+  const execFileAsync = getExecFileAsync();
   const { stdout, stderr } = await execFileAsync("yt-dlp", [
     url,
     "--dump-single-json",
@@ -363,6 +375,7 @@ export async function getVideoInfoSkipDownload(url: string): Promise<VideoInfo> 
   const cached = cacheGet(url);
   if (cached) return cached;
 
+  const execFileAsync = getExecFileAsync();
   const { stdout } = await execFileAsync("yt-dlp", [
     url,
     "--dump-single-json",
