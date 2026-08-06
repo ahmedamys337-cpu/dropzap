@@ -159,7 +159,7 @@ const infoCache = new Map<string, CacheEntry>();
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 const MAX_CACHE_SIZE = 200;
 
-interface VideoInfo {
+export interface VideoInfo {
   title?: string;
   fulltitle?: string;
   extractor?: string;
@@ -177,7 +177,7 @@ interface VideoInfo {
   [key: string]: unknown;
 }
 
-interface Format {
+export interface Format {
   url?: string;
   ext?: string;
   vcodec?: string;
@@ -191,7 +191,7 @@ interface Format {
   [key: string]: unknown;
 }
 
-interface Thumbnail {
+export interface Thumbnail {
   url?: string;
   width?: number;
   height?: number;
