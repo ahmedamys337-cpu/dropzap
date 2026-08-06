@@ -22,12 +22,18 @@ async function fetchYtdlpThumbnail(url: string): Promise<InstagramMedia> {
       setTimeout(() => reject(new Error("yt-dlp timeout")), 8000)
     ),
   ]);
+  
+  // Handle empty object returned during build time
+  if (!info || Object.keys(info).length === 0) {
+    throw new Error("No video info available (build mode or yt-dlp error)");
+  }
+  
   const thumbnail = info.thumbnail || info.thumbnails?.[0]?.url;
-  if (!thumbnail) {
+  if (!thumbnail || typeof thumbnail !== "string") {
     throw new Error("No thumbnail found via yt-dlp");
   }
   return {
-    thumbnail,
+    thumbnail: thumbnail as string,
     title: info.title || "Instagram post",
     width: info.width,
     height: info.height,

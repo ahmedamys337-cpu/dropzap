@@ -4,6 +4,7 @@ const nextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
   compress: true,
+  serverExternalPackages: ['archiver'],
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'i.ytimg.com' },
