@@ -1,9 +1,5 @@
-import { spawn, type ChildProcess } from "child_process";
-import { tmpdir } from "os";
-import { join, dirname } from "path";
-import { unlink, readdir } from "fs/promises";
-import { randomUUID } from "crypto";
-import { existsSync } from "fs";
+// Check if we're in a build environment
+const isBuildTime = typeof window !== "undefined" || process.env.NEXT_PHASE === "phase-production-build";
 
 export interface DownloadJob {
   id: string;
@@ -15,28 +11,45 @@ export interface DownloadJob {
   fileSize: string;
   filePath: string;
   error?: string;
-  process?: ChildProcess;
+  process?: any;
   createdAt: number;
 }
 
-const jobs = new Map<string, DownloadJob>();
+let jobs: Map<string, DownloadJob> | null = null;
+let cleanupInterval: NodeJS.Timeout | null = null;
 
-// Clean up old jobs every 10 minutes
-const cleanupInterval = setInterval(() => {
-  const now = Date.now();
-  for (const [id, job] of jobs) {
-    if (now - job.createdAt > 30 * 60 * 1000) {
-      if (job.filePath && existsSync(job.filePath)) {
-        unlink(job.filePath).catch(() => {});
-      }
-      jobs.delete(id);
-    }
+function getJobs(): Map<string, DownloadJob> {
+  if (jobs) return jobs;
+  if (isBuildTime) {
+    jobs = new Map();
+    return jobs;
   }
-}, 10 * 60 * 1000);
-cleanupInterval.unref();
+  jobs = new Map();
+  
+  // Clean up old jobs every 10 minutes
+  if (!cleanupInterval) {
+    const { existsSync } = require("fs");
+    const { unlink } = require("fs/promises");
+    const jobsRef = jobs; // Capture reference for closure
+    cleanupInterval = setInterval(() => {
+      const now = Date.now();
+      for (const [id, job] of jobsRef) {
+        if (now - job.createdAt > 30 * 60 * 1000) {
+          if (job.filePath && existsSync(job.filePath)) {
+            unlink(job.filePath).catch(() => {});
+          }
+          jobsRef.delete(id);
+        }
+      }
+    }, 10 * 60 * 1000);
+    cleanupInterval.unref();
+  }
+  
+  return jobs;
+}
 
 export function getJob(id: string): DownloadJob | undefined {
-  return jobs.get(id);
+  return getJobs().get(id);
 }
 
 export function startDownload(opts: {
@@ -46,6 +59,17 @@ export function startDownload(opts: {
   bitrate?: string;
   platform?: string;
 }): string {
+  if (isBuildTime) return "build-stub";
+  
+  const { randomUUID } = require("crypto");
+  const { join } = require("path");
+  const { tmpdir } = require("os");
+  const { spawn } = require("child_process");
+  const { existsSync } = require("fs");
+  const { readdir } = require("fs/promises");
+  const { dirname } = require("path");
+  const { unlink } = require("fs/promises");
+  
   const id = randomUUID().slice(0, 12);
   const ext = opts.audioOnly ? "mp3" : "mp4";
   const filePath = join(tmpdir(), `dl-${id}.${ext}`);
@@ -62,7 +86,7 @@ export function startDownload(opts: {
     createdAt: Date.now(),
   };
 
-  jobs.set(id, job);
+  getJobs().set(id, job);
 
   const args: string[] = [
     opts.url,
@@ -100,19 +124,16 @@ export function startDownload(opts: {
         const trimmed = line.trim();
         if (!trimmed) continue;
 
-        // Capture destination file from yt-dlp output
         const destMatch = trimmed.match(/\[download\] Destination:\s*(.+)/);
         if (destMatch) {
           detectedFilePath = destMatch[1].trim();
         }
 
-        // Capture merged output path
         const mergeMatch = trimmed.match(/\[Merger\] Merging formats into "(.+)"/);
         if (mergeMatch) {
           detectedFilePath = mergeMatch[1].trim();
         }
 
-        // Parse progress template output
         if (trimmed.includes("|")) {
           const parts = trimmed.split("|");
           if (parts.length >= 1) {
@@ -126,20 +147,17 @@ export function startDownload(opts: {
           if (parts.length >= 4) job.fileSize = parts[3]?.trim() || "";
         }
 
-        // Also parse default yt-dlp percentage lines like "[download]  45.2% of ..."
         const defaultPct = trimmed.match(/\[download\]\s+([\d.]+)%/);
         if (defaultPct) {
           const pct = parseFloat(defaultPct[1]);
           if (!isNaN(pct)) job.progress = Math.min(pct, 100);
         }
 
-        // Detect merging phase
         if (trimmed.includes("[Merger]") || trimmed.includes("Merging")) {
           job.status = "merging";
           job.progress = 99;
         }
 
-        // Detect extraction/conversion
         if (trimmed.includes("[ExtractAudio]") || trimmed.includes("Post-process")) {
           job.status = "merging";
           job.progress = 95;
@@ -149,29 +167,25 @@ export function startDownload(opts: {
 
     proc.stderr?.on("data", (data: Buffer) => {
       const msg = data.toString().trim();
-      // yt-dlp uses stderr for some info lines too, only capture real errors
       if (msg.includes("ERROR")) {
         job.error = msg.split("ERROR:").pop()?.trim() || msg;
       }
     });
 
-    proc.on("close", async (code) => {
+    proc.on("close", async (code: any) => {
       job.process = undefined;
       if (code === 0) {
-        // Try detected path first, then check common variations
         const candidatePaths = [
           detectedFilePath,
           filePath,
         ];
 
-        // Add common extension variations
         const base = filePath.replace(/\.[^.]+$/, "");
         for (const ext of [".mp4", ".mp3", ".mkv", ".webm", ".m4a", ".opus"]) {
           candidatePaths.push(base + ext);
           candidatePaths.push(filePath + ext);
         }
 
-        // Also scan temp dir for files with our ID
         try {
           const tempDir = dirname(filePath);
           const prefix = `dl-${id}`;
@@ -201,7 +215,7 @@ export function startDownload(opts: {
       }
     });
 
-    proc.on("error", (err) => {
+    proc.on("error", (err: any) => {
       job.process = undefined;
       job.status = "error";
       job.error = err.message;
@@ -215,11 +229,16 @@ export function startDownload(opts: {
 }
 
 export function cleanupJob(id: string) {
-  const job = jobs.get(id);
+  if (isBuildTime) return;
+  
+  const { existsSync } = require("fs");
+  const { unlink } = require("fs/promises");
+  
+  const job = getJobs().get(id);
   if (job) {
     if (job.filePath && existsSync(job.filePath)) {
       unlink(job.filePath).catch(() => {});
     }
-    jobs.delete(id);
+    getJobs().delete(id);
   }
 }
