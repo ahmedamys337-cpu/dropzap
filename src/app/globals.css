@@ -161,6 +161,20 @@ body {
    single biggest cause of jank during scroll. Replace with solid backgrounds
    (no blur) — visually nearly identical, dramatically smoother. */
 @media (max-width: 768px) {
+  /* Enable smooth scrolling with hardware acceleration */
+  html {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Reduce paint complexity by using solid backgrounds */
+  body {
+    background: hsl(222 47% 6%);
+  }
+  .light body {
+    background: hsl(220 60% 95%);
+  }
+
   .glass,
   .glass-strong {
     backdrop-filter: none;
@@ -192,6 +206,14 @@ body {
     background: rgba(255, 255, 255, 0.98);
   }
 
+  /* Static gradient on mobile - no animation */
+  .gradient-bg {
+    background: hsl(222 47% 6%);
+  }
+  .light .gradient-bg {
+    background: hsl(220 60% 95%);
+  }
+
   /* Pause the infinite gradient animation on mobile to save battery + GPU */
   .animate-gradient {
     animation: none;
@@ -216,8 +238,36 @@ body {
     box-shadow: none !important;
   }
 
+  /* Disable hover transforms on mobile */
   *:hover {
     transform: none !important;
+  }
+
+  /* Optimize touch scrolling - prevent default browser zooming */
+  * {
+    touch-action: pan-y pan-x;
+  }
+
+  /* Reduce GPU compositing by avoiding will-change except where needed */
+  * {
+    will-change: auto !important;
+  }
+
+  /* Improve scroll performance by promoting scroll containers */
+  main,
+  .scroll-container {
+    contain: layout style paint;
+  }
+
+  /* Reduce transition complexity on mobile */
+  .transition,
+  .transition-all,
+  .transition-colors,
+  .transition-transform,
+  .transition-opacity,
+  .transition-shadow {
+    transition-duration: 100ms !important;
+    transition-timing-function: ease-out !important;
   }
 }
 

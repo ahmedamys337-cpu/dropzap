@@ -27,6 +27,10 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
+  // Optimize for mobile performance
+  viewportFit: "cover",
+  // Allow user scaling for better accessibility
+  userScalable: true,
 };
 
 export const metadata: Metadata = {
