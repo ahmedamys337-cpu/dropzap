@@ -415,27 +415,9 @@ async function handleDownload(url: string): Promise<Response> {
       // Image extractor returned nothing → fall through to yt-dlp for video.
     }
 
-    // Cobalt handles X/Twitter, Reddit, and Pinterest/Threads videos more
-    // reliably than yt-dlp from a datacenter IP because Cobalt maintains its
-    // own extractors and auth. Try it first for video-capable platforms.
-    if (platform === "twitter" || platform === "reddit" || platform === "pinterest" || platform === "threads") {
-      try {
-        logger.log(`[auto:${platform}] Trying Cobalt for bandwidth-saving redirect`);
-        const cobalt = await resolveViaCobalt({ url, videoQuality: "1080" });
-        if (cobalt) {
-          logger.log(`[auto:${platform}] Cobalt succeeded, redirecting to direct URL (saves bandwidth)`);
-          const target = new URL(cobalt.url);
-          if (!target.searchParams.has("filename") && cobalt.filename) {
-            target.searchParams.set("filename", cobalt.filename);
-          }
-          return Response.redirect(target.toString(), 302);
-        } else {
-          logger.log(`[auto:${platform}] Cobalt returned null, falling through to yt-dlp`);
-        }
-      } catch (e: any) {
-        logger.warn(`[auto:${platform}] cobalt attempt failed:`, e?.message?.slice(0, 200));
-      }
-    }
+    // Cobalt disabled - all instances failing from Render's network
+    // Going directly to yt-dlp with cookies for all platforms
+    logger.log(`[auto:${platform}] Using yt-dlp with cookies (Cobalt disabled due to network issues)`);
 
     // No -f flag → yt-dlp picks best available media for whatever the post
     // is. For video posts that means muxed best-video+best-audio (yt-dlp

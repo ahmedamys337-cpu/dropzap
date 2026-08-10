@@ -146,74 +146,48 @@ export async function GET(request: NextRequest) {
     filename.replace(/[^\w\s.-]/g, "").trim() || `download.${ext}`;
 
   // =========================================================================
-  // INSTAGRAM PATH — hybrid fallback chain
+  // INSTAGRAM PATH — Instagram API primary (Cobalt disabled)
   //
-  // 1. cobalt.tools (fastest when it works; keeps the server's IP away from
-  //    Instagram's anti-bot systems).
-  // 2. Instagram's own private mobile API / public JSON / web scrape. This uses
-  //    the same extraction logic as /api/photos and often succeeds for public
-  //    posts even when yt-dlp is blocked on datacenter IPs.
-  // 3. yt-dlp with cookies (last resort).
+  // Cobalt instances are failing from Render's network, so we use Instagram's
+  // own API / public JSON / web scrape as the primary path. This uses the
+  // same extraction logic as /api/photos and often succeeds for public posts.
+  // Fallback to yt-dlp with cookies if API fails.
   //
-  // We proxy the bytes through our server so the client-side fetch()+blob flow
-  // works without CORS issues.
+  // We redirect directly to Instagram's CDN URL to save bandwidth.
   // =========================================================================
   if (isInstagram) {
-    try {
-      console.log("[stream:instagram] Trying Cobalt");
-      const igCobalt = await resolveViaCobalt({ url, audio });
-      if (igCobalt) {
-        console.log("[stream:instagram] Cobalt succeeded, redirecting to direct URL (saves bandwidth)");
-        // Redirect directly to Cobalt's URL instead of proxying through our server
-        // This saves bandwidth - the video bytes flow directly from Cobalt to user
-        return Response.redirect(igCobalt.url, 302);
-      } else {
-        console.log("[stream:instagram] Cobalt returned null, trying Instagram API");
-      }
-    } catch (e: any) {
-      console.log("[stream:instagram] Cobalt attempt threw:", e?.message?.slice(0, 200));
-    }
-
-    // Fallback 2: Instagram's own API / public JSON / web scrape.
-    // Audio-only Instagram is not a real thing, so skip this for audio requests.
+    // Audio-only Instagram is not a real thing, so skip for audio requests.
     if (!audio) {
       try {
+        console.log("[stream:instagram] Using Instagram API (Cobalt disabled due to network issues)");
         const t0 = Date.now();
         const igVideoUrl = await fetchInstagramVideoUrl(url);
         if (igVideoUrl) {
-          console.log("[stream:instagram] Instagram API succeeded, redirecting to direct URL (saves bandwidth)");
+          const elapsed = Date.now() - t0;
+          console.log(`[stream:instagram] Instagram API succeeded in ${elapsed}ms, redirecting to direct URL (saves bandwidth)`);
           // Redirect directly to Instagram's CDN URL instead of proxying through our server
           // This saves bandwidth - the video bytes flow directly from Instagram to user
           return Response.redirect(igVideoUrl, 302);
+        } else {
+          console.log("[stream:instagram] Instagram API returned null, falling through to yt-dlp");
         }
-      } catch {
-        // Fall through to yt-dlp.
+      } catch (e: any) {
+        console.log("[stream:instagram] Instagram API threw:", e?.message?.slice(0, 200));
       }
     }
   }
 
   // =========================================================================
-  // FACEBOOK PATH — cobalt.tools first
-  // Facebook video posts now require login cookies on almost every request
-  // from datacenter IPs. Cobalt maintains its own Facebook session handling,
-  // so try it before falling through to the yt-dlp temp-file path.
+  // FACEBOOK PATH — yt-dlp only (Cobalt disabled)
+  //
+  // Cobalt instances are failing from Render's network, so we go directly to
+  // yt-dlp with cookies. Facebook video posts require login cookies from
+  // datacenter IPs, so cookies are essential.
   // =========================================================================
   const isFacebook = (() => { try { return /(?:^|\.)facebook\.com$/i.test(new URL(url).hostname) || /^https?:\/\/fb\.watch/i.test(url); } catch { return false; } })();
   if (isFacebook) {
-    try {
-      const fbCobalt = await resolveViaCobalt({ url, audio, videoQuality: "1080" });
-      if (fbCobalt) {
-        console.log("[stream:facebook] Cobalt succeeded, redirecting to direct URL (saves bandwidth)");
-        // Redirect directly to Cobalt's URL instead of proxying through our server
-        // This saves bandwidth - the video bytes flow directly from Cobalt to user
-        return Response.redirect(fbCobalt.url, 302);
-      } else {
-        console.log("[stream:facebook] Cobalt returned null, falling through to yt-dlp");
-      }
-    } catch (e: any) {
-      console.log("[stream:facebook] Cobalt attempt threw:", e?.message?.slice(0, 200));
-      // Fall through to yt-dlp.
-    }
+    console.log("[stream:facebook] Using yt-dlp with cookies (Cobalt disabled due to network issues)");
+    // Fall through to unified yt-dlp path below
   }
 
   // =========================================================================
