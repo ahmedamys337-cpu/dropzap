@@ -163,24 +163,10 @@ export async function GET(request: NextRequest) {
       console.log("[stream:instagram] Trying Cobalt");
       const igCobalt = await resolveViaCobalt({ url, audio });
       if (igCobalt) {
-        console.log("[stream:instagram] Cobalt succeeded, proxying download");
-        const proxyRes = await fetch(igCobalt.url, {
-          headers: { "User-Agent": "Mozilla/5.0 (compatible; Dropzap/1.0)" },
-          signal: AbortSignal.timeout(30000),
-        });
-        if (proxyRes.ok && proxyRes.body) {
-          const ct = proxyRes.headers.get("Content-Type") || (audio ? "audio/mpeg" : "video/mp4");
-          const cl = proxyRes.headers.get("Content-Length");
-          const headers: Record<string, string> = {
-            "Content-Type": ct,
-            "Content-Disposition": contentDispositionHeader(safeName),
-            "Cache-Control": "no-store",
-          };
-          if (cl) headers["Content-Length"] = cl;
-          return new Response(proxyRes.body, { status: 200, headers });
-        } else {
-          console.log("[stream:instagram] Cobalt proxy failed:", proxyRes.status);
-        }
+        console.log("[stream:instagram] Cobalt succeeded, redirecting to direct URL (saves bandwidth)");
+        // Redirect directly to Cobalt's URL instead of proxying through our server
+        // This saves bandwidth - the video bytes flow directly from Cobalt to user
+        return Response.redirect(igCobalt.url, 302);
       } else {
         console.log("[stream:instagram] Cobalt returned null, trying Instagram API");
       }
@@ -195,25 +181,10 @@ export async function GET(request: NextRequest) {
         const t0 = Date.now();
         const igVideoUrl = await fetchInstagramVideoUrl(url);
         if (igVideoUrl) {
-          const proxyRes = await fetch(igVideoUrl, {
-            headers: {
-              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-              "Accept": "video/webm,video/mp4,video/*,*/*",
-              "Referer": "https://www.instagram.com/",
-            },
-            signal: AbortSignal.timeout(30000),
-          });
-          if (proxyRes.ok && proxyRes.body) {
-            const ct = proxyRes.headers.get("Content-Type") || "video/mp4";
-            const cl = proxyRes.headers.get("Content-Length");
-            const headers: Record<string, string> = {
-              "Content-Type": ct,
-              "Content-Disposition": contentDispositionHeader(safeName),
-              "Cache-Control": "no-store",
-            };
-            if (cl) headers["Content-Length"] = cl;
-            return new Response(proxyRes.body, { status: 200, headers });
-          }
+          console.log("[stream:instagram] Instagram API succeeded, redirecting to direct URL (saves bandwidth)");
+          // Redirect directly to Instagram's CDN URL instead of proxying through our server
+          // This saves bandwidth - the video bytes flow directly from Instagram to user
+          return Response.redirect(igVideoUrl, 302);
         }
       } catch {
         // Fall through to yt-dlp.
@@ -232,24 +203,10 @@ export async function GET(request: NextRequest) {
     try {
       const fbCobalt = await resolveViaCobalt({ url, audio, videoQuality: "1080" });
       if (fbCobalt) {
-        console.log("[stream:facebook] Cobalt succeeded, proxying download");
-        const proxyRes = await fetch(fbCobalt.url, {
-          headers: { "User-Agent": "Mozilla/5.0 (compatible; Dropzap/1.0)" },
-          signal: AbortSignal.timeout(30000),
-        });
-        if (proxyRes.ok && proxyRes.body) {
-          const ct = proxyRes.headers.get("Content-Type") || (audio ? "audio/mpeg" : "video/mp4");
-          const cl = proxyRes.headers.get("Content-Length");
-          const headers: Record<string, string> = {
-            "Content-Type": ct,
-            "Content-Disposition": contentDispositionHeader(safeName),
-            "Cache-Control": "no-store",
-          };
-          if (cl) headers["Content-Length"] = cl;
-          return new Response(proxyRes.body, { status: 200, headers });
-        } else {
-          console.log("[stream:facebook] Cobalt proxy failed:", proxyRes.status);
-        }
+        console.log("[stream:facebook] Cobalt succeeded, redirecting to direct URL (saves bandwidth)");
+        // Redirect directly to Cobalt's URL instead of proxying through our server
+        // This saves bandwidth - the video bytes flow directly from Cobalt to user
+        return Response.redirect(fbCobalt.url, 302);
       } else {
         console.log("[stream:facebook] Cobalt returned null, falling through to yt-dlp");
       }

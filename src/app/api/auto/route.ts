@@ -420,13 +420,17 @@ async function handleDownload(url: string): Promise<Response> {
     // own extractors and auth. Try it first for video-capable platforms.
     if (platform === "twitter" || platform === "reddit" || platform === "pinterest" || platform === "threads") {
       try {
+        logger.log(`[auto:${platform}] Trying Cobalt for bandwidth-saving redirect`);
         const cobalt = await resolveViaCobalt({ url, videoQuality: "1080" });
         if (cobalt) {
+          logger.log(`[auto:${platform}] Cobalt succeeded, redirecting to direct URL (saves bandwidth)`);
           const target = new URL(cobalt.url);
           if (!target.searchParams.has("filename") && cobalt.filename) {
             target.searchParams.set("filename", cobalt.filename);
           }
           return Response.redirect(target.toString(), 302);
+        } else {
+          logger.log(`[auto:${platform}] Cobalt returned null, falling through to yt-dlp`);
         }
       } catch (e: any) {
         logger.warn(`[auto:${platform}] cobalt attempt failed:`, e?.message?.slice(0, 200));
