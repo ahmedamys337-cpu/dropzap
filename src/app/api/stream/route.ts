@@ -234,6 +234,15 @@ export async function GET(request: NextRequest) {
       "-f", fmtArg,
     ];
 
+    // Instagram-specific optimizations
+    if (isInstagram) {
+      console.log("[stream:instagram] Using optimized yt-dlp settings for Instagram");
+      args.push(
+        "--extractor-args", "instagram:player=web",
+        "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+      );
+    }
+
     if (audio) {
       args.push(
         "--extract-audio",
