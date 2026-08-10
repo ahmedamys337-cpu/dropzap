@@ -152,6 +152,7 @@ export default function SimpleDownloader({
   };
 
   const start = () => {
+    console.log(`[SimpleDownloader] start() called for ${platform}, url:`, url.slice(0, 60));
     if (!url || !validate(url)) {
       toast({
         title: "Invalid URL",
@@ -168,6 +169,7 @@ export default function SimpleDownloader({
     params.set("name", defaultName);
     const streamUrl = `${basePath}?${params.toString()}`;
 
+    console.log(`[SimpleDownloader] Starting download to:`, streamUrl.slice(0, 80));
     setErrorMsg(null);
     setProgress(null);
     setPhase("downloading");
@@ -179,6 +181,7 @@ export default function SimpleDownloader({
     // Use downloadWithFallback to show progress while server prepares the file
     downloadWithFallback(streamUrl, (p) => setProgress(p), controller.signal)
       .then((result) => {
+        console.log(`[SimpleDownloader] Download completed for ${platform}`);
         if ("direct" in result) {
           // Large file: browser is handling the native download.
           setPhase("downloaded");
@@ -190,6 +193,7 @@ export default function SimpleDownloader({
         setPhase("downloaded");
       })
       .catch((err: any) => {
+        console.log(`[SimpleDownloader] Download failed for ${platform}:`, err?.message);
         if (err?.name === "AbortError") return;
         const msg = err?.message || "Network error. Check your connection and try again.";
         setErrorMsg(msg);

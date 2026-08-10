@@ -123,18 +123,22 @@ export async function downloadWithFallback(
   onProgress: (p: DownloadProgress) => void,
   signal?: AbortSignal,
 ): Promise<{ blob: Blob; response: Response } | { direct: true }> {
+  console.log("[downloadWithFallback] Starting download for:", url.slice(0, 60));
   try {
     const headRes = await fetch(url, { method: "HEAD", signal });
     if (headRes.ok) {
       const cl = headRes.headers.get("content-length");
       if (cl && parseInt(cl, 10) > LARGE_FILE_BYTES) {
+        console.log("[downloadWithFallback] Large file, using native download");
         triggerNativeDownload(url);
         return { direct: true };
       }
     }
-  } catch {
+  } catch (e) {
+    console.log("[downloadWithFallback] HEAD request failed:", e);
     // HEAD not supported or failed; continue with normal fetch.
   }
+  console.log("[downloadWithFallback] Proceeding with fetchWithProgress");
   return fetchWithProgress(url, onProgress, signal);
 }
 
