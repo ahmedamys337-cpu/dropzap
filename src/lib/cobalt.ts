@@ -31,9 +31,12 @@ export type CobaltResponse = CobaltSuccess | CobaltError | { status: string };
 // curated default ships so the integration works out of the box; ops
 // can override via env to point at a self-hosted instance.
 const DEFAULT_INSTANCES = [
-  "https://api.cobalt.tools",
   "https://cobalt-api.kwiatekmiki.com",
   "https://co.eepy.today",
+  "https://cobalt-api.nic09.workers.dev",
+  "https://cobalt-api.nic09.pages.dev",
+  "https://cobalt-api.wulf.mk",
+  "https://cobalt-api.owo.wtf",
 ];
 
 function getInstances(): string[] {
