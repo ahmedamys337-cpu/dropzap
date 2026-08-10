@@ -243,6 +243,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Facebook-specific optimizations
+    if (isFacebook) {
+      console.log("[stream:facebook] Using optimized yt-dlp settings for Facebook");
+      args.push(
+        "--extractor-args", "facebook:player=web",
+        "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+      );
+    }
+
     if (audio) {
       args.push(
         "--extract-audio",
@@ -256,7 +265,11 @@ export async function GET(request: NextRequest) {
       args.push("--merge-output-format", "mp4");
     }
 
+    const ytDlpStart = Date.now();
+    console.log(`[stream] Starting yt-dlp execution for ${isInstagram ? 'Instagram' : isFacebook ? 'Facebook' : 'generic'}`);
     let { code, stderr } = await runYtDlp(args);
+    const ytDlpElapsed = Date.now() - ytDlpStart;
+    console.log(`[stream] yt-dlp completed in ${ytDlpElapsed}ms, code=${code}`);
 
     // Instagram: if cookies are configured but the request fails, try once
     // without them. Stale or region-locked cookies can cause 400 Bad Request
