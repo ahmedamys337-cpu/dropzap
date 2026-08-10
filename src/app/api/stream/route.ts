@@ -16,7 +16,7 @@ import { withConcurrencyLimit } from "@/lib/concurrency";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 // Allowed platforms for security / abuse prevention.
 const ALLOWED_HOSTS = new Set([
