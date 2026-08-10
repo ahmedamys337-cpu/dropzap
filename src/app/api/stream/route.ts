@@ -329,6 +329,8 @@ export async function GET(request: NextRequest) {
     }
 
     const fileSize = stats.size;
+    const streamStart = Date.now();
+    console.log(`[stream] Starting file stream: size=${fileSize} bytes, elapsed=${Date.now() - t0}ms`);
     const nodeStream = createReadStream(finalPath);
     const webStream = new ReadableStream({
       start(controller) {
@@ -336,6 +338,8 @@ export async function GET(request: NextRequest) {
           try { controller.enqueue(new Uint8Array(chunk as Buffer)); } catch {}
         });
         nodeStream.on("end", () => {
+          const streamElapsed = Date.now() - streamStart;
+          console.log(`[stream] File streaming completed in ${streamElapsed}ms, total elapsed=${Date.now() - t0}ms`);
           try { controller.close(); } catch {}
           unlink(finalPath).catch(() => {});
         });
