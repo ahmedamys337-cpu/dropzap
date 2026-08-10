@@ -228,9 +228,9 @@ export async function GET(request: NextRequest) {
       "--no-playlist",
       "--no-part",
       "--socket-timeout", "20",
-      // Download 16 DASH fragments in parallel to speed up platforms that
+      // Download 32 DASH fragments in parallel to speed up platforms that
       // deliver video and audio as fragmented streams.
-      "--concurrent-fragments", "16",
+      "--concurrent-fragments", "32",
       "-f", fmtArg,
     ];
 
