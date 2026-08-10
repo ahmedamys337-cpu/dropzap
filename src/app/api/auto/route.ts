@@ -396,15 +396,21 @@ async function handleDownload(url: string): Promise<Response> {
     // pins. For Pinterest we try the image extractor FIRST so image pins get
     // their original JPG/PNG, then fall back to yt-dlp for video-only pins.
     if (platform === "pinterest") {
+      logger.log(`[auto:pinterest] Attempting image extraction`);
       const imageUrls = await extractPinterestImageUrls(url);
       if (imageUrls && imageUrls.length > 0) {
+        logger.log(`[auto:pinterest] Image extraction found ${imageUrls.length} image(s)`);
         const downloaded = await downloadImagesToWorkDir(imageUrls, workDir, platform);
         if (downloaded.length === 1) {
+          logger.log(`[auto:pinterest] Streaming single image`);
           return streamSingle(join(workDir, downloaded[0]), downloaded[0], platform, "image", cleanup);
         }
         if (downloaded.length > 1) {
+          logger.log(`[auto:pinterest] Streaming ${downloaded.length} images as ZIP`);
           return streamZip(workDir, downloaded, platform, "album", cleanup);
         }
+      } else {
+        logger.log(`[auto:pinterest] Image extraction returned null/empty, falling through to yt-dlp for video`);
       }
       // Image extractor returned nothing → fall through to yt-dlp for video.
     }

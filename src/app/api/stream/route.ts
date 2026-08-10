@@ -160,8 +160,10 @@ export async function GET(request: NextRequest) {
   // =========================================================================
   if (isInstagram) {
     try {
+      console.log("[stream:instagram] Trying Cobalt");
       const igCobalt = await resolveViaCobalt({ url, audio });
       if (igCobalt) {
+        console.log("[stream:instagram] Cobalt succeeded, proxying download");
         const proxyRes = await fetch(igCobalt.url, {
           headers: { "User-Agent": "Mozilla/5.0 (compatible; Dropzap/1.0)" },
           signal: AbortSignal.timeout(30000),
@@ -176,10 +178,14 @@ export async function GET(request: NextRequest) {
           };
           if (cl) headers["Content-Length"] = cl;
           return new Response(proxyRes.body, { status: 200, headers });
+        } else {
+          console.log("[stream:instagram] Cobalt proxy failed:", proxyRes.status);
         }
+      } else {
+        console.log("[stream:instagram] Cobalt returned null, trying Instagram API");
       }
     } catch (e: any) {
-      // Silently fall through; no need to log in production.
+      console.log("[stream:instagram] Cobalt attempt threw:", e?.message?.slice(0, 200));
     }
 
     // Fallback 2: Instagram's own API / public JSON / web scrape.
@@ -226,6 +232,7 @@ export async function GET(request: NextRequest) {
     try {
       const fbCobalt = await resolveViaCobalt({ url, audio, videoQuality: "1080" });
       if (fbCobalt) {
+        console.log("[stream:facebook] Cobalt succeeded, proxying download");
         const proxyRes = await fetch(fbCobalt.url, {
           headers: { "User-Agent": "Mozilla/5.0 (compatible; Dropzap/1.0)" },
           signal: AbortSignal.timeout(30000),
@@ -240,9 +247,14 @@ export async function GET(request: NextRequest) {
           };
           if (cl) headers["Content-Length"] = cl;
           return new Response(proxyRes.body, { status: 200, headers });
+        } else {
+          console.log("[stream:facebook] Cobalt proxy failed:", proxyRes.status);
         }
+      } else {
+        console.log("[stream:facebook] Cobalt returned null, falling through to yt-dlp");
       }
-    } catch {
+    } catch (e: any) {
+      console.log("[stream:facebook] Cobalt attempt threw:", e?.message?.slice(0, 200));
       // Fall through to yt-dlp.
     }
   }
