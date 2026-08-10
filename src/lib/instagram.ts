@@ -352,9 +352,10 @@ async function fetchInstagramPublicJson(
   cookieHeader: string,
 ): Promise<{ images: string[]; video: string | null } | null> {
   const url = `https://www.instagram.com/p/${shortcode}/?__a=1&__d=dis`;
+  const t0 = Date.now();
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    const timeout = setTimeout(() => controller.abort(), 5000); // Reduced to 5 second timeout
     const res = await fetch(url, {
       headers: {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -367,14 +368,17 @@ async function fetchInstagramPublicJson(
       signal: controller.signal,
     });
     clearTimeout(timeout);
-    if (!res.ok) return null;
+    if (!res.ok) {
+      console.log(`[instagram] public JSON returned ${res.status} in ${Date.now() - t0}ms`);
+      return null;
+    }
     const text = await res.text();
     let json: any = null;
     try { json = JSON.parse(text); } catch { return null; }
 
     const media = json?.graphql?.shortcode_media || json?.media || json?.items?.[0];
     if (!media) {
-      console.warn(`[instagram] public JSON no media field. Keys: ${json ? Object.keys(json).join(",") : "null"}`);
+      console.warn(`[instagram] public JSON no media field in ${Date.now() - t0}ms. Keys: ${json ? Object.keys(json).join(",") : "null"}`);
       return null;
     }
 
@@ -392,9 +396,10 @@ async function fetchInstagramPublicJson(
     if (images.length === 0 && media?.display_url) images.push(media.display_url);
     if (!video && media?.video_url) video = media.video_url;
 
+    console.log(`[instagram] public JSON succeeded in ${Date.now() - t0}ms`);
     return images.length > 0 || video ? { images, video } : null;
   } catch (e: any) {
-    console.warn(`[instagram] public JSON fetch threw:`, e?.message);
+    console.log(`[instagram] public JSON threw in ${Date.now() - t0}ms:`, e?.message);
     return null;
   }
 }
@@ -404,6 +409,7 @@ async function fetchInstagramPublicJson(
 async function fetchInstagramPrivateMedia(
   postUrl: string,
 ): Promise<{ item: any; cookieHeader: string } | null> {
+  const t0 = Date.now();
   const shortcode = extractIgShortcode(postUrl);
   if (!shortcode) return null;
   const mediaId = shortcodeToMediaId(shortcode);
@@ -427,22 +433,27 @@ async function fetchInstagramPrivateMedia(
   for (const apiUrl of apiUrls) {
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 10000); // 10 second timeout per API endpoint
+      const timeout = setTimeout(() => controller.abort(), 5000); // Reduced to 5 second timeout per API endpoint
       const res = await fetch(apiUrl, { headers, redirect: "follow", signal: controller.signal });
       clearTimeout(timeout);
-      if (!res.ok) continue;
+      if (!res.ok) {
+        console.log(`[instagram] ${apiUrl} returned ${res.status} in ${Date.now() - t0}ms`);
+        continue;
+      }
       let text = "";
       try { text = await res.text(); } catch { continue; }
       let data: any = null;
       try { data = JSON.parse(text); } catch { data = null; }
       if (data?.items?.length > 0) {
+        console.log(`[instagram] private API succeeded via ${apiUrl} in ${Date.now() - t0}ms`);
         return { item: data.items[0], cookieHeader };
       }
-      console.warn(`[instagram] ${apiUrl} returned OK but items empty/missing. Keys: ${data ? Object.keys(data).join(",") : "null"}, status: ${data?.status}, body[:200]: ${text.slice(0, 200)}`);
+      console.warn(`[instagram] ${apiUrl} returned OK but items empty/missing in ${Date.now() - t0}ms. Keys: ${data ? Object.keys(data).join(",") : "null"}, status: ${data?.status}`);
     } catch (e: any) {
-      console.warn(`[instagram] fetch ${apiUrl} threw:`, e?.message);
+      console.log(`[instagram] fetch ${apiUrl} threw in ${Date.now() - t0}ms:`, e?.message);
     }
   }
+  console.log(`[instagram] private API failed completely in ${Date.now() - t0}ms`);
   return null;
 }
 
