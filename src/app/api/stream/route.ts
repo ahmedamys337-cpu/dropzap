@@ -84,9 +84,13 @@ function runYtDlp(args: string[], timeoutMs = 60000): Promise<{ code: number; st
 }
 
 export async function GET(request: NextRequest) {
+  const t0 = Date.now();
+  console.log(`[stream] REQUEST STARTED at ${new Date().toISOString()}`);
+
   const ip = getClientIp(request);
   const limit = rateLimit(ip);
   if (!limit.success) {
+    console.log(`[stream] Rate limited for IP ${ip}`);
     return new Response(`Rate limited. Try again in ${limit.retryAfter}s`, { status: 429 });
   }
 
@@ -96,7 +100,10 @@ export async function GET(request: NextRequest) {
   const filename = request.nextUrl.searchParams.get("name") || "download.mp4";
   const audio = request.nextUrl.searchParams.get("audio") === "1";
 
+  console.log(`[stream] Parsed params: url=${url?.slice(0, 50)}..., audio=${audio}, height=${heightParam}, format=${format}, elapsed=${Date.now() - t0}ms`);
+
   if (!url) {
+    console.log(`[stream] Missing URL, returning 400`);
     return new Response("URL required", { status: 400 });
   }
 

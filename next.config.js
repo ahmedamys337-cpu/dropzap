@@ -23,10 +23,9 @@ const nextConfig = {
   // console.warn for actual error reporting, removes debug logs).
   // This shaves ~3-8KB off the client bundle and prevents accidental
   // leakage of internal state in user dev-tools.
+  // TEMPORARILY DISABLED to debug Instagram download speed issues
   compiler: {
-    removeConsole: process.env.NODE_ENV === "production"
-      ? { exclude: ["error", "warn"] }
-      : false,
+    removeConsole: false,
   },
   // Permanent redirects for removed programmatic SEO pages.
   //
