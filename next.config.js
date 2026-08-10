@@ -64,6 +64,21 @@ const nextConfig = {
         destination: '/blog/how-to-download-instagram-reels-on-iphone',
         permanent: true,
       },
+      // Retired device-specific programmatic pages (consolidated into main platform pages)
+      { source: '/tiktok-downloader/iphone', destination: '/tiktok-downloader', permanent: true },
+      { source: '/tiktok-downloader/android', destination: '/tiktok-downloader', permanent: true },
+      { source: '/instagram-downloader/iphone', destination: '/instagram-downloader', permanent: true },
+      { source: '/instagram-downloader/android', destination: '/instagram-downloader', permanent: true },
+      { source: '/facebook-downloader/iphone', destination: '/facebook-video-downloader', permanent: true },
+      { source: '/facebook-downloader/android', destination: '/facebook-video-downloader', permanent: true },
+      // Retired year-tagged variants
+      { source: '/tiktok-downloader-2026', destination: '/tiktok-downloader', permanent: true },
+      { source: '/instagram-downloader-2026', destination: '/instagram-downloader', permanent: true },
+      { source: '/facebook-downloader-2026', destination: '/facebook-video-downloader', permanent: true },
+      // Retired generic "free X downloader" variants
+      { source: '/free-instagram-downloader', destination: '/instagram-downloader', permanent: true },
+      { source: '/free-tiktok-downloader', destination: '/tiktok-downloader', permanent: true },
+      { source: '/free-facebook-downloader', destination: '/facebook-video-downloader', permanent: true },
     ];
   },
   async headers() {
